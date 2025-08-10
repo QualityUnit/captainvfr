@@ -65,8 +65,7 @@ class AirportMarker extends StatelessWidget {
       // Set size based on longest runway
       if (maxLengthM > 0 && metersPerPixel > 0) {
         // Calculate pixel size for runway visualization
-        // Add small buffer (1.05) for visual clarity
-        final calculatedSize = (maxLengthM / metersPerPixel) * 1.05;
+        final calculatedSize = (maxLengthM / metersPerPixel);
         
         // Ensure the size is valid (not NaN or infinite)
         if (calculatedSize.isFinite && calculatedSize > 0) {
@@ -323,7 +322,7 @@ class AirportMarkersLayer extends StatelessWidget {
         
         if (maxLengthM > 0) {
           // Use actual runway length with small buffer
-          final calculatedBounds = (maxLengthM / metersPerPixel) * 1.05;
+          final calculatedBounds = (maxLengthM / metersPerPixel);
           // Limit runway bounds at lower zoom levels to prevent oversized visualizations
           final constrainedBounds = calculatedBounds;
           markerBounds = math.max(airportMarkerSize, constrainedBounds);

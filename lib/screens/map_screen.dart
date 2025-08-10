@@ -4420,7 +4420,7 @@ class MapScreenState extends State<MapScreen>
         Text(
           l10n.navigation,
           style: const TextStyle(
-            color: Colors.green,
+            color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -4642,7 +4642,7 @@ class MapScreenState extends State<MapScreen>
             Icon(
               icon,
               size: 20,
-              color: Colors.green,
+              color: Colors.white,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -4653,7 +4653,7 @@ class MapScreenState extends State<MapScreen>
                   Text(
                     label,
                     style: const TextStyle(
-                      color: Colors.green,
+                      color: Colors.white,
                       fontSize: 14,
                     ),
                   ),

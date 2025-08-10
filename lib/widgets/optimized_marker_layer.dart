@@ -277,7 +277,7 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
           }
           
           if (maxLengthM > 0) {
-            final calculatedSize = (maxLengthM / metersPerPixel) * 1.05;
+            final calculatedSize = (maxLengthM / metersPerPixel);
             // Limit runway size at lower zoom levels to prevent oversized visualizations
             final runwaySize = calculatedSize;
             if (runwaySize > maxRunwaySize) maxRunwaySize = runwaySize;
