@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../utils/form_theme_helper.dart';
 
 /// Dialog for confirming cache clearing
@@ -13,6 +14,8 @@ class ClearCacheDialog {
         ? 'Are you sure you want to clear all caches? This will delete all offline data including map tiles, aviation data, and weather information.'
         : 'Are you sure you want to clear the $cacheName cache? This data will be re-downloaded when needed.';
 
+    final l10n = AppLocalizations.of(context)!;
+    
     return await showDialog<bool>(
       context: context,
       builder: (context) => FormThemeHelper.buildDialog(
@@ -29,7 +32,7 @@ class ClearCacheDialog {
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             style: FormThemeHelper.getSecondaryButtonStyle(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),

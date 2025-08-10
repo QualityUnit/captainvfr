@@ -5,6 +5,7 @@ import '../../models/flight.dart';
 import '../../services/settings_service.dart';
 import '../../constants/app_theme.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class FlightInfoTab extends StatelessWidget {
   final Flight flight;
@@ -58,6 +59,7 @@ class FlightInfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -68,7 +70,7 @@ class FlightInfoTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Flight Summary',
+                l10n.flightSummary,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primaryTextColor,
                 ),
@@ -116,7 +118,7 @@ class FlightInfoTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Flight Details',
+                    l10n.flightDetails,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: AppColors.primaryTextColor,
                     ),
@@ -131,7 +133,7 @@ class FlightInfoTab extends StatelessWidget {
                         child: _buildInfoTile(
                           context,
                           icon: Icons.speed,
-                          title: 'Max Speed',
+                          title: l10n.maxSpeed,
                           value: speedValue,
                         ),
                       ),
@@ -140,7 +142,7 @@ class FlightInfoTab extends StatelessWidget {
                         child: _buildInfoTile(
                           context,
                           icon: Icons.height,
-                          title: 'Max Altitude',
+                          title: l10n.maxAltitude,
                           value: altitudeValue,
                         ),
                       ),
@@ -149,7 +151,7 @@ class FlightInfoTab extends StatelessWidget {
                         child: _buildInfoTile(
                           context,
                           icon: Icons.airplanemode_active,
-                          title: 'Distance',
+                          title: l10n.distance,
                           value: distanceValue,
                         ),
                       ),
@@ -158,7 +160,7 @@ class FlightInfoTab extends StatelessWidget {
                         child: _buildInfoTile(
                           context,
                           icon: Icons.speed,
-                          title: 'Avg Speed',
+                          title: l10n.avgSpeed,
                           value: _calculateAverageSpeed(flight, isMetric),
                         ),
                       ),
@@ -174,6 +176,7 @@ class FlightInfoTab extends StatelessWidget {
   }
 
   Widget _buildTimeTrackingSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('MMM d, y');
     
     return Container(
@@ -198,7 +201,7 @@ class FlightInfoTab extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Time Tracking',
+                  l10n.timeTracking,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.primaryAccent,
                   ),
@@ -212,7 +215,7 @@ class FlightInfoTab extends StatelessWidget {
           // Date
           _buildTimeRow(
             context,
-            'Date',
+            l10n.date,
             dateFormat.format(flight.startTime),
             Icons.calendar_today,
           ),
@@ -222,14 +225,14 @@ class FlightInfoTab extends StatelessWidget {
           // Recording Times
           _buildTimeRow(
             context,
-            'Recording Started',
+            l10n.recordingStarted,
             _formatZuluTime(flight.recordingStartedZulu),
             Icons.play_arrow,
           ),
           if (flight.recordingStoppedZulu != null)
             _buildTimeRow(
               context,
-              'Recording Stopped',
+              l10n.recordingStopped,
               _formatZuluTime(flight.recordingStoppedZulu!),
               Icons.stop,
             ),
@@ -240,14 +243,14 @@ class FlightInfoTab extends StatelessWidget {
           if (flight.movingStartedZulu != null)
             _buildTimeRow(
               context,
-              'First Movement',
+              l10n.firstMovement,
               _formatZuluTime(flight.movingStartedZulu!),
               Icons.directions_run,
             ),
           // Always show Last Movement - use recording stopped time if moving stopped is null
           _buildTimeRow(
             context,
-            'Last Movement',
+            l10n.lastMovement,
             _formatZuluTime(
               flight.movingStoppedZulu ?? 
               flight.recordingStoppedZulu ?? 
@@ -267,7 +270,7 @@ class FlightInfoTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Total Recording',
+                    l10n.totalRecording,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.secondaryTextColor,
                     ),
@@ -285,7 +288,7 @@ class FlightInfoTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Total Moving',
+                    l10n.totalMoving,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.secondaryTextColor,
                     ),
@@ -728,6 +731,7 @@ class FlightInfoTab extends StatelessWidget {
   }
 
   Widget _buildAirportSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -749,7 +753,7 @@ class FlightInfoTab extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Airports',
+                l10n.airports,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.primaryAccent,
                 ),
@@ -773,7 +777,7 @@ class FlightInfoTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Departure',
+                        l10n.departure,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.secondaryTextColor,
                         ),
@@ -809,7 +813,7 @@ class FlightInfoTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Arrival',
+                        l10n.arrival,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.secondaryTextColor,
                         ),

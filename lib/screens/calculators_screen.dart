@@ -10,21 +10,23 @@ import 'calculators/climb_performance_calculator.dart';
 import 'calculators/cruise_performance_calculator.dart';
 import 'calculators/descent_performance_calculator.dart';
 import '../constants/app_colors.dart';
+import '../l10n/app_localizations.dart';
 
 class CalculatorsScreen extends StatelessWidget {
   const CalculatorsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final calculators = _getCalculators(context);
     
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.dialogBackgroundColor,
-        title: const Text(
-          'Pilot Calculators',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n?.pilotCalculators ?? 'Pilot Calculators',
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         foregroundColor: AppColors.primaryTextColor,
       ),
@@ -65,9 +67,11 @@ class CalculatorsScreen extends StatelessWidget {
   }
 
   // Define calculators list
-  List<Map<String, dynamic>> _getCalculators(BuildContext context) => [
+  List<Map<String, dynamic>> _getCalculators(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return [
     {
-      'title': 'Density Altitude',
+      'title': l10n?.densityAltitude ?? 'Density Altitude',
       'icon': Icons.thermostat,
       'onTap': () {
         Navigator.push(
@@ -79,7 +83,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Weight & Balance',
+      'title': l10n?.weightBalance ?? 'Weight & Balance',
       'icon': Icons.balance,
       'onTap': () {
         Navigator.push(
@@ -91,7 +95,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Takeoff & Landing',
+      'title': l10n?.takeoffLanding ?? 'Takeoff & Landing',
       'icon': Icons.flight_takeoff,
       'onTap': () {
         Navigator.push(
@@ -103,7 +107,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Fuel Burn',
+      'title': l10n?.fuelBurn ?? 'Fuel Burn',
       'icon': Icons.local_gas_station,
       'onTap': () {
         Navigator.push(
@@ -115,7 +119,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Climb Performance',
+      'title': l10n?.climbPerformance ?? 'Climb Performance',
       'icon': Icons.trending_up,
       'onTap': () {
         Navigator.push(
@@ -127,7 +131,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Cruise Performance',
+      'title': l10n?.cruisePerformance ?? 'Cruise Performance',
       'icon': Icons.flight,
       'onTap': () {
         Navigator.push(
@@ -139,7 +143,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Descent Performance',
+      'title': l10n?.descentPerformance ?? 'Descent Performance',
       'icon': Icons.trending_down,
       'onTap': () {
         Navigator.push(
@@ -151,7 +155,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Crosswind',
+      'title': l10n?.crosswind ?? 'Crosswind',
       'icon': Icons.air,
       'onTap': () {
         Navigator.push(
@@ -163,7 +167,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Wind Correction',
+      'title': l10n?.windCorrection ?? 'Wind Correction',
       'icon': Icons.explore,
       'onTap': () {
         Navigator.push(
@@ -175,7 +179,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
     {
-      'title': 'Unit Conversion',
+      'title': l10n?.unitConversion ?? 'Unit Conversion',
       'icon': Icons.swap_horiz,
       'onTap': () {
         Navigator.push(
@@ -187,6 +191,7 @@ class CalculatorsScreen extends StatelessWidget {
       },
     },
   ];
+  }
 
   Widget _buildCalculatorTile(
     BuildContext context,

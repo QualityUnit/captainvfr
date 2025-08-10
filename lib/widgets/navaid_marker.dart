@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 import '../models/navaid.dart';
 import '../constants/app_theme.dart';
@@ -169,7 +170,7 @@ class NavaidMarker extends StatelessWidget {
       case 'IM':
         return Colors.brown;
       default:
-        return Colors.grey;
+        return Colors.white;
     }
   }
 }
@@ -278,7 +279,7 @@ class NavaidInfoSheet extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: onClose,
-                  tooltip: 'Close',
+                  tooltip: AppLocalizations.of(context)!.close,
                 ),
               ],
             ),
@@ -292,28 +293,28 @@ class NavaidInfoSheet extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Type', navaid.typeDisplay),
-                _buildInfoRow('Frequency', '${navaid.frequencyMhz} MHz'),
+                _buildInfoRow(AppLocalizations.of(context)!.type, navaid.typeDisplay),
+                _buildInfoRow(AppLocalizations.of(context)!.frequency, '${navaid.frequencyMhz} MHz'),
                 if (navaid.dmeFrequencyKhz > 0)
                   _buildInfoRow(
-                    'DME Frequency',
+                    AppLocalizations.of(context)!.dmeFrequency,
                     '${(navaid.dmeFrequencyKhz / 1000).toStringAsFixed(3)} MHz',
                   ),
                 if (navaid.dmeChannel.isNotEmpty)
-                  _buildInfoRow('DME Channel', navaid.dmeChannel),
-                _buildInfoRow('Elevation', '${navaid.elevationFt} ft MSL'),
-                _buildInfoRow('Country', navaid.isoCountry),
+                  _buildInfoRow(AppLocalizations.of(context)!.dmeChannel, navaid.dmeChannel),
+                _buildInfoRow(AppLocalizations.of(context)!.elevation, '${navaid.elevationFt} ft MSL'),
+                _buildInfoRow(AppLocalizations.of(context)!.country, navaid.isoCountry),
                 if (navaid.usageType.isNotEmpty)
-                  _buildInfoRow('Usage', navaid.usageType),
+                  _buildInfoRow(AppLocalizations.of(context)!.usage, navaid.usageType),
                 if (navaid.power > 0)
                   _buildInfoRow(
-                    'Power',
+                    AppLocalizations.of(context)!.power,
                     '${navaid.power.toStringAsFixed(1)} watts',
                   ),
                 if (navaid.associatedAirport.isNotEmpty)
-                  _buildInfoRow('Associated Airport', navaid.associatedAirport),
+                  _buildInfoRow(AppLocalizations.of(context)!.associatedAirport, navaid.associatedAirport),
                 _buildInfoRow(
-                  'Coordinates',
+                  AppLocalizations.of(context)!.coordinates,
                   '${navaid.position.latitude.toStringAsFixed(4)}°N, ${navaid.position.longitude.toStringAsFixed(4)}°E',
                 ),
               ],
@@ -336,7 +337,7 @@ class NavaidInfoSheet extends StatelessWidget {
               '$label:',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: Colors.white,
               ),
             ),
           ),

@@ -7,6 +7,7 @@ import '../widgets/checklist_form_dialog.dart';
 import '../widgets/checklist_run_dialog.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 /// Screen to view and manage checklists.
 class ChecklistSettingsScreen extends StatefulWidget {
@@ -35,18 +36,19 @@ class _ChecklistSettingsScreenState extends State<ChecklistSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Checklists',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.checklist,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add Checklist',
+            tooltip: l10n.addChecklist,
             onPressed: () => _openForm(),
           ),
         ],
@@ -80,7 +82,7 @@ class _ChecklistSettingsScreenState extends State<ChecklistSettingsScreen> {
                   if (lists.isEmpty) {
                     return Center(
                       child: Text(
-                        'No matching checklists',
+                        'No matching checklists', // TODO: Add to localization
                         style: TextStyle(color: AppColors.secondaryTextColor),
                       ),
                     );
@@ -122,7 +124,7 @@ class _ChecklistSettingsScreenState extends State<ChecklistSettingsScreen> {
                                   Icons.play_arrow,
                                   color: AppColors.primaryAccent,
                                 ),
-                                tooltip: 'Start',
+                                tooltip: l10n.startTracking,
                                 onPressed: () => showDialog(
                                   context: context,
                                   builder: (_) => ChecklistRunDialog(
@@ -136,7 +138,7 @@ class _ChecklistSettingsScreenState extends State<ChecklistSettingsScreen> {
                                   Icons.edit,
                                   color: AppColors.secondaryTextColor,
                                 ),
-                                tooltip: 'Edit',
+                                tooltip: l10n.edit,
                                 onPressed: () => _openForm(checklist: c),
                               ),
                               IconButton(
@@ -144,7 +146,7 @@ class _ChecklistSettingsScreenState extends State<ChecklistSettingsScreen> {
                                   Icons.delete,
                                   color: Colors.red,
                                 ),
-                                tooltip: 'Delete',
+                                tooltip: l10n.delete,
                                 onPressed: () => _confirmDelete(c.id),
                               ),
                             ],
@@ -172,27 +174,30 @@ class _ChecklistSettingsScreenState extends State<ChecklistSettingsScreen> {
   void _confirmDelete(String id) {
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Checklist'),
-        content: const Text('Are you sure you want to delete this checklist?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Provider.of<ChecklistService>(
-                context,
-                listen: false,
-              ).deleteChecklist(id);
-              Navigator.of(ctx).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Text(l10n.deleteChecklist),
+          content: Text('Are you sure you want to delete this checklist?'), // TODO: Add to localization
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                Provider.of<ChecklistService>(
+                  context,
+                  listen: false,
+                ).deleteChecklist(id);
+                Navigator.of(ctx).pop();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -214,11 +219,12 @@ class _SearchField extends StatefulWidget {
 class _SearchFieldState extends State<_SearchField> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return TextFormField(
       controller: widget.controller,
       style: TextStyle(color: AppColors.primaryTextColor),
       decoration: InputDecoration(
-        labelText: 'Search',
+        labelText: l10n.search,
         labelStyle: TextStyle(color: AppColors.secondaryTextColor),
         prefixIcon: Icon(Icons.search, color: AppColors.secondaryTextColor),
         enabledBorder: OutlineInputBorder(

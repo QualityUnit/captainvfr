@@ -7,6 +7,7 @@ import '../widgets/aircraft_photos_widget.dart';
 import '../widgets/aircraft_documents_widget.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 /// Detail screen for a specific aircraft, providing tabs for checklists and flight history.
 class AircraftDetailScreen extends StatelessWidget {
@@ -17,6 +18,7 @@ class AircraftDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DefaultTabController(
       length: 5,
       child: Scaffold(
@@ -33,11 +35,11 @@ class AircraftDetailScreen extends StatelessWidget {
             indicatorColor: AppColors.primaryAccent,
             labelColor: AppColors.primaryAccent,
             unselectedLabelColor: AppColors.secondaryTextColor,
-            tabs: const [
-              Tab(icon: Icon(Icons.info), text: 'Info'),
-              Tab(icon: Icon(Icons.photo_library), text: 'Photos'),
-              Tab(icon: Icon(Icons.folder), text: 'Documents'),
-              Tab(icon: Icon(Icons.list), text: 'Checklists'),
+            tabs: [
+              Tab(icon: Icon(Icons.info), text: l10n.info),
+              Tab(icon: Icon(Icons.photo_library), text: l10n.photos),
+              Tab(icon: Icon(Icons.folder), text: l10n.documents),
+              Tab(icon: Icon(Icons.list), text: l10n.checklist),
               Tab(icon: Icon(Icons.flight), text: 'Flights'),
             ],
           ),
@@ -117,6 +119,7 @@ class AircraftDetailScreen extends StatelessWidget {
   }
 
   Widget _buildInfoTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -133,7 +136,7 @@ class AircraftDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Aircraft Information',
                     style: TextStyle(
                       fontSize: 18,
@@ -142,14 +145,14 @@ class AircraftDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow('Registration', aircraft.registration ?? 'N/A'),
+                  _buildInfoRow(l10n.registration, aircraft.registration ?? 'N/A'),
                   _buildInfoRow(
                     'Call Sign',
                     aircraft.callSign ?? aircraft.name,
                   ),
-                  _buildInfoRow('Manufacturer', aircraft.manufacturer ?? 'N/A'),
-                  _buildInfoRow('Model', aircraft.model ?? 'N/A'),
-                  _buildInfoRow('Category', aircraft.category?.name ?? 'N/A'),
+                  _buildInfoRow(l10n.manufacturer, aircraft.manufacturer ?? 'N/A'),
+                  _buildInfoRow(l10n.model, aircraft.model ?? 'N/A'),
+                  _buildInfoRow(l10n.category, aircraft.category?.name ?? 'N/A'),
                 ],
               ),
             ),
@@ -166,7 +169,7 @@ class AircraftDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Performance',
                     style: TextStyle(
                       fontSize: 18,
@@ -176,24 +179,24 @@ class AircraftDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow(
-                    'Cruise Speed',
-                    '${aircraft.cruiseSpeed} knots',
+                    l10n.cruiseSpeed,
+                    '${aircraft.cruiseSpeed} ${l10n.kts}',
                   ),
                   _buildInfoRow(
-                    'Fuel Consumption',
-                    '${aircraft.fuelConsumption} gal/hr',
+                    l10n.fuelConsumption,
+                    '${aircraft.fuelConsumption} ${l10n.gph}',
                   ),
                   _buildInfoRow(
-                    'Maximum Altitude',
-                    '${aircraft.maximumAltitude} ft',
+                    l10n.maxAltitude,
+                    '${aircraft.maximumAltitude} ${l10n.ft}',
                   ),
                   _buildInfoRow(
-                    'Max Climb Rate',
-                    '${aircraft.maximumClimbRate} ft/min',
+                    l10n.maxClimbRate,
+                    '${aircraft.maximumClimbRate} ${l10n.fpm}',
                   ),
                   _buildInfoRow(
-                    'Max Descent Rate',
-                    '${aircraft.maximumDescentRate} ft/min',
+                    l10n.maxDescentRate,
+                    '${aircraft.maximumDescentRate} ${l10n.fpm}',
                   ),
                 ],
               ),
@@ -211,7 +214,7 @@ class AircraftDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Weight & Fuel',
                     style: TextStyle(
                       fontSize: 18,
@@ -221,16 +224,16 @@ class AircraftDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow(
-                    'Max Takeoff Weight',
-                    '${aircraft.maxTakeoffWeight} lbs',
+                    l10n.maxTakeoffWeight,
+                    '${aircraft.maxTakeoffWeight} ${l10n.lbs}',
                   ),
                   _buildInfoRow(
-                    'Max Landing Weight',
-                    '${aircraft.maxLandingWeight} lbs',
+                    l10n.maxLandingWeight,
+                    '${aircraft.maxLandingWeight} ${l10n.lbs}',
                   ),
                   _buildInfoRow(
-                    'Fuel Capacity',
-                    '${aircraft.fuelCapacity} gal',
+                    l10n.fuelCapacity,
+                    '${aircraft.fuelCapacity} ${l10n.gal}',
                   ),
                 ],
               ),
@@ -250,8 +253,8 @@ class AircraftDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Description',
+                    Text(
+                      l10n.description,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

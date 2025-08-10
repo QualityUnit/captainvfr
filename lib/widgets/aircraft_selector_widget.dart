@@ -4,6 +4,7 @@ import '../models/aircraft.dart';
 import '../services/aircraft_settings_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class AircraftSelectorWidget extends StatefulWidget {
   final Function(Aircraft?) onAircraftSelected;
@@ -30,6 +31,7 @@ class _AircraftSelectorWidgetState extends State<AircraftSelectorWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final aircraftService = context.watch<AircraftSettingsService>();
     final aircrafts = aircraftService.aircrafts;
 
@@ -47,12 +49,12 @@ class _AircraftSelectorWidgetState extends State<AircraftSelectorWidget> {
               Icon(Icons.flight, size: 48, color: AppColors.primaryAccent),
               const SizedBox(height: 8),
               Text(
-                'No aircraft configured',
+                l10n.noAircraftConfigured,
                 style: TextStyle(fontSize: 16, color: AppColors.primaryTextColor),
               ),
               const SizedBox(height: 8),
               Text(
-                'Add aircraft in the settings',
+                l10n.addAircraftInSettings,
                 style: TextStyle(fontSize: 14, color: AppColors.secondaryTextColor),
               ),
             ],
@@ -67,7 +69,7 @@ class _AircraftSelectorWidgetState extends State<AircraftSelectorWidget> {
         DropdownButtonFormField<String>(
           value: _selectedAircraft?.id,
           decoration: InputDecoration(
-            labelText: 'Select Aircraft',
+            labelText: l10n.selectAircraft,
             labelStyle: TextStyle(color: AppColors.secondaryTextColor),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: AppColors.primaryAccent.withValues(alpha: 0.3)),
@@ -123,17 +125,17 @@ class _AircraftSelectorWidgetState extends State<AircraftSelectorWidget> {
                 const SizedBox(height: 4),
                 if (_selectedAircraft!.cruiseSpeed > 0)
                   Text(
-                    'Cruise Speed: ${_selectedAircraft!.cruiseSpeed} kts',
+                    '${l10n.cruiseSpeed}: ${_selectedAircraft!.cruiseSpeed} ${l10n.kts}',
                     style: TextStyle(color: AppColors.secondaryTextColor),
                   ),
                 if (_selectedAircraft!.fuelConsumption > 0)
                   Text(
-                    'Fuel Burn: ${_selectedAircraft!.fuelConsumption.toStringAsFixed(1)} gal/hr',
+                    '${l10n.fuelBurn}: ${_selectedAircraft!.fuelConsumption.toStringAsFixed(1)} ${l10n.gal}/${l10n.hours.toLowerCase()}',
                     style: TextStyle(color: AppColors.secondaryTextColor),
                   ),
                 if (_selectedAircraft!.maxTakeoffWeight > 0)
                   Text(
-                    'MTOW: ${_selectedAircraft!.maxTakeoffWeight} lbs',
+                    '${l10n.mtow}: ${_selectedAircraft!.maxTakeoffWeight} ${l10n.lbs}',
                     style: TextStyle(color: AppColors.secondaryTextColor),
                   ),
               ],

@@ -8,6 +8,7 @@ import '../../services/notam_service_v2.dart';
 import '../../services/notam_service_v3.dart';
 import '../../constants/app_theme.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class AirportNotamsTab extends StatefulWidget {
   final Airport airport;
@@ -139,6 +140,7 @@ class _AirportNotamsTabState extends State<AirportNotamsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     if (_isLoading) {
@@ -150,7 +152,7 @@ class _AirportNotamsTabState extends State<AirportNotamsTab> {
       child: Stack(
         children: [
           // Main content
-          _notams.isEmpty ? _buildEmptyState() : _buildNotamsList(),
+          _notams.isEmpty ? _buildEmptyState(l10n) : _buildNotamsList(),
 
           // Refresh button overlay
           Positioned(
@@ -212,7 +214,7 @@ class _AirportNotamsTabState extends State<AirportNotamsTab> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -239,7 +241,7 @@ class _AirportNotamsTabState extends State<AirportNotamsTab> {
           ElevatedButton.icon(
             onPressed: () => _loadNotams(forceRefresh: true),
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Retry'),
+            label: Text(l10n.retry),
           ),
         ],
       ),

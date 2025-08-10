@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/form_theme_helper.dart';
+import '../../l10n/app_localizations.dart';
 
 class UnitConversionCalculator extends StatefulWidget {
   const UnitConversionCalculator({super.key});
@@ -234,14 +235,15 @@ class _UnitConversionCalculatorState extends State<UnitConversionCalculator> {
   @override
   Widget build(BuildContext context) {
     final units = _conversions[_selectedCategory]!.keys.toList();
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.dialogBackgroundColor,
-        title: const Text(
-          'Unit Conversion',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.unitConversion,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryTextColor),
@@ -254,11 +256,11 @@ class _UnitConversionCalculatorState extends State<UnitConversionCalculator> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FormThemeHelper.buildSection(
-              title: 'Category',
+              title: l10n.category,
               children: [
                 FormThemeHelper.buildDropdownField<String>(
                   value: _selectedCategory,
-                  labelText: 'Select Category',
+                  labelText: l10n.selectCategory,
                   items: _conversions.keys.map((category) {
                     return DropdownMenuItem(
                       value: category,
@@ -276,7 +278,7 @@ class _UnitConversionCalculatorState extends State<UnitConversionCalculator> {
             ),
             const SizedBox(height: 16),
             FormThemeHelper.buildSection(
-              title: 'Convert',
+              title: l10n.convert,
               children: [
                 FormThemeHelper.buildFormField(
                   controller: _inputController,
@@ -344,7 +346,7 @@ class _UnitConversionCalculatorState extends State<UnitConversionCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Convert', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.convert, style: const TextStyle(fontSize: 16)),
             ),
             if (_result != null) ...[
               const SizedBox(height: 24),
@@ -355,7 +357,7 @@ class _UnitConversionCalculatorState extends State<UnitConversionCalculator> {
                   child: Column(
                     children: [
                       Text(
-                        'Result',
+                        l10n.results,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor).copyWith(
                           color: AppColors.primaryTextColor,
                         ),

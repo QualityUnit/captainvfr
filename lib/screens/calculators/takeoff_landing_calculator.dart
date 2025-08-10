@@ -4,6 +4,7 @@ import '../../services/settings_service.dart';
 import '../../models/aircraft.dart';
 import '../../widgets/aircraft_selector_widget.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/form_theme_helper.dart';
 
 class TakeoffLandingCalculator extends StatefulWidget {
@@ -44,9 +45,11 @@ class _TakeoffLandingCalculatorState extends State<TakeoffLandingCalculator> {
   }
 
   void _calculate() {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (_selectedAircraft == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an aircraft')),
+        SnackBar(content: Text(l10n.pleaseSelectAircraft)),
       );
       return;
     }
@@ -55,8 +58,8 @@ class _TakeoffLandingCalculatorState extends State<TakeoffLandingCalculator> {
     if (_selectedAircraft!.takeoffGroundRoll50ft == null ||
         _selectedAircraft!.landingGroundRoll50ft == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selected aircraft lacks performance data'),
+        SnackBar(
+          content: Text(l10n.aircraftLacksPerformanceData),
         ),
       );
       return;
@@ -167,6 +170,7 @@ class _TakeoffLandingCalculatorState extends State<TakeoffLandingCalculator> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final settingsService = context.watch<SettingsService>();
     final isImperial = settingsService.units == 'imperial';
     final pressureUnit = settingsService.pressureUnit;
@@ -237,7 +241,7 @@ class _TakeoffLandingCalculatorState extends State<TakeoffLandingCalculator> {
                     FormThemeHelper.buildFormField(
                       controller: _headwindController,
                       labelText: 'Headwind Component (${isImperial ? "kts" : "km/h"})',
-                      hintText: 'Use negative value for tailwind',
+                      hintText: l10n.useNegativeForTailwind,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                         signed: true,
@@ -268,7 +272,7 @@ class _TakeoffLandingCalculatorState extends State<TakeoffLandingCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Calculate', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.calculate, style: const TextStyle(fontSize: 16)),
             ),
             if (_takeoffGroundRoll != null) ...[
               const SizedBox(height: 24),

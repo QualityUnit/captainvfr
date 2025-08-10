@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/settings_service.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/form_theme_helper.dart';
 
 class WeightBalanceCalculator extends StatefulWidget {
@@ -194,6 +195,7 @@ class _WeightBalanceCalculatorState extends State<WeightBalanceCalculator> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final settingsService = context.watch<SettingsService>();
     final isImperial = settingsService.units == 'imperial';
 
@@ -339,7 +341,7 @@ class _WeightBalanceCalculatorState extends State<WeightBalanceCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Calculate', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.calculate, style: const TextStyle(fontSize: 16)),
             ),
             if (_totalWeight != null) ...[
               const SizedBox(height: 24),

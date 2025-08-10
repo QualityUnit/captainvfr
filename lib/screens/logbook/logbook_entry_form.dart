@@ -17,6 +17,7 @@ import '../../services/media_service.dart';
 import '../../screens/flight_detail_screen.dart';
 import 'logbook_screen.dart';
 import '../../constants/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class LogBookEntryForm extends StatefulWidget {
   final LogBookEntry? entry;
@@ -229,6 +230,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.entry != null;
     final pilotService = context.watch<PilotService>();
     final aircraftService = context.watch<AircraftSettingsService>();
@@ -237,11 +239,11 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit LogBook Entry' : 'New LogBook Entry'),
+        title: Text(isEditing ? l10n.editLogBookEntry : l10n.newLogBookEntry),
         actions: [
           TextButton(
             onPressed: _saveEntry,
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -253,9 +255,9 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Section: Timing
-              _buildSectionHeader('Timing'),
+              _buildSectionHeader(l10n.timing),
               _buildDateTimeRow(
-                'Start',
+                l10n.start,
                 _startDate,
                 _startTime,
                 (date) => setState(() => _startDate = date),
@@ -263,7 +265,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                 required: true,
               ),
               _buildDateTimeRow(
-                'Start Moving',
+                l10n.startMoving,
                 _startMovingDate,
                 _startMovingTime,
                 (date) => setState(() => _startMovingDate = date),
@@ -272,16 +274,16 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _departureController,
-                decoration: const InputDecoration(
-                  labelText: 'Departure Airport',
-                  hintText: 'ICAO code or name',
+                decoration: InputDecoration(
+                  labelText: l10n.departureAirport,
+                  hintText: l10n.icao,
                   prefixIcon: Icon(Icons.flight_takeoff),
                 ),
                 textCapitalization: TextCapitalization.characters,
               ),
               const SizedBox(height: 16),
               _buildDateTimeRow(
-                'End',
+                l10n.end,
                 _endDate,
                 _endTime,
                 (date) => setState(() => _endDate = date),
@@ -289,7 +291,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                 required: true,
               ),
               _buildDateTimeRow(
-                'End Moving',
+                l10n.endMoving,
                 _endMovingDate,
                 _endMovingTime,
                 (date) => setState(() => _endMovingDate = date),
@@ -298,9 +300,9 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _arrivalController,
-                decoration: const InputDecoration(
-                  labelText: 'Arrival Airport',
-                  hintText: 'ICAO code or name',
+                decoration: InputDecoration(
+                  labelText: l10n.arrivalAirport,
+                  hintText: l10n.icao,
                   prefixIcon: Icon(Icons.flight_land),
                 ),
                 textCapitalization: TextCapitalization.characters,
@@ -309,17 +311,17 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 24),
 
               // Section: Aircraft
-              _buildSectionHeader('Aircraft'),
+              _buildSectionHeader(l10n.aircraft),
               DropdownButtonFormField<String>(
                 value: _selectedAircraftId,
-                decoration: const InputDecoration(
-                  labelText: 'Select Aircraft',
+                decoration: InputDecoration(
+                  labelText: l10n.selectAircraft,
                   prefixIcon: Icon(Icons.airplanemode_active),
                 ),
                 items: [
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: null,
-                    child: Text('Manual Entry'),
+                    child: Text(l10n.manualEntry),
                   ),
                   ...aircraft.map((a) => DropdownMenuItem(
                     value: a.id,
@@ -347,9 +349,9 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _aircraftTypeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Aircraft Type',
-                        hintText: 'e.g., Cessna 172',
+                      decoration: InputDecoration(
+                        labelText: l10n.aircraftType,
+                        hintText: l10n.aircraftTypeExample,
                       ),
                       enabled: _selectedAircraftId == null,
                     ),
@@ -358,9 +360,9 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _aircraftIdController,
-                      decoration: const InputDecoration(
-                        labelText: 'Aircraft ID',
-                        hintText: 'e.g., N12345',
+                      decoration: InputDecoration(
+                        labelText: l10n.aircraftId,
+                        hintText: l10n.registrationExample,
                       ),
                       textCapitalization: TextCapitalization.characters,
                       enabled: _selectedAircraftId == null,
@@ -371,24 +373,24 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 16),
               DropdownButtonFormField<EngineType>(
                 value: _engineType,
-                decoration: const InputDecoration(
-                  labelText: 'Engine Type *',
+                decoration: InputDecoration(
+                  labelText: '${l10n.engineType} *',
                   prefixIcon: Icon(Icons.settings),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: EngineType.singleEngine,
-                    child: Text('Single Engine'),
+                    child: Text(l10n.singleEngine),
                   ),
                   DropdownMenuItem(
                     value: EngineType.multiEngine,
-                    child: Text('Multi Engine'),
+                    child: Text(l10n.multiEngine),
                   ),
                 ],
                 onChanged: (value) => setState(() => _engineType = value),
                 validator: (value) {
                   if (value == null) {
-                    return 'Please select engine type';
+                    return l10n.pleaseSelectEngineType;
                   }
                   return null;
                 },
@@ -397,23 +399,23 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 24),
 
               // Section: Pilot Experience
-              _buildSectionHeader('Pilot Experience'),
+              _buildSectionHeader(l10n.pilotExperience),
               DropdownButtonFormField<String>(
                 value: _selectedPicId,
                 decoration: InputDecoration(
-                  labelText: 'Pilot in Command',
+                  labelText: l10n.pilotInCommand,
                   prefixIcon: const Icon(Icons.person),
                   suffixIcon: pilots.isEmpty ? const Icon(Icons.warning, color: Colors.orange, size: 20) : null,
                 ),
-                hint: pilots.isEmpty ? const Text('Add a pilot first') : null,
+                hint: pilots.isEmpty ? Text(l10n.addPilotFirst) : null,
                 items: [
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: 'new_pilot',
                     child: Row(
                       children: [
-                        Icon(Icons.add, size: 20),
-                        SizedBox(width: 8),
-                        Text('Add New Pilot'),
+                        const Icon(Icons.add, size: 20),
+                        const SizedBox(width: 8),
+                        Text(l10n.addNewPilot),
                       ],
                     ),
                   ),
@@ -432,7 +434,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                 },
                 validator: (value) {
                   if (value == null || value == 'new_pilot') {
-                    return 'Please select pilot in command';
+                    return l10n.pleaseSelectPilotInCommand;
                   }
                   return null;
                 },
@@ -440,22 +442,22 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _selectedSicId,
-                decoration: const InputDecoration(
-                  labelText: 'Second in Command (Optional)',
+                decoration: InputDecoration(
+                  labelText: '${l10n.secondInCommand} (${l10n.optional})',
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 items: [
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: null,
-                    child: Text('Solo Flight'),
+                    child: Text(l10n.soloFlight),
                   ),
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: 'new_pilot',
                     child: Row(
                       children: [
-                        Icon(Icons.add, size: 20),
-                        SizedBox(width: 8),
-                        Text('Add New Pilot'),
+                        const Icon(Icons.add, size: 20),
+                        const SizedBox(width: 8),
+                        Text(l10n.addNewPilot),
                       ],
                     ),
                   ),
@@ -477,27 +479,27 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _flightTrainingController,
-                decoration: const InputDecoration(
-                  labelText: 'Flight Training Note',
-                  hintText: 'Training activities performed',
+                decoration: InputDecoration(
+                  labelText: l10n.flightTraining,
+                  hintText: l10n.trainingActivitiesPerformed,
                 ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _groundTrainingController,
-                decoration: const InputDecoration(
-                  labelText: 'Ground Training Note',
-                  hintText: 'Ground training received',
+                decoration: InputDecoration(
+                  labelText: l10n.groundTraining,
+                  hintText: l10n.groundTrainingReceived,
                 ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _simulatorController,
-                decoration: const InputDecoration(
-                  labelText: 'Simulator Note',
-                  hintText: 'Simulator training details',
+                decoration: InputDecoration(
+                  labelText: l10n.simulator,
+                  hintText: l10n.simulatorTrainingDetails,
                 ),
                 maxLines: 2,
               ),
@@ -506,27 +508,27 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                 spacing: 8,
                 children: [
                   FilterChip(
-                    label: const Text('Flight Review'),
+                    label: Text(l10n.flightReview),
                     selected: _flightReview,
                     onSelected: (value) => setState(() => _flightReview = value),
                   ),
                   FilterChip(
-                    label: const Text('IPC'),
+                    label: Text(l10n.ipc),
                     selected: _ipc,
                     onSelected: (value) => setState(() => _ipc = value),
                   ),
                   FilterChip(
-                    label: const Text('Check Ride'),
+                    label: Text(l10n.checkRide),
                     selected: _checkRide,
                     onSelected: (value) => setState(() => _checkRide = value),
                   ),
                   FilterChip(
-                    label: const Text('FAA 61.58'),
+                    label: Text(l10n.faa6158),
                     selected: _faa6158,
                     onSelected: (value) => setState(() => _faa6158 = value),
                   ),
                   FilterChip(
-                    label: const Text('NVG Proficiency'),
+                    label: Text(l10n.nvgProficiency),
                     selected: _nvgProficiency,
                     onSelected: (value) => setState(() => _nvgProficiency = value),
                   ),
@@ -536,24 +538,24 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 24),
 
               // Section: Conditions of Flight
-              _buildSectionHeader('Conditions of Flight'),
+              _buildSectionHeader(l10n.conditionsOfFlight),
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<FlightCondition>(
                       value: _flightCondition,
-                      decoration: const InputDecoration(
-                        labelText: 'Day/Night',
+                      decoration: InputDecoration(
+                        labelText: l10n.dayNight,
                         prefixIcon: Icon(Icons.brightness_4),
                       ),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: FlightCondition.day,
-                          child: Text('Day'),
+                          child: Text(l10n.day),
                         ),
                         DropdownMenuItem(
                           value: FlightCondition.night,
-                          child: Text('Night'),
+                          child: Text(l10n.night),
                         ),
                       ],
                       onChanged: (value) => setState(() => _flightCondition = value),
@@ -563,18 +565,18 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                   Expanded(
                     child: DropdownButtonFormField<FlightRules>(
                       value: _flightRules,
-                      decoration: const InputDecoration(
-                        labelText: 'VFR/IFR',
+                      decoration: InputDecoration(
+                        labelText: l10n.vfrIfr,
                         prefixIcon: Icon(Icons.visibility),
                       ),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: FlightRules.vfr,
-                          child: Text('VFR'),
+                          child: Text(l10n.vfr),
                         ),
                         DropdownMenuItem(
                           value: FlightRules.ifr,
-                          child: Text('IFR'),
+                          child: Text(l10n.ifr),
                         ),
                       ],
                       onChanged: (value) => setState(() => _flightRules = value),
@@ -584,7 +586,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               ),
               const SizedBox(height: 16),
               SwitchListTile(
-                title: const Text('Simulated Conditions'),
+                title: Text(l10n.simulatedConditions),
                 value: _simulated,
                 onChanged: (value) => setState(() => _simulated = value),
               ),
@@ -592,14 +594,14 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 24),
 
               // Section: Departures and Landings
-              _buildSectionHeader('Departures and Landings'),
+              _buildSectionHeader(l10n.departuresAndLandings),
               Row(
                 children: [
                   Expanded(
                     child: TextFormField(
                       controller: _dayTakeoffsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Day Takeoffs',
+                      decoration: InputDecoration(
+                        labelText: l10n.dayTakeoffs,
                         prefixIcon: Icon(Icons.flight_takeoff),
                       ),
                       keyboardType: TextInputType.number,
@@ -610,8 +612,8 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _nightTakeoffsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Night Takeoffs',
+                      decoration: InputDecoration(
+                        labelText: l10n.nightTakeoffs,
                         prefixIcon: Icon(Icons.nights_stay),
                       ),
                       keyboardType: TextInputType.number,
@@ -626,8 +628,8 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _dayLandingsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Day Landings',
+                      decoration: InputDecoration(
+                        labelText: l10n.dayLandings,
                         prefixIcon: Icon(Icons.flight_land),
                       ),
                       keyboardType: TextInputType.number,
@@ -638,8 +640,8 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _nightLandingsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Night Landings',
+                      decoration: InputDecoration(
+                        labelText: l10n.nightLandings,
                         prefixIcon: Icon(Icons.nights_stay),
                       ),
                       keyboardType: TextInputType.number,
@@ -652,12 +654,12 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               const SizedBox(height: 24),
 
               // Section: Notes
-              _buildSectionHeader('Notes'),
+              _buildSectionHeader(l10n.notes),
               TextFormField(
                 controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: 'Flight Notes',
-                  hintText: 'Additional notes about the flight',
+                decoration: InputDecoration(
+                  labelText: l10n.flightNotes,
+                  hintText: l10n.additionalNotesAboutFlight,
                   alignLabelWithHint: true,
                 ),
                 maxLines: 4,
@@ -667,12 +669,12 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
 
               // Section: Flight Log Link
               if (_linkedFlightLogId != null) ...[
-                _buildSectionHeader('Linked Flight Log'),
+                _buildSectionHeader(l10n.linkedFlightLog),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.link),
-                    title: const Text('View Original Flight Log'),
-                    subtitle: Text('Flight ID: $_linkedFlightLogId'),
+                    title: Text(l10n.viewOriginalFlightLog),
+                    subtitle: Text(l10n.flightId(_linkedFlightLogId!)),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () async {
                       final flightService = context.read<FlightService>();
@@ -694,7 +696,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
               ],
 
               // Section: Pictures and Documents
-              _buildSectionHeader('Pictures and Documents'),
+              _buildSectionHeader(l10n.picturesAndDocuments),
               
               // Pictures section
               Card(
@@ -707,13 +709,13 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Pictures (${_imagePaths.length})',
+                            l10n.picturesCount(_imagePaths.length),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           TextButton.icon(
                             onPressed: _addPicture,
                             icon: const Icon(Icons.add_photo_alternate),
-                            label: const Text('Add Picture'),
+                            label: Text(l10n.addPicture),
                           ),
                         ],
                       ),
@@ -740,7 +742,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                                           return Container(
                                             height: 100,
                                             width: 100,
-                                            color: Colors.grey[300],
+                                            color: Colors.white,
                                             child: const Icon(Icons.broken_image),
                                           );
                                         },
@@ -790,13 +792,13 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Documents (${_documentPaths.length})',
+                            l10n.documentsCount(_documentPaths.length),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           TextButton.icon(
                             onPressed: _addDocument,
                             icon: const Icon(Icons.attach_file),
-                            label: const Text('Add Document'),
+                            label: Text(l10n.addDocument),
                           ),
                         ],
                       ),
@@ -878,7 +880,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                     }
                   },
                   child: InputDecorator(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
@@ -907,7 +909,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                     }
                   },
                   child: InputDecorator(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
@@ -959,8 +961,9 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add picture: $e')),
+          SnackBar(content: Text(l10n.failedToAddPicture(e.toString()))),
         );
       }
     }
@@ -990,8 +993,9 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add document: $e')),
+          SnackBar(content: Text(l10n.failedToAddDocument(e.toString()))),
         );
       }
     }
@@ -1009,8 +1013,10 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
     
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Pilot'),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+        title: Text(l10n.addNewPilot),
         content: Form(
           key: formKey,
           child: Column(
@@ -1018,24 +1024,24 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Pilot Name',
-                  hintText: 'Enter pilot name',
+                decoration: InputDecoration(
+                  labelText: l10n.pilotName,
+                  hintText: l10n.enterPilotName,
                   prefixIcon: Icon(Icons.person),
                 ),
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter pilot name';
+                    return l10n.pleaseEnterPilotName;
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 8),
-              const Text(
-                'You can add licenses and endorsements later in the Pilots tab',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              Text(
+                AppLocalizations.of(context)!.canAddLicensesEndorsementsLater,
+                style: TextStyle(fontSize: 12, color: Colors.white),
               ),
             ],
           ),
@@ -1043,7 +1049,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -1051,11 +1057,11 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
                 Navigator.pop(context, true);
               }
             },
-            child: const Text('Add'),
+            child: Text(AppLocalizations.of(context)!.add),
           ),
         ],
-      ),
-    );
+      );
+    });
 
     if (result == true && nameController.text.trim().isNotEmpty && mounted) {
       // Create new pilot
@@ -1083,7 +1089,7 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Added pilot: ${newPilot.name}'),
+            content: Text(AppLocalizations.of(context)!.addedPilot(newPilot.name)),
             action: SnackBarAction(
               label: 'Manage',
               onPressed: () {

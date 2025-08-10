@@ -6,17 +6,19 @@ import '../widgets/themed_dialog.dart';
 import '../constants/app_colors.dart';
 import 'flight_detail_screen.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class FlightLogScreen extends StatelessWidget {
   const FlightLogScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Flight Log',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.flightLog,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
@@ -34,7 +36,7 @@ class FlightLogScreen extends StatelessWidget {
           if (flights.isEmpty) {
             return Center(
               child: Text(
-                'No flights recorded yet.',
+                'No flights recorded yet.', // TODO: Add to localization
                 style: TextStyle(color: AppColors.secondaryTextColor),
               ),
             );
@@ -54,6 +56,7 @@ class FlightLogScreen extends StatelessWidget {
   }
 
   Widget _buildFlightItem(BuildContext context, Flight flight) {
+    final l10n = AppLocalizations.of(context)!;
     final dateStr =
         '${flight.startTime.day}/${flight.startTime.month}/${flight.startTime.year} '
         '${flight.startTime.hour}:${flight.startTime.minute.toString().padLeft(2, '0')}';
@@ -117,7 +120,7 @@ class FlightLogScreen extends StatelessWidget {
                         ),
                         onPressed: () =>
                             _showDeleteConfirmation(context, flight),
-                        tooltip: 'Delete flight',
+                        tooltip: l10n.deleteFlight,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 32,
@@ -193,17 +196,18 @@ class FlightLogScreen extends StatelessWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context, Flight flight) {
+    final l10n = AppLocalizations.of(context)!;
     final dateStr =
         '${flight.startTime.day}/${flight.startTime.month}/${flight.startTime.year} '
         '${flight.startTime.hour}:${flight.startTime.minute.toString().padLeft(2, '0')}';
 
     ThemedDialog.showConfirmation(
       context: context,
-      title: 'Delete Flight',
+      title: l10n.deleteFlight,
       message:
-          'Are you sure you want to delete the flight from $dateStr?\n\nThis action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+          'Are you sure you want to delete the flight from $dateStr?\n\nThis action cannot be undone.', // TODO: Add to localization
+      confirmText: l10n.delete,
+      cancelText: l10n.cancel,
       destructive: true,
     ).then((confirmed) {
       if (confirmed == true && context.mounted) {
@@ -213,6 +217,7 @@ class FlightLogScreen extends StatelessWidget {
   }
 
   Future<void> _deleteFlight(BuildContext context, Flight flight) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final flightService = Provider.of<FlightService>(context, listen: false);
       final flights = flightService.flights;
@@ -223,9 +228,9 @@ class FlightLogScreen extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Flight deleted successfully'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(l10n.flightDeletedSuccessfully),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -233,7 +238,7 @@ class FlightLogScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error deleting flight: $e'),
+            content: Text(l10n.errorDeletingFlight(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 3),
           ),

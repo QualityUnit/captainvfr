@@ -7,12 +7,14 @@ import 'logbook_entry_dialog.dart';
 import '../../constants/app_colors.dart';
 import '../../widgets/themed_dialog.dart';
 import '../../constants/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class LogBookEntriesTab extends StatelessWidget {
   const LogBookEntriesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final logBookService = context.watch<LogBookService>();
     final entries = logBookService.entries;
 
@@ -216,12 +218,13 @@ class _LogBookEntryTile extends StatelessWidget {
           ),
           onSelected: (value) async {
             if (value == 'delete') {
+              final l10n = AppLocalizations.of(context)!;
               final confirmed = await ThemedDialog.showConfirmation(
                 context: context,
-                title: 'Delete Entry',
-                message: 'Are you sure you want to delete this logbook entry?',
-                confirmText: 'Delete',
-                cancelText: 'Cancel',
+                title: l10n.deleteEntry,
+                message: l10n.confirmDeleteEntry,
+                confirmText: l10n.delete,
+                cancelText: l10n.cancel,
                 destructive: true,
               );
 
@@ -235,7 +238,7 @@ class _LogBookEntryTile extends StatelessWidget {
               value: 'delete',
               child: ListTile(
                 leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete', style: TextStyle(color: Colors.red)),
+                title: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: Colors.red)),
                 contentPadding: EdgeInsets.zero,
               ),
             ),

@@ -5,6 +5,7 @@ import '../../models/moving_segment.dart';
 import '../../constants/app_theme.dart';
 import '../../constants/app_colors.dart';
 import '../../services/settings_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class FlightSegmentsTab extends StatelessWidget {
   final Flight flight;
@@ -20,6 +21,7 @@ class FlightSegmentsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -27,7 +29,7 @@ class FlightSegmentsTab extends StatelessWidget {
         children: [
           // Segments title
           Text(
-            'Flight Segments',
+            l10n.flightSegments,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: AppColors.primaryAccent,
             ),
@@ -38,7 +40,7 @@ class FlightSegmentsTab extends StatelessWidget {
           if (flight.movingSegments.isEmpty)
             Center(
               child: Text(
-                'No segments data available',
+                l10n.noSegmentsDataAvailable,
                 style: TextStyle(color: Theme.of(context).disabledColor),
               ),
             )
@@ -75,7 +77,7 @@ class FlightSegmentsTab extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Segment ${index + 1}',
+                              l10n.segmentNumber(index + 1),
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primaryTextColor,
@@ -166,6 +168,7 @@ class FlightSegmentsTab extends StatelessWidget {
     // Use Consumer to get unit settings
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
+        final l10n = AppLocalizations.of(context)!;
         final isMetric = settings.units == 'metric';
         
         // Format distance based on unit settings
@@ -181,35 +184,35 @@ class FlightSegmentsTab extends StatelessWidget {
               _buildSegmentDataRow(
                 context,
                 icon: Icons.speed,
-                title: 'Avg Speed',
+                title: l10n.avgSpeed,
                 value: segment.formattedAverageSpeed,
               ),
               // Distance
               _buildSegmentDataRow(
                 context,
                 icon: Icons.straighten,
-                title: 'Distance',
+                title: l10n.distance,
                 value: distanceValue,
               ),
               // Heading
               _buildSegmentDataRow(
                 context,
                 icon: Icons.navigation,
-                title: 'Heading',
+                title: l10n.heading,
                 value: segment.formattedHeading,
               ),
               // Start Altitude
               _buildSegmentDataRow(
                 context,
                 icon: Icons.flight_takeoff,
-                title: 'Start Alt',
+                title: l10n.startAlt,
                 value: segment.formattedStartAltitude,
               ),
               // End Altitude
               _buildSegmentDataRow(
                 context,
                 icon: Icons.flight_land,
-                title: 'End Alt',
+                title: l10n.endAlt,
                 value: segment.formattedEndAltitude,
               ),
             ],

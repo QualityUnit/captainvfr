@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../constants/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Dialog shown when user wants to stop flight tracking
 class StopTrackingDialog extends StatelessWidget {
@@ -11,9 +12,9 @@ class StopTrackingDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: AppTheme.dialogRadius,
       ),
-      title: const Text('Stop Flight Tracking?'),
-      content: const Text(
-        'Do you want to stop recording your flight?',
+      title: Text(AppLocalizations.of(context)!.stopFlightTracking),
+      content: Text(
+        AppLocalizations.of(context)!.areYouSureStopRecording,
       ),
       actions: [
         // Continue tracking button (Green)
@@ -29,9 +30,9 @@ class StopTrackingDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop(false); // Don't stop tracking
           },
-          child: const Text(
-            'Continue tracking',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          child: Text(
+            AppLocalizations.of(context)!.continueTracking,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(width: 8),
@@ -48,9 +49,9 @@ class StopTrackingDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop(true); // Stop tracking
           },
-          child: const Text(
-            'Stop',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          child: Text(
+            AppLocalizations.of(context)!.stop,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
       ],

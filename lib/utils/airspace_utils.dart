@@ -229,9 +229,9 @@ class AirspaceUtils {
           case 5: // F
             return Colors.green.shade400;
           case 6: // G
-            return Colors.grey;
+            return Colors.white;
           default:
-            return Colors.grey.shade600;
+            return const Color(0x99FFFFFF);
         }
     }
   }

@@ -5,6 +5,7 @@ import '../services/flight_plan_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class FlightPlansScreen extends StatefulWidget {
   const FlightPlansScreen({super.key});
@@ -29,11 +30,12 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Flight Plans',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.flightPlanning,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
@@ -57,12 +59,12 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                   Icon(Icons.flight_takeoff, size: 64, color: AppColors.secondaryTextColor),
                   const SizedBox(height: 16),
                   Text(
-                    'No flight plans yet',
+                    'No flight plans yet', // TODO: Add to localization
                     style: TextStyle(fontSize: 18, color: AppColors.secondaryTextColor),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Create your first flight plan to get started',
+                    'Create your first flight plan to get started', // TODO: Add to localization
                     style: TextStyle(color: AppColors.secondaryTextColor),
                   ),
                 ],
@@ -155,48 +157,51 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                 icon: Icon(Icons.more_vert, color: AppColors.secondaryTextColor),
                 onSelected: (value) =>
                     _handleMenuAction(context, value, flightPlan, flightPlanService),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'load',
-                    child: Row(
-                      children: [
-                        Icon(Icons.map, size: 20, color: AppColors.primaryTextColor),
-                        const SizedBox(width: 8),
-                        Text('Load to Map', style: TextStyle(color: AppColors.primaryTextColor)),
-                      ],
+                itemBuilder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return [
+                    PopupMenuItem(
+                      value: 'load',
+                      child: Row(
+                        children: [
+                          Icon(Icons.map, size: 20, color: AppColors.primaryTextColor),
+                          const SizedBox(width: 8),
+                          Text(l10n.loadToMap, style: TextStyle(color: AppColors.primaryTextColor)),
+                        ],
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, size: 20, color: AppColors.primaryTextColor),
-                        const SizedBox(width: 8),
-                        Text('Edit Name', style: TextStyle(color: AppColors.primaryTextColor)),
-                      ],
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20, color: AppColors.primaryTextColor),
+                          const SizedBox(width: 8),
+                          Text(l10n.editName, style: TextStyle(color: AppColors.primaryTextColor)),
+                        ],
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: 'duplicate',
-                    child: Row(
-                      children: [
-                        Icon(Icons.copy, size: 20, color: AppColors.primaryTextColor),
-                        const SizedBox(width: 8),
-                        Text('Duplicate', style: TextStyle(color: AppColors.primaryTextColor)),
-                      ],
+                    PopupMenuItem(
+                      value: 'duplicate',
+                      child: Row(
+                        children: [
+                          Icon(Icons.copy, size: 20, color: AppColors.primaryTextColor),
+                          const SizedBox(width: 8),
+                          Text(l10n.duplicate, style: TextStyle(color: AppColors.primaryTextColor)),
+                        ],
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete, size: 20, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: Colors.red)),
-                      ],
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete, size: 20, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ];
+                },
               ),
             ],
           ),
@@ -252,17 +257,19 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     FlightPlan flightPlan,
     FlightPlanService flightPlanService,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     flightPlanService.loadFlightPlan(flightPlan.id);
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Loaded flight plan: ${flightPlan.name}'),
+        content: Text(l10n.loadedFlightPlan(flightPlan.name)),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
   void _showNewFlightPlanDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Generate default name with random number
     final randomNum = DateTime.now().millisecondsSinceEpoch % 1000;
     final defaultName = 'Flight Plan $randomNum';
@@ -278,20 +285,20 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
       context: context,
       builder: (context) => FormThemeHelper.buildDialog(
         context: context,
-        title: 'New Flight Plan',
+        title: l10n.newFlightPlan,
         content: Padding(
           padding: const EdgeInsets.all(16),
           child: FormThemeHelper.buildFormField(
             controller: controller,
-            labelText: 'Flight Plan Name',
-            hintText: 'Enter flight plan name',
+            labelText: l10n.flightPlanName,
+            hintText: l10n.enterFlightPlanName,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: FormThemeHelper.getSecondaryButtonStyle(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -306,7 +313,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
               Navigator.of(context).pop(); // Go back to map
             },
             style: FormThemeHelper.getPrimaryButtonStyle(),
-            child: const Text('Create'),
+            child: Text(l10n.create),
           ),
         ],
       ),
@@ -318,6 +325,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     FlightPlan flightPlan,
     FlightPlanService flightPlanService,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: flightPlan.name);
     showDialog(
       context: context,
@@ -328,14 +336,14 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
           padding: const EdgeInsets.all(16),
           child: FormThemeHelper.buildFormField(
             controller: controller,
-            labelText: 'Flight Plan Name',
+            labelText: l10n.flightPlanName,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: FormThemeHelper.getSecondaryButtonStyle(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -349,7 +357,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
               }
             },
             style: FormThemeHelper.getPrimaryButtonStyle(),
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -360,11 +368,12 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     FlightPlan flightPlan,
     FlightPlanService flightPlanService,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     flightPlanService.duplicateFlightPlan(flightPlan.id);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Flight plan duplicated'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(l10n.flightPlanDuplicated),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -374,11 +383,12 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     FlightPlan flightPlan,
     FlightPlanService flightPlanService,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => FormThemeHelper.buildDialog(
         context: context,
-        title: 'Delete Flight Plan',
+        title: l10n.deleteFlightPlan,
         content: Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
@@ -390,16 +400,16 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: FormThemeHelper.getSecondaryButtonStyle(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               flightPlanService.deleteFlightPlan(flightPlan.id);
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Flight plan deleted'),
-                  duration: Duration(seconds: 2),
+                SnackBar(
+                  content: Text(l10n.flightPlanDeleted),
+                  duration: const Duration(seconds: 2),
                 ),
               );
             },
@@ -407,7 +417,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import '../../services/settings_service.dart';
 import '../../models/aircraft.dart';
 import '../../widgets/aircraft_selector_widget.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class ClimbPerformanceCalculator extends StatefulWidget {
   const ClimbPerformanceCalculator({super.key});
@@ -101,6 +102,7 @@ class _ClimbPerformanceCalculatorState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final settings = Provider.of<SettingsService>(context);
 
@@ -233,7 +235,7 @@ class _ClimbPerformanceCalculatorState
                     _buildFormField(
                       controller: _headwindController,
                       labelText: 'Headwind Component (${settings.windUnit})',
-                      hintText: 'Use negative value for tailwind',
+                      hintText: l10n.useNegativeForTailwind,
                       keyboardType: const TextInputType.numberWithOptions(
                         signed: true,
                         decimal: true,
@@ -250,7 +252,7 @@ class _ClimbPerformanceCalculatorState
                         ).copyWith(
                           minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
                         ),
-                        child: const Text('Calculate Climb Performance'),
+                        child: Text(l10n.calculateClimbPerformance),
                       ),
                     ),
               ],

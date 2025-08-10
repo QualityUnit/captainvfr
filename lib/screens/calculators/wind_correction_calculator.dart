@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/settings_service.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/form_theme_helper.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:math' as math;
 
 class WindCorrectionCalculator extends StatefulWidget {
@@ -96,16 +97,17 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
     final groundSpeed = math.sqrt(groundX * groundX + groundY * groundY);
 
     // Determine wind type
+    final l10n = AppLocalizations.of(context)!;
     final headwind = windSpeed * math.cos(windAngleRad);
     String windType;
     if (headwind > 5) {
-      windType = 'Headwind';
+      windType = l10n.headwind;
     } else if (headwind < -5) {
-      windType = 'Tailwind';
+      windType = l10n.tailwind;
     } else if (crosswind.abs() > 5) {
-      windType = crosswind > 0 ? 'Right Crosswind' : 'Left Crosswind';
+      windType = crosswind > 0 ? l10n.rightCrosswind : l10n.leftCrosswind;
     } else {
-      windType = 'Light/Variable';
+      windType = l10n.lightVariable;
     }
 
     setState(() {
@@ -121,14 +123,15 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
     final settingsService = context.watch<SettingsService>();
     final isImperial = settingsService.units == 'imperial';
     final speedUnit = isImperial ? 'kts' : 'km/h';
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.dialogBackgroundColor,
-        title: const Text(
-          'Wind Correction Angle',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.windCorrection,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryTextColor),
@@ -141,12 +144,12 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FormThemeHelper.buildSection(
-              title: 'Flight Parameters',
+              title: l10n.flightParameters,
               children: [
                 FormThemeHelper.buildFormField(
                   controller: _courseController,
-                  labelText: 'Desired Course (°)',
-                  hintText: 'True course to destination',
+                  labelText: l10n.desiredCourse,
+                  hintText: l10n.trueCourseToDestination,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -154,7 +157,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                 const SizedBox(height: 16),
                 FormThemeHelper.buildFormField(
                   controller: _trueAirspeedController,
-                  labelText: 'True Airspeed ($speedUnit)',
+                  labelText: '${l10n.trueAirspeed} ($speedUnit)',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -163,12 +166,12 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
             ),
             const SizedBox(height: 16),
             FormThemeHelper.buildSection(
-              title: 'Wind Information',
+              title: l10n.windInformation,
               children: [
                 FormThemeHelper.buildFormField(
                   controller: _windDirectionController,
-                  labelText: 'Wind Direction (°)',
-                  hintText: 'Direction wind is coming FROM',
+                  labelText: '${l10n.windDirection} (°)',
+                  hintText: l10n.windDirectionFromHint,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -176,7 +179,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                 const SizedBox(height: 16),
                 FormThemeHelper.buildFormField(
                   controller: _windSpeedController,
-                  labelText: 'Wind Speed ($speedUnit)',
+                  labelText: '${l10n.windSpeed} ($speedUnit)',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -189,7 +192,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Calculate', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.calculate, style: const TextStyle(fontSize: 16)),
             ),
             if (_windCorrectionAngle != null) ...[
               const SizedBox(height: 24),
@@ -200,7 +203,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                   child: Column(
                     children: [
                       Text(
-                        'Navigation Results',
+                        l10n.results,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor).copyWith(
                           color: AppColors.primaryTextColor,
                         ),
@@ -213,7 +216,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                             children: [
                               Icon(Icons.explore, size: 40, color: AppColors.primaryAccent),
                               const SizedBox(height: 8),
-                              Text('Heading to Fly', style: TextStyle(color: AppColors.primaryTextColor)),
+                              Text(l10n.headingToFly, style: const TextStyle(color: AppColors.primaryTextColor)),
                               Text(
                                 '${_headingToFly!.toStringAsFixed(0)}°',
                                 style: TextStyle(
@@ -228,7 +231,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                             children: [
                               Icon(Icons.rotate_left, size: 40, color: AppColors.primaryAccent),
                               const SizedBox(height: 8),
-                              Text('Wind Correction', style: TextStyle(color: AppColors.primaryTextColor)),
+                              Text(l10n.windCorrection, style: const TextStyle(color: AppColors.primaryTextColor)),
                               Text(
                                 '${_windCorrectionAngle! > 0 ? "+" : ""}${_windCorrectionAngle!.toStringAsFixed(1)}°',
                                 style: TextStyle(
@@ -249,7 +252,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                             children: [
                               Icon(Icons.speed, size: 32, color: AppColors.primaryAccent),
                               const SizedBox(height: 4),
-                              Text('Ground Speed', style: TextStyle(color: AppColors.primaryTextColor)),
+                              Text(l10n.groundSpeed, style: const TextStyle(color: AppColors.primaryTextColor)),
                               Text(
                                 '${_groundSpeed!.toStringAsFixed(0)} $speedUnit',
                                 style: TextStyle(
@@ -264,7 +267,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                             children: [
                               Icon(Icons.air, size: 32, color: AppColors.primaryAccent),
                               const SizedBox(height: 4),
-                              Text('Wind Type', style: TextStyle(color: AppColors.primaryTextColor)),
+                              Text(l10n.windType, style: const TextStyle(color: AppColors.primaryTextColor)),
                               Text(
                                 _windType!,
                                 style: TextStyle(fontSize: 16, color: AppColors.primaryTextColor),
@@ -284,7 +287,7 @@ class _WindCorrectionCalculatorState extends State<WindCorrectionCalculator> {
                         child: Column(
                           children: [
                             Text(
-                              'Summary',
+                              l10n.summary,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primaryAccent,

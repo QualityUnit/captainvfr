@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/checklist_item.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 /// Dialog to add or edit a checklist item.
 class ChecklistItemFormDialog extends StatefulWidget {
@@ -38,9 +39,11 @@ class _ChecklistItemFormDialogState extends State<ChecklistItemFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return FormThemeHelper.buildDialog(
       context: context,
-      title: widget.item == null ? 'Add Item' : 'Edit Item',
+      title: widget.item == null ? l10n.addItem : l10n.editItem,
       content: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -50,10 +53,10 @@ class _ChecklistItemFormDialogState extends State<ChecklistItemFormDialog> {
             children: [
               FormThemeHelper.buildFormField(
                 controller: _nameController,
-                labelText: 'Name',
+                labelText: l10n.name,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter item name';
+                    return l10n.pleaseEnterItemName;
                   }
                   return null;
                 },
@@ -61,13 +64,13 @@ class _ChecklistItemFormDialogState extends State<ChecklistItemFormDialog> {
               const SizedBox(height: 16),
               FormThemeHelper.buildFormField(
                 controller: _descriptionController,
-                labelText: 'Description',
+                labelText: l10n.description,
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
               FormThemeHelper.buildFormField(
                 controller: _targetValueController,
-                labelText: 'Target Value',
+                labelText: l10n.targetValue,
               ),
             ],
           ),
@@ -77,12 +80,12 @@ class _ChecklistItemFormDialogState extends State<ChecklistItemFormDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: FormThemeHelper.getSecondaryButtonStyle(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _save,
           style: FormThemeHelper.getPrimaryButtonStyle(),
-          child: const Text('Save'),
+          child: Text(l10n.save),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../models/airport.dart';
 import '../../services/settings_service.dart';
@@ -14,6 +15,7 @@ class AirportInfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         final isMetric = settings.units == 'metric';
@@ -28,19 +30,19 @@ class AirportInfoTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Basic Information
-              InfoRow(label: 'ICAO', value: airport.icao),
+              InfoRow(label: l10n.icao, value: airport.icao),
               if (airport.iata != null && airport.iata!.isNotEmpty)
-                InfoRow(label: 'IATA', value: airport.iata!),
-              InfoRow(label: 'Name', value: airport.name),
-              InfoRow(label: 'City', value: airport.city),
-              InfoRow(label: 'Country', value: airport.country),
+                InfoRow(label: l10n.iata, value: airport.iata!),
+              InfoRow(label: l10n.name, value: airport.name),
+              InfoRow(label: l10n.city, value: airport.city),
+              InfoRow(label: l10n.country, value: airport.country),
               InfoRow(
-                label: 'Type',
+                label: l10n.type,
                 value: airport.type.replaceAll('_', ' ').toUpperCase(),
               ),
-              InfoRow(label: 'Elevation', value: elevationStr),
+              InfoRow(label: l10n.elevation, value: elevationStr),
               InfoRow(
-                label: 'Coordinates',
+                label: l10n.coordinates,
                 value:
                     '${airport.position.latitude.toStringAsFixed(6)}, ${airport.position.longitude.toStringAsFixed(6)}',
               ),
@@ -51,7 +53,7 @@ class AirportInfoTab extends StatelessWidget {
               if (airport.website != null && airport.website!.isNotEmpty)
                 ActionButton(
                   icon: Icons.language,
-                  label: 'Visit Website',
+                  label: l10n.visitWebsite,
                   onPressed: () =>
                       UrlLauncherUtils.launch(context, airport.website!),
                 ),
@@ -59,7 +61,7 @@ class AirportInfoTab extends StatelessWidget {
               if (airport.phone != null && airport.phone!.isNotEmpty)
                 ActionButton(
                   icon: Icons.phone,
-                  label: 'Call ${airport.phone}',
+                  label: l10n.callAirport(airport.phone!),
                   onPressed: () =>
                       UrlLauncherUtils.launch(context, 'tel:${airport.phone}'),
                 ),
@@ -67,7 +69,7 @@ class AirportInfoTab extends StatelessWidget {
               if (onNavigate != null)
                 ActionButton(
                   icon: Icons.navigation,
-                  label: 'Navigate to Airport',
+                  label: l10n.navigateToAirport,
                   onPressed: onNavigate!,
                 ),
             ],
