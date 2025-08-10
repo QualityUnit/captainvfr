@@ -113,7 +113,7 @@ class FlightPlanOverlay {
                       child: Icon(
                         Icons.add,
                         size: 12,
-                        color: Colors.white,
+                        color: Colors.green,
                       ),
                     ),
                   ),

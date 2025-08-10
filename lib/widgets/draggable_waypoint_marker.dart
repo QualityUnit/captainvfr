@@ -140,7 +140,7 @@ class _DraggableWaypointMarkerState extends State<DraggableWaypointMarker> {
             color: _getWaypointColor(widget.waypoint.type),
             shape: BoxShape.circle,
             border: Border.all(
-              color: widget.isSelected ? Colors.yellow : Colors.white,
+              color: widget.isSelected ? Colors.yellow : Colors.green,
               width: widget.isSelected ? 3 : 2,
             ),
             boxShadow: [

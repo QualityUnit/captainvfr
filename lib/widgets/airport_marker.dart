@@ -71,9 +71,7 @@ class AirportMarker extends StatelessWidget {
         // Ensure the size is valid (not NaN or infinite)
         if (calculatedSize.isFinite && calculatedSize > 0) {
           // Limit runway size at lower zoom levels to prevent oversized visualizations
-          runwayVisualizationSize = mapZoom < 13 
-              ? calculatedSize.clamp(visualSize * 1.5, visualSize * 3.0)
-              : calculatedSize;
+          runwayVisualizationSize = calculatedSize;
         } else {
           runwayVisualizationSize = visualSize * 2.5; // Default size
         }
@@ -327,9 +325,7 @@ class AirportMarkersLayer extends StatelessWidget {
           // Use actual runway length with small buffer
           final calculatedBounds = (maxLengthM / metersPerPixel) * 1.05;
           // Limit runway bounds at lower zoom levels to prevent oversized visualizations
-          final constrainedBounds = mapZoom < 13 
-              ? calculatedBounds.clamp(airportMarkerSize * 1.5, airportMarkerSize * 3.0)
-              : calculatedBounds;
+          final constrainedBounds = calculatedBounds;
           markerBounds = math.max(airportMarkerSize, constrainedBounds);
         }
       }
