@@ -34,8 +34,6 @@ abstract class BaseCacheRepository<T> {
   /// Cache a list of items
   Future<void> cacheItems(List<T> items, {bool clearExisting = true}) async {
     try {
-      developer.log('💾 Caching ${items.length} $T items...');
-
       if (clearExisting) {
         // Clear existing data
         await _box.clear();
@@ -51,8 +49,6 @@ abstract class BaseCacheRepository<T> {
         lastFetchKey,
         DateTime.now().toIso8601String(),
       );
-
-      developer.log('✅ Cached ${items.length} $T items successfully');
     } catch (e) {
       developer.log('❌ Error caching $T items: $e');
       rethrow;
@@ -66,7 +62,6 @@ abstract class BaseCacheRepository<T> {
       
       // Check if box is open
       if (!_box.isOpen) {
-        developer.log('⚠️ $boxName box is closed');
         return items;
       }
 

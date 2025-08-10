@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/airspace.dart';
 import '../services/openaip_service.dart';
 import '../utils/airspace_utils.dart';
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 
 class AirspaceFlightInfo extends StatefulWidget {
@@ -278,6 +279,7 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_currentAirspaces.isEmpty && _nextAirspace == null) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -285,7 +287,7 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
         decoration: BoxDecoration(
           color: Colors.black87,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.5)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -294,8 +296,8 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'CURRENT AIRSPACE',
+                Text(
+                  l10n.currentAirspaceLabel,
                   style: TextStyle(
                     color: Colors.orange,
                     fontSize: 12,
@@ -312,8 +314,8 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'No airspace at current position',
+            Text(
+              l10n.noAirspaceAtCurrentPosition,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -346,8 +348,8 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'CURRENT AIRSPACE',
+                Text(
+                  l10n.currentAirspaceLabel,
                   style: TextStyle(
                     color: Colors.orange,
                     fontSize: 10,
@@ -411,10 +413,10 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
             ),
           ],
           if (_nextAirspace != null && _currentAirspaces.isNotEmpty)
-            const Divider(color: Colors.grey, height: 8),
+            const Divider(color: Colors.white, height: 8),
           if (_nextAirspace != null) ...[
-            const Text(
-              'NEXT AIRSPACE',
+            Text(
+              l10n.nextAirspace,
               style: TextStyle(
                 color: Colors.blue,
                 fontSize: 10,
@@ -467,9 +469,9 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
               _nextAirspace == null &&
               _distanceToExit != null) ...[
             if (_currentAirspaces.isNotEmpty)
-              const Divider(color: Colors.grey, height: 8),
-            const Text(
-              'AIRSPACE EXIT',
+              const Divider(color: Colors.white, height: 8),
+            Text(
+              l10n.airspaceExit,
               style: TextStyle(
                 color: Colors.orange,
                 fontSize: 10,
@@ -484,7 +486,7 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    'Exiting ${_currentAirspaces.first.name}',
+                    l10n.exitingAirspace(_currentAirspaces.first.name),
                     style: const TextStyle(color: Colors.white, fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -553,7 +555,7 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
       case 'RMZ':
         return Colors.yellow;
       default:
-        return Colors.grey;
+        return Colors.white;
     }
   }
 }

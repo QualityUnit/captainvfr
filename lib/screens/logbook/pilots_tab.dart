@@ -11,12 +11,14 @@ import '../licenses_screen.dart';
 import '../license_detail_screen.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class PilotsTab extends StatelessWidget {
   const PilotsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pilotService = context.watch<PilotService>();
     final pilots = pilotService.pilots;
 
@@ -34,7 +36,7 @@ class PilotsTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No pilots added yet',
+                    AppLocalizations.of(context)!.noPilotsAddedYet,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -43,7 +45,7 @@ class PilotsTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Add yourself as the first pilot',
+                    AppLocalizations.of(context)!.addFirstPilot,
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.secondaryTextColor,
@@ -90,6 +92,7 @@ class _PilotTileState extends State<_PilotTile> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pilot = widget.pilot;
     final pilotService = context.watch<PilotService>();
     final endorsements = pilotService.getEndorsementsForPilot(pilot.id);
@@ -139,7 +142,7 @@ class _PilotTileState extends State<_PilotTile> {
             ),
             if (isCurrentPilot)
               Chip(
-                label: const Text('Current'),
+                label: Text(l10n.current),
                 labelStyle: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -155,7 +158,7 @@ class _PilotTileState extends State<_PilotTile> {
           children: [
             if (pilot.certificateNumber != null)
               Text(
-                'Certificate: ${pilot.certificateNumber}',
+                '${l10n.certificate}: ${pilot.certificateNumber}',
                 style: TextStyle(
                   fontSize: 13,
                   color: AppColors.secondaryTextColor,
@@ -163,7 +166,7 @@ class _PilotTileState extends State<_PilotTile> {
               ),
             if (pilot.age != null) 
               Text(
-                'Age: ${pilot.age} years',
+                '${l10n.age}: ${pilot.age} ${l10n.years}',
                 style: TextStyle(
                   fontSize: 13,
                   color: AppColors.secondaryTextColor,
@@ -178,7 +181,7 @@ class _PilotTileState extends State<_PilotTile> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${licenses.length} licenses',
+                  l10n.licensesCount(licenses.length),
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.secondaryTextColor,
@@ -192,7 +195,7 @@ class _PilotTileState extends State<_PilotTile> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${endorsements.length} endorsements',
+                  l10n.endorsementsCount(endorsements.length),
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.secondaryTextColor,
@@ -234,10 +237,10 @@ class _PilotTileState extends State<_PilotTile> {
               case 'delete':
                 final confirmed = await ThemedDialog.showConfirmation(
                   context: context,
-                  title: 'Delete Pilot',
-                  message: 'Are you sure you want to delete ${pilot.name}? This will also delete all associated licenses and endorsements.',
-                  confirmText: 'Delete',
-                  cancelText: 'Cancel',
+                  title: l10n.deletePilot,
+                  message: l10n.confirmDeletePilot(pilot.name),
+                  confirmText: l10n.delete,
+                  cancelText: l10n.cancel,
                   destructive: true,
                 );
 
@@ -260,7 +263,7 @@ class _PilotTileState extends State<_PilotTile> {
               value: 'edit',
               child: ListTile(
                 leading: Icon(Icons.edit, color: AppColors.primaryTextColor),
-                title: Text('Edit', style: TextStyle(color: AppColors.primaryTextColor)),
+                title: Text(l10n.edit, style: TextStyle(color: AppColors.primaryTextColor)),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -269,7 +272,7 @@ class _PilotTileState extends State<_PilotTile> {
                 value: 'set_current',
                 child: ListTile(
                   leading: Icon(Icons.star, color: AppColors.primaryTextColor),
-                  title: Text('Set as Current', style: TextStyle(color: AppColors.primaryTextColor)),
+                  title: Text(l10n.setAsCurrent, style: TextStyle(color: AppColors.primaryTextColor)),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -278,7 +281,7 @@ class _PilotTileState extends State<_PilotTile> {
               value: 'delete',
               child: ListTile(
                 leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete', style: TextStyle(color: Colors.red)),
+                title: Text(l10n.delete, style: TextStyle(color: Colors.red)),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -297,7 +300,7 @@ class _PilotTileState extends State<_PilotTile> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Licenses',
+                        l10n.licenses,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -315,7 +318,7 @@ class _PilotTileState extends State<_PilotTile> {
                         },
                         icon: Icon(Icons.add, color: AppColors.primaryAccent),
                         label: Text(
-                          'Manage',
+                          l10n.manage,
                           style: TextStyle(color: AppColors.primaryAccent),
                         ),
                       ),
@@ -325,7 +328,7 @@ class _PilotTileState extends State<_PilotTile> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        'No licenses added',
+                        l10n.noLicensesAdded,
                         style: TextStyle(
                           color: AppColors.secondaryTextColor,
                           fontSize: 14,
@@ -345,7 +348,7 @@ class _PilotTileState extends State<_PilotTile> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Endorsements',
+                        l10n.endorsements,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -358,7 +361,7 @@ class _PilotTileState extends State<_PilotTile> {
                         },
                         icon: Icon(Icons.add, color: AppColors.primaryAccent),
                         label: Text(
-                          'Add',
+                          l10n.add,
                           style: TextStyle(color: AppColors.primaryAccent),
                         ),
                       ),
@@ -368,7 +371,7 @@ class _PilotTileState extends State<_PilotTile> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        'No endorsements added',
+                        l10n.noEndorsementsAdded,
                         style: TextStyle(
                           color: AppColors.secondaryTextColor,
                           fontSize: 14,
@@ -391,9 +394,10 @@ class _PilotTileState extends State<_PilotTile> {
   }
 
   void _showAddEndorsementDialog(BuildContext context, String pilotId) {
+    final l10n = AppLocalizations.of(context)!;
     ThemedDialog.show(
       context: context,
-      title: 'Add Endorsement',
+      title: l10n.addEndorsement,
       content: _EndorsementDialogContent(pilotId: pilotId),
       maxWidth: 500,
     );
@@ -407,6 +411,7 @@ class _LicenseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(
@@ -443,10 +448,10 @@ class _LicenseTile extends StatelessWidget {
               } else if (value == 'delete') {
                 final confirmed = await ThemedDialog.showConfirmation(
                   context: context,
-                  title: 'Delete License',
-                  message: 'Are you sure you want to delete "${license.name}"?',
-                  confirmText: 'Delete',
-                  cancelText: 'Cancel',
+                  title: l10n.deleteLicense,
+                  message: l10n.confirmDeleteLicense,
+                  confirmText: l10n.delete,
+                  cancelText: l10n.cancel,
                   destructive: true,
                 );
 
@@ -460,11 +465,11 @@ class _LicenseTile extends StatelessWidget {
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'edit',
-                child: Text('Edit', style: TextStyle(color: AppColors.primaryTextColor)),
+                child: Text(l10n.edit, style: TextStyle(color: AppColors.primaryTextColor)),
               ),
               PopupMenuItem(
                 value: 'delete',
-                child: Text('Delete', style: TextStyle(color: Colors.red)),
+                child: Text(l10n.delete, style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -485,6 +490,7 @@ class _EndorsementTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(
@@ -516,10 +522,10 @@ class _EndorsementTile extends StatelessWidget {
               } else if (value == 'delete') {
                 final confirmed = await ThemedDialog.showConfirmation(
                   context: context,
-                  title: 'Delete Endorsement',
-                  message: 'Are you sure you want to delete "${endorsement.title}"?',
-                  confirmText: 'Delete',
-                  cancelText: 'Cancel',
+                  title: l10n.deleteEndorsement,
+                  message: l10n.confirmDeleteEndorsement,
+                  confirmText: l10n.delete,
+                  cancelText: l10n.cancel,
                   destructive: true,
                 );
 
@@ -533,11 +539,11 @@ class _EndorsementTile extends StatelessWidget {
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'edit',
-                child: Text('Edit', style: TextStyle(color: AppColors.primaryTextColor)),
+                child: Text(l10n.edit, style: TextStyle(color: AppColors.primaryTextColor)),
               ),
               PopupMenuItem(
                 value: 'delete',
-                child: Text('Delete', style: TextStyle(color: Colors.red)),
+                child: Text(l10n.delete, style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -547,9 +553,10 @@ class _EndorsementTile extends StatelessWidget {
   }
 
   static void _showEditEndorsementDialog(BuildContext context, Endorsement endorsement, String pilotId) {
+    final l10n = AppLocalizations.of(context)!;
     ThemedDialog.show(
       context: context,
-      title: 'Edit Endorsement',
+      title: l10n.editEndorsement,
       content: _EndorsementDialogContent(
         pilotId: pilotId,
         endorsement: endorsement,
@@ -601,6 +608,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Theme(
       data: ThemeData.dark().copyWith(
         inputDecorationTheme: const InputDecorationTheme(
@@ -636,15 +644,15 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'e.g., Complex Aircraft',
+              decoration: InputDecoration(
+                labelText: l10n.title,
+                hintText: l10n.complexAircraftExample,
                 prefixIcon: Icon(Icons.card_membership, size: 18),
               ),
               style: const TextStyle(fontSize: 12),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a title';
+                  return l10n.pleaseEnterTitle;
                 }
                 return null;
               },
@@ -652,9 +660,9 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Additional details',
+              decoration: InputDecoration(
+                labelText: l10n.description,
+                hintText: l10n.additionalDetails,
                 alignLabelWithHint: true,
                 prefixIcon: Icon(Icons.description, size: 18),
               ),
@@ -662,7 +670,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
               style: const TextStyle(fontSize: 12),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a description';
+                  return l10n.pleaseEnterDescription;
                 }
                 return null;
               },
@@ -676,7 +684,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
               ),
               child: ListTile(
                 dense: true,
-                title: const Text('Valid From', style: TextStyle(fontSize: 12)),
+                title: Text(l10n.validFrom, style: const TextStyle(fontSize: 12)),
                 subtitle: Text(
                   '${_validFrom.day}/${_validFrom.month}/${_validFrom.year}',
                   style: const TextStyle(fontSize: 11),
@@ -706,7 +714,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
               ),
               child: SwitchListTile(
                 dense: true,
-                title: const Text('Has Expiration', style: TextStyle(fontSize: 12)),
+                title: Text(l10n.hasExpiration, style: const TextStyle(fontSize: 12)),
                 value: _validTo != null,
                 onChanged: (value) {
                   setState(() {
@@ -729,7 +737,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
                 ),
                 child: ListTile(
                   dense: true,
-                  title: const Text('Valid To', style: TextStyle(fontSize: 12)),
+                  title: Text(l10n.validTo, style: const TextStyle(fontSize: 12)),
                   subtitle: Text(
                     '${_validTo!.day}/${_validTo!.month}/${_validTo!.year}',
                     style: const TextStyle(fontSize: 11),
@@ -757,7 +765,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
@@ -790,7 +798,7 @@ class _EndorsementDialogContentState extends State<_EndorsementDialogContent> {
                       }
                     }
                   },
-                  child: Text(widget.endorsement != null ? 'Update' : 'Add'),
+                  child: Text(widget.endorsement != null ? l10n.update : l10n.add),
                 ),
               ],
             ),

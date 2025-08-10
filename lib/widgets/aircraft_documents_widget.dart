@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/aircraft.dart';
 import '../services/media_service.dart';
 import '../services/aircraft_settings_service.dart';
+import '../l10n/app_localizations.dart';
 
 class AircraftDocumentsWidget extends StatefulWidget {
   final Aircraft aircraft;
@@ -33,14 +34,14 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Documents',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.documents,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: const Icon(Icons.add),
                 onPressed: _isLoading ? null : _addDocument,
-                tooltip: 'Add document',
+                tooltip: AppLocalizations.of(context)!.addDocument,
               ),
             ],
           ),
@@ -55,21 +56,21 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
           ),
 
         if (documents.isEmpty && !_isLoading)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(40.0),
+              padding: const EdgeInsets.all(40.0),
               child: Column(
                 children: [
-                  Icon(Icons.folder_open, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  const Icon(Icons.folder_open, size: 64, color: Colors.white),
+                  const SizedBox(height: 16),
                   Text(
-                    'No documents yet',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    AppLocalizations.of(context)!.noDocumentsYet,
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Add images of AFM, POH, or other aircraft documents',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    AppLocalizations.of(context)!.addAfmPohDocuments,
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
                   ),
                 ],
               ),
@@ -121,11 +122,11 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
           break;
         case '.txt':
           icon = Icons.text_snippet;
-          iconColor = Colors.grey;
+          iconColor = Colors.white;
           break;
         default:
           icon = Icons.insert_drive_file;
-          iconColor = Colors.grey;
+          iconColor = Colors.white;
       }
     }
 
@@ -135,12 +136,12 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
         leading: Icon(icon, size: 40, color: iconColor),
         title: Text(fileName, maxLines: 2, overflow: TextOverflow.ellipsis),
         subtitle: exists
-            ? Text('Tap to open', style: TextStyle(color: Colors.grey.shade600))
-            : const Text('File not found', style: TextStyle(color: Colors.red)),
+            ? Text(AppLocalizations.of(context)!.tapToOpen, style: TextStyle(color: const Color(0x99FFFFFF)))
+            : Text(AppLocalizations.of(context)!.fileNotFound, style: const TextStyle(color: Colors.red)),
         trailing: IconButton(
           icon: const Icon(Icons.delete),
           onPressed: () => _deleteDocument(docPath),
-          tooltip: 'Delete',
+          tooltip: AppLocalizations.of(context)!.delete,
         ),
         onTap: exists ? () => _openDocument(file) : null,
       ),
@@ -152,23 +153,22 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
     final source = await showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Document Image'),
-        content: const Text(
-          'You can add images of your aircraft documents (AFM, POH, etc.).\n\n'
-          'Note: PDF and DOC files are not supported at this time.',
+        title: Text(AppLocalizations.of(context)!.addDocumentImage),
+        content: Text(
+          AppLocalizations.of(context)!.youCanAddDocumentImages,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, ImageSource.camera),
-            child: const Text('Take Photo'),
+            child: Text(AppLocalizations.of(context)!.takePhoto),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, ImageSource.gallery),
-            child: const Text('Choose from Gallery'),
+            child: Text(AppLocalizations.of(context)!.chooseFromGallery),
           ),
         ],
       ),
@@ -193,7 +193,7 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error adding document: $e'),
+            content: Text(AppLocalizations.of(context)!.errorAddingDocument(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -221,7 +221,7 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Document added successfully')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.documentAddedSuccessfully)),
       );
     }
   }
@@ -230,19 +230,19 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Document'),
+        title: Text(AppLocalizations.of(context)!.deleteDocument),
         content: Text(
-          'Are you sure you want to delete "${_mediaService.getFileName(documentPath)}"?',
+          AppLocalizations.of(context)!.areYouSureDeleteDocument(_mediaService.getFileName(documentPath)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -273,13 +273,13 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Document deleted')));
+          ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.documentDeleted)));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting document: $e'),
+              content: Text(AppLocalizations.of(context)!.errorDeletingDocument(e.toString())),
               backgroundColor: Colors.red,
             ),
           );
@@ -304,7 +304,7 @@ class _AircraftDocumentsWidgetState extends State<AircraftDocumentsWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error opening document: $e'),
+            content: Text(AppLocalizations.of(context)!.errorOpeningDocument(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

@@ -8,6 +8,7 @@ import '../services/navaid_service.dart';
 import '../services/weather_service.dart';
 import '../services/tiled_data_loader.dart';
 import '../constants/app_colors.dart';
+import '../l10n/app_localizations.dart';
 import 'offline_data/controllers/offline_data_state_controller.dart';
 import 'offline_data/components/cache_card.dart';
 import 'offline_data/components/weather_cache_card.dart';
@@ -95,31 +96,32 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
       _stateController.setLoading(false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading cache stats: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)?.errorLoadingCacheStats(e.toString()) ?? 'Error loading cache stats: $e')),
         );
       }
     }
   }
 
   Future<void> _refreshAllData() async {
+    final l10n = AppLocalizations.of(context)!;
     _stateController.setRefreshing(true);
 
     try {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 16),
-                Expanded(child: Text('Refreshing all aviation data...')),
+                const SizedBox(width: 16),
+                Expanded(child: Text(l10n.refreshingAllAviationData)),
               ],
             ),
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -137,10 +139,10 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('All data refreshed successfully'),
+          SnackBar(
+            content: Text(l10n.allDataRefreshedSuccessfully),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -148,7 +150,7 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error refreshing data: $e'),
+            content: Text(l10n.errorRefreshingData(e.toString())),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -161,24 +163,25 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
 
   Future<void> _refreshWeatherData() async {
+    final l10n = AppLocalizations.of(context)!;
     _stateController.setRefreshing(true);
 
     try {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 16),
-                Expanded(child: Text('Refreshing weather data...')),
+                const SizedBox(width: 16),
+                Expanded(child: Text(l10n.refreshingWeatherData)),
               ],
             ),
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -188,10 +191,10 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Weather data refreshed successfully'),
+          SnackBar(
+            content: Text(l10n.weatherDataRefreshedSuccessfully),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -199,7 +202,7 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error refreshing weather data: $e'),
+            content: Text(l10n.errorRefreshingWeatherData(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -251,17 +254,19 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
         }
         await _loadAllCacheStats();
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('$cacheName cache cleared successfully'),
+              content: Text(l10n.clearedCache(cacheName)),
               backgroundColor: Colors.green,
             ),
           );
         }
       } catch (e) {
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error clearing $cacheName cache: $e')),
+            SnackBar(content: Text(l10n.errorClearingCache(cacheName, e.toString()))),
           );
         }
       }
@@ -285,9 +290,10 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
         _tiledDataLoader.clearCache();
         await _loadAllCacheStats();
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('All caches cleared successfully'),
+            SnackBar(
+              content: Text(l10n.allCachesCleared),
               backgroundColor: Colors.green,
             ),
           );
@@ -295,7 +301,7 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error clearing caches: $e')),
+            SnackBar(content: Text(AppLocalizations.of(context)?.errorClearingCaches(e.toString()) ?? 'Error clearing caches: $e')),
           );
         }
       }
@@ -305,11 +311,12 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
   Future<void> _downloadCurrentArea() async {
     if (widget.currentMapBounds == null) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please open this screen from the map to download the current area'),
+          SnackBar(
+            content: Text(l10n.pleaseOpenFromMap),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -349,9 +356,10 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
       );
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         final message = _stateController.skippedTiles > 0
-            ? 'Downloaded ${_stateController.downloadedTiles} new tiles, skipped ${_stateController.skippedTiles} cached tiles'
-            : 'Downloaded ${_stateController.downloadedTiles} tiles successfully!';
+            ? l10n.downloadedTilesWithSkipped(_stateController.downloadedTiles, _stateController.skippedTiles)
+            : l10n.downloadedTilesSuccessfully(_stateController.downloadedTiles);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -366,7 +374,9 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isUserCancelled ? 'Download cancelled' : 'Download failed: $e',
+              isUserCancelled 
+                ? (AppLocalizations.of(context)?.downloadCancelled ?? 'Download cancelled') 
+                : (AppLocalizations.of(context)?.downloadFailed(e.toString()) ?? 'Download failed: $e'),
             ),
             backgroundColor: isUserCancelled ? Colors.orange : Colors.red,
           ),
@@ -384,11 +394,12 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Offline Data',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.offlineData,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
@@ -399,14 +410,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
               return IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: _stateController.isRefreshing ? null : _refreshAllData,
-                tooltip: 'Refresh all data',
+                tooltip: l10n.refreshAllData,
               );
             },
           ),
           IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: _clearAllCaches,
-            tooltip: 'Clear all caches',
+            tooltip: l10n.clearAllCaches,
           ),
         ],
       ),
@@ -429,7 +440,7 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
                 children: [
                   // Data Caches Section
                   Text(
-                    'Aviation Data Caches',
+                    AppLocalizations.of(context)?.aviationDataCaches ?? 'Aviation Data Caches',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -440,14 +451,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Airports cache
                   CacheCard(
-                    title: 'Airports',
+                    title: l10n.airports,
                     icon: Icons.flight_land,
                     count: _stateController.cacheStats['airports']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['airports']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Airports'),
-                    subtitle: 'Airport information and details',
+                    subtitle: l10n.airportInformation,
                     isRefreshing: _stateController.isRefreshing,
                   ),
 
@@ -455,14 +466,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Navaids cache
                   CacheCard(
-                    title: 'Navigation Aids',
+                    title: l10n.navigationAids,
                     icon: Icons.radar,
                     count: _stateController.cacheStats['navaids']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['navaids']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Navaids'),
-                    subtitle: 'VOR, NDB, and other navigation aids',
+                    subtitle: l10n.vorNdbNavigation,
                     isRefreshing: _stateController.isRefreshing,
                   ),
 
@@ -470,14 +481,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Runways cache
                   CacheCard(
-                    title: 'Runways',
+                    title: l10n.runways,
                     icon: Icons.horizontal_rule,
                     count: _stateController.cacheStats['runways']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['runways']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Runways'),
-                    subtitle: 'Runway information for airports',
+                    subtitle: l10n.runwayInformation,
                     isRefreshing: _stateController.isRefreshing,
                   ),
 
@@ -485,14 +496,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Frequencies cache
                   CacheCard(
-                    title: 'Frequencies',
+                    title: l10n.frequencies,
                     icon: Icons.radio,
                     count: _stateController.cacheStats['frequencies']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['frequencies']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Frequencies'),
-                    subtitle: 'Radio frequencies for airports',
+                    subtitle: l10n.radioFrequencies,
                     isRefreshing: _stateController.isRefreshing,
                   ),
 
@@ -502,12 +513,12 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
                   if (_stateController.cacheStats['openaip_runways'] != null &&
                       (_stateController.cacheStats['openaip_runways']?['count'] ?? 0) > 0)
                     CacheCard(
-                      title: 'Additional Runways',
+                      title: l10n.additionalRunways,
                       icon: Icons.flight_takeoff,
                       count: _stateController.cacheStats['openaip_runways']?['count'] ?? 0,
-                      lastFetch: 'Supplemental data',
+                      lastFetch: l10n.supplementalData,
                       onClear: () {}, // OpenAIP data is tiled
-                      subtitle: 'Additional runway data',
+                      subtitle: l10n.additionalRunwayData,
                       isRefreshing: _stateController.isRefreshing,
                     ),
                   
@@ -519,12 +530,12 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
                   if (_stateController.cacheStats['openaip_frequencies'] != null &&
                       (_stateController.cacheStats['openaip_frequencies']?['count'] ?? 0) > 0)
                     CacheCard(
-                      title: 'Additional Frequencies',
+                      title: l10n.additionalFrequencies,
                       icon: Icons.settings_input_antenna,
                       count: _stateController.cacheStats['openaip_frequencies']?['count'] ?? 0,
-                      lastFetch: 'Supplemental data',
+                      lastFetch: l10n.supplementalData,
                       onClear: () {}, // OpenAIP data is tiled
-                      subtitle: 'Additional frequency data',
+                      subtitle: l10n.additionalFrequencyData,
                       isRefreshing: _stateController.isRefreshing,
                     ),
                   
@@ -534,14 +545,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Airspaces cache
                   CacheCard(
-                    title: 'Airspaces',
+                    title: l10n.airspaces,
                     icon: Icons.layers,
                     count: _stateController.cacheStats['airspaces']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['airspaces']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Airspaces'),
-                    subtitle: 'Controlled airspaces and restricted areas',
+                    subtitle: l10n.controlledAirspaces,
                     onRefresh: null, // OpenAIP data is now pre-downloaded offline
                     isRefreshing: _stateController.isRefreshing,
                   ),
@@ -550,14 +561,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Reporting points cache
                   CacheCard(
-                    title: 'Reporting Points',
+                    title: l10n.reportingPoints,
                     icon: Icons.location_on,
                     count: _stateController.cacheStats['reportingPoints']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['reportingPoints']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Reporting Points'),
-                    subtitle: 'VFR reporting points for navigation',
+                    subtitle: l10n.vfrReportingPoints,
                     onRefresh: null, // OpenAIP data is now pre-downloaded offline
                     isRefreshing: _stateController.isRefreshing,
                   ),
@@ -566,14 +577,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Obstacles cache
                   CacheCard(
-                    title: 'Obstacles',
+                    title: l10n.obstacles,
                     icon: Icons.warning,
                     count: _stateController.cacheStats['obstacles']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['obstacles']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Obstacles'),
-                    subtitle: 'Towers, buildings, and other obstacles',
+                    subtitle: l10n.towersObstacles,
                     onRefresh: null, // OpenAIP data is now pre-downloaded offline
                     isRefreshing: _stateController.isRefreshing,
                   ),
@@ -582,14 +593,14 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Hotspots cache
                   CacheCard(
-                    title: 'Hotspots',
+                    title: l10n.hotspots,
                     icon: Icons.local_fire_department,
                     count: _stateController.cacheStats['hotspots']?['count'] ?? 0,
                     lastFetch: DateFormatter.formatLastFetch(
                       _stateController.cacheStats['hotspots']?['lastFetch'],
                     ),
                     onClear: () => _clearSpecificCache('Hotspots'),
-                    subtitle: 'Thermal activity and gliding hotspots',
+                    subtitle: l10n.thermalActivity,
                     onRefresh: null, // OpenAIP data is now pre-downloaded offline
                     isRefreshing: _stateController.isRefreshing,
                   ),
@@ -612,7 +623,7 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
 
                   // Offline Map Tiles Section
                   Text(
-                    'Offline Map Tiles',
+                    l10n.offlineMapTiles,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

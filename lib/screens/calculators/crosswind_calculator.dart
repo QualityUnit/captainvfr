@@ -4,6 +4,7 @@ import '../../services/settings_service.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/runway_wind_calculator.dart';
 import '../../utils/form_theme_helper.dart';
+import '../../l10n/app_localizations.dart';
 
 class CrosswindCalculator extends StatefulWidget {
   const CrosswindCalculator({super.key});
@@ -50,7 +51,8 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
       setState(() {
         _headwindComponent = windComponent.headwindAbs;
         _crosswindComponent = windComponent.crosswind;
-        _windType = windComponent.isHeadwind ? 'Headwind' : 'Tailwind';
+        final l10n = AppLocalizations.of(context)!;
+        _windType = windComponent.isHeadwind ? l10n.headwind : l10n.tailwind;
       });
     } catch (e) {
       // Handle validation errors
@@ -67,6 +69,7 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
     final settingsService = context.read<SettingsService>();
     final isImperial = settingsService.units == 'imperial';
     final speedUnit = isImperial ? 'kts' : 'km/h';
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: FormThemeHelper.getSectionDecoration(),
@@ -75,8 +78,8 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
         child: Column(
           children: [
             Text(
-              'Wind Components',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor).copyWith(
+              l10n.windComponents,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor).copyWith(
                 color: AppColors.primaryTextColor,
               ),
             ),
@@ -87,11 +90,11 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
                 Column(
                   children: [
                     Icon(
-                      _windType == 'Headwind'
+                      _windType == l10n.headwind
                           ? Icons.arrow_downward
                           : Icons.arrow_upward,
                       size: 40,
-                      color: _windType == 'Headwind'
+                      color: _windType == l10n.headwind
                           ? Colors.green
                           : Colors.orange,
                     ),
@@ -123,8 +126,8 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
                           : Colors.blue,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Crosswind',
+                    Text(
+                      l10n.crosswind,
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.primaryTextColor,
@@ -151,8 +154,8 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
                   Expanded(
                     child: Text(
                       _crosswindComponent! > 25
-                          ? 'Very strong crosswind! Check aircraft limitations.'
-                          : 'Significant crosswind. Use proper technique.',
+                          ? l10n.strongCrosswindWarning
+                          : l10n.significantCrosswindWarning,
                       style: const TextStyle(color: Colors.orange),
                     ),
                   ),
@@ -170,14 +173,15 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
     final settingsService = context.watch<SettingsService>();
     final isImperial = settingsService.units == 'imperial';
     final speedUnit = isImperial ? 'kts' : 'km/h';
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.dialogBackgroundColor,
-        title: const Text(
-          'Crosswind Calculator',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.crosswind,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryTextColor),
@@ -190,12 +194,12 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FormThemeHelper.buildSection(
-              title: 'Wind Information',
+              title: l10n.windInformation,
               children: [
                 FormThemeHelper.buildFormField(
                   controller: _runwayHeadingController,
-                  labelText: 'Runway Heading (°)',
-                  hintText: 'Magnetic heading of the runway',
+                  labelText: l10n.runwayHeading,
+                  hintText: l10n.magneticHeadingHint,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -203,8 +207,8 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
                 const SizedBox(height: 16),
                 FormThemeHelper.buildFormField(
                   controller: _windDirectionController,
-                  labelText: 'Wind Direction (°)',
-                  hintText: 'Direction wind is coming FROM',
+                  labelText: '${l10n.windDirection} (°)',
+                  hintText: l10n.windDirectionFromHint,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -212,7 +216,7 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
                 const SizedBox(height: 16),
                 FormThemeHelper.buildFormField(
                   controller: _windSpeedController,
-                  labelText: 'Wind Speed ($speedUnit)',
+                  labelText: '${l10n.windSpeed} ($speedUnit)',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -225,14 +229,14 @@ class _CrosswindCalculatorState extends State<CrosswindCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Calculate', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.calculate, style: const TextStyle(fontSize: 16)),
             ),
             if (_headwindComponent != null && _crosswindComponent != null) ...[
               const SizedBox(height: 24),
               _buildResultCard(),
               const SizedBox(height: 16),
               FormThemeHelper.buildSection(
-                title: 'Quick Reference',
+                title: l10n.quickReference,
                 children: [
                   Text('• 15° off runway: ~25% crosswind', style: TextStyle(color: AppColors.primaryTextColor)),
                   Text('• 30° off runway: ~50% crosswind', style: TextStyle(color: AppColors.primaryTextColor)),

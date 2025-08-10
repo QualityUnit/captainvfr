@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/license.dart';
 import '../services/license_service.dart';
 import 'license_detail_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class LicensesScreen extends StatefulWidget {
   const LicensesScreen({super.key});
@@ -14,14 +15,15 @@ class LicensesScreen extends StatefulWidget {
 class _LicensesScreenState extends State<LicensesScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pilot Licenses'),
+        title: Text(l10n.pilotLicenses),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _navigateToAddLicense(context),
-            tooltip: 'Add License',
+            tooltip: l10n.addLicense,
           ),
         ],
       ),
@@ -39,18 +41,18 @@ class _LicensesScreenState extends State<LicensesScreen> {
                   const Icon(
                     Icons.card_membership,
                     size: 80,
-                    color: Colors.grey,
+                    color: Colors.white,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'No licenses added yet',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  Text(
+                    AppLocalizations.of(context)!.noLicensesAddedYet,
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => _navigateToAddLicense(context),
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Your First License'),
+                    label: Text(l10n.addYourFirstLicense),
                   ),
                 ],
               ),
@@ -71,6 +73,7 @@ class _LicensesScreenState extends State<LicensesScreen> {
   }
 
   Widget _buildLicenseCard(BuildContext context, License license) {
+    final l10n = AppLocalizations.of(context)!;
     final isExpired = license.isExpired;
     final isExpiringSoon = license.willExpireWithinDays(30);
 
@@ -109,10 +112,10 @@ class _LicensesScreenState extends State<LicensesScreen> {
                 license.licenseNumber!.isNotEmpty) ...[
               const SizedBox(height: 2),
               Text(
-                'License #: ${license.licenseNumber}',
+                '${AppLocalizations.of(context)!.licenseNumber} ${license.licenseNumber}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade700,
+                  color: const Color(0xB3FFFFFF),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -128,7 +131,7 @@ class _LicensesScreenState extends State<LicensesScreen> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    'Issued: ${_formatDate(license.issueDate)}',
+                    '${l10n.issued}: ${_formatDate(license.issueDate)}',
                     style: const TextStyle(fontSize: 12, color: Colors.white70),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -137,15 +140,15 @@ class _LicensesScreenState extends State<LicensesScreen> {
                 Icon(
                   Icons.event_busy,
                   size: 14,
-                  color: isExpired ? Colors.red : Colors.grey.shade600,
+                  color: isExpired ? Colors.red : const Color(0x99FFFFFF),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    'Expires: ${_formatDate(license.expirationDate)}',
+                    '${AppLocalizations.of(context)!.expires} ${_formatDate(license.expirationDate)}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isExpired ? Colors.red : Colors.grey.shade600,
+                      color: isExpired ? Colors.red : const Color(0x99FFFFFF),
                       fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -172,17 +175,17 @@ class _LicensesScreenState extends State<LicensesScreen> {
             if (license.imagePaths != null && license.imagePaths!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: Icon(Icons.photo, color: Colors.grey.shade600, size: 20),
+                child: Icon(Icons.photo, color: const Color(0x99FFFFFF), size: 20),
               ),
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () => _navigateToEditLicense(context, license),
-              tooltip: 'Edit',
+              tooltip: l10n.edit,
             ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => _confirmDelete(context, license),
-              tooltip: 'Delete',
+              tooltip: l10n.delete,
             ),
           ],
         ),
@@ -217,37 +220,41 @@ class _LicensesScreenState extends State<LicensesScreen> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete License'),
-        content: Text('Are you sure you want to delete "${license.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.deleteLicense),
+          content: Text(l10n.areYouSureDeleteLicense(license.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true) {
-      if (!mounted) return;
+      if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context)!;
 
       try {
         await licenseService.deleteLicense(license.id);
         if (!context.mounted) return;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${license.name} deleted')));
+        ).showSnackBar(SnackBar(content: Text(l10n.licenseDeletedSuccessfully)));
       } catch (e) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error deleting license: $e'),
+            content: Text(l10n.errorDeletingLicense(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

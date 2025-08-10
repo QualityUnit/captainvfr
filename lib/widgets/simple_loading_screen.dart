@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class SimpleLoadingScreen extends StatelessWidget {
   const SimpleLoadingScreen({super.key});
@@ -7,6 +8,10 @@ class SimpleLoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint('🎯 SimpleLoadingScreen build called');
+    
+    // Use fallback text since localization may not be available yet
+    final l10n = AppLocalizations.of(context);
+    final initializingText = l10n?.initializing ?? 'Initializing...';
     
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -41,11 +46,11 @@ class SimpleLoadingScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Initializing...',
+                Text(
+                  initializingText,
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.grey,
+                    color: Colors.blue[700],
                   ),
                 ),
                 const SizedBox(height: 40),

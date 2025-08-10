@@ -7,6 +7,7 @@ import '../services/aircraft_settings_service.dart';
 import '../services/settings_service.dart';
 import 'waypoint_table_widget.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class FlightPlanningPanel extends StatefulWidget {
   final bool? isExpanded;
@@ -172,6 +173,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     BuildContext context,
     FlightPlanService flightPlanService,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final flightPlan = flightPlanService.currentFlightPlan;
     final isPlanning = flightPlanService.isPlanning;
 
@@ -219,7 +221,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
               children: [
                 Text(
                   flightPlan?.name ??
-                      (isPlanning ? 'Flight Planning' : 'No Flight Plan'),
+                      (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: _isExpanded ? 14 : 13,
@@ -239,7 +241,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                           : distance;
                       final unit = isMetric ? 'km' : 'nm';
                       return Text(
-                        '${flightPlan.waypoints.length} waypoints • ${displayDistance.toStringAsFixed(0)} $unit',
+                        l10n.waypointsAndDistance(flightPlan.waypoints.length, displayDistance.toStringAsFixed(0), unit),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 11,
@@ -258,7 +260,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
             child: Row(
               children: [
                 Text(
-                  'Edit',
+                  l10n.editMode,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 12,
@@ -281,8 +283,8 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                     },
                     activeColor: const Color(0xFF448AFF),
                     activeTrackColor: const Color(0x66448AFF),
-                    inactiveThumbColor: Colors.grey,
-                    inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -313,6 +315,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     BuildContext context,
     FlightPlanService flightPlanService,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final flightPlan = flightPlanService.currentFlightPlan;
 
     return SingleChildScrollView(
@@ -343,10 +346,10 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Click on the map to add waypoints • Click green + icons on flight path to insert waypoints',
+                      l10n.clickOnMapToAddWaypoints,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade300,
+                        color: const Color(0x4DFFFFFF),
                       ),
                     ),
                   ),
@@ -394,6 +397,8 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
   }
 
   Widget _buildAircraftSection(FlightPlanService flightPlanService) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Consumer<AircraftSettingsService>(
       builder: (context, aircraftService, child) {
         final aircrafts = aircraftService.aircrafts;
@@ -411,9 +416,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
               children: [
                 const Icon(Icons.speed, size: 16, color: Color(0xFF448AFF)),
                 const SizedBox(width: 4),
-                const Text(
-                  'Cruise Speed:',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                Text(
+                  l10n.cruiseSpeedLabel,
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -425,9 +430,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                     decoration: InputDecoration(
                       hintText: '120',
                       hintStyle: const TextStyle(color: Colors.white30),
-                      suffix: const Text(
-                        'kts',
-                        style: TextStyle(fontSize: 10, color: Colors.white70),
+                      suffix: Text(
+                        l10n.ktsUnit,
+                        style: const TextStyle(fontSize: 10, color: Colors.white70),
                       ),
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(
@@ -482,9 +487,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                       color: Color(0xFF448AFF),
                     ),
                     const SizedBox(width: 4),
-                    const Text(
-                      'Aircraft:',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
+                    Text(
+                      l10n.aircraftLabel,
+                      style: const TextStyle(fontSize: 12, color: Colors.white70),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -492,9 +497,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                         value: _selectedAircraftId,
                         isExpanded: true,
                         isDense: true,
-                        hint: const Text(
-                          'Select Aircraft',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        hint: Text(
+                          l10n.selectAircraftHint,
+                          style: const TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                         style: const TextStyle(
                           fontSize: 12,
@@ -547,9 +552,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                   children: [
                     const Icon(Icons.speed, size: 16, color: Color(0xFF448AFF)),
                     const SizedBox(width: 4),
-                    const Text(
-                      'Speed:',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
+                    Text(
+                      l10n.speedLabel,
+                      style: const TextStyle(fontSize: 12, color: Colors.white70),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -564,9 +569,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                         decoration: InputDecoration(
                           hintText: '120',
                           hintStyle: const TextStyle(color: Colors.white30),
-                          suffix: const Text(
-                            'kts',
-                            style: TextStyle(
+                          suffix: Text(
+                            l10n.ktsUnit,
+                            style: const TextStyle(
                               fontSize: 10,
                               color: Colors.white70,
                             ),

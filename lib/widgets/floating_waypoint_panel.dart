@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/flight_plan.dart';
 import '../services/flight_plan_service.dart';
 import '../services/settings_service.dart';
+import '../l10n/app_localizations.dart';
 
 class FloatingWaypointPanel extends StatefulWidget {
   final int waypointIndex;
@@ -92,7 +93,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
   }
 
 
-  String _getWaypointTypeString(WaypointType type) {
+  String _getWaypointTypeString(WaypointType type, AppLocalizations l10n) {
     switch (type) {
       case WaypointType.airport:
         return 'Airport';
@@ -120,6 +121,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<FlightPlanService>(
       builder: (context, flightPlanService, child) {
         final flightPlan = flightPlanService.currentFlightPlan;
@@ -220,7 +222,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  '${waypoint.name ?? "Waypoint"} (${_getWaypointTypeString(waypoint.type)})',
+                                  '${waypoint.name ?? "Waypoint"} (${_getWaypointTypeString(waypoint.type, l10n)})',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -238,7 +240,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
                               const Icon(
                                 Icons.location_on,
                                 size: 12,
-                                color: Colors.grey,
+                                color: Colors.white,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -267,7 +269,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
                                   final altitude = isMetric ? waypoint.altitude * 0.3048 : waypoint.altitude;
                                   final unit = isMetric ? 'm' : 'ft';
                                   return Text(
-                                    'Altitude: ${altitude.toStringAsFixed(0)} $unit',
+                                    '${l10n.alt}: ${altitude.toStringAsFixed(0)} $unit',
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: Colors.white70,
@@ -308,9 +310,9 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
                           // Segment info if not the last waypoint
                           if (widget.waypointIndex <
                               flightPlan.waypoints.length - 1) ...[
-                            const Divider(color: Colors.grey, height: 8),
-                            const Text(
-                              'TO NEXT WAYPOINT',
+                            const Divider(color: Colors.white, height: 8),
+                            Text(
+                              AppLocalizations.of(context)!.toNextWaypoint,
                               style: TextStyle(
                                 color: Colors.blue,
                                 fontSize: 10,

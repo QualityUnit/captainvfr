@@ -27,9 +27,7 @@ class BundledFrequencyService {
 
   /// Initialize the service and load bundled data
   Future<void> initialize() async {
-    developer.log('🔧 BundledFrequencyService: Starting initialization...');
     await _cacheService.initialize();
-    developer.log('🔧 BundledFrequencyService: Cache service initialized');
     
     // Check if tiled data is available
     try {
@@ -42,7 +40,6 @@ class BundledFrequencyService {
       );
       
       if (testFrequencies.isNotEmpty) {
-        developer.log('✅ Using tiled frequency data');
         _useTiledData = true;
         _bundledDataLoaded = true;
         return;
@@ -65,8 +62,6 @@ class BundledFrequencyService {
     if (_bundledDataLoaded) return;
     
     try {
-      developer.log('📦 Loading bundled frequency data...');
-      
       // TODO: Implement tiled frequency loading when frequencies tiles are available
       // For now, frequencies will be loaded from cache only
       developer.log('ℹ️ Frequency tiles not yet available, using cache only');

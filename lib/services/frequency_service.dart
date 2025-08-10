@@ -47,15 +47,12 @@ class FrequencyService {
 
   /// Initialize the service and load cached data
   Future<void> initialize() async {
-    developer.log('🔧 FrequencyService: Starting initialization...');
     await _cacheService.initialize();
-    developer.log('🔧 FrequencyService: Cache service initialized');
     
     // Initialize OpenAIP service
     try {
       _openAIPService = OpenAIPService();
       await _openAIPService!.initialize();
-      developer.log('✅ OpenAIP service initialized for frequencies');
     } catch (e) {
       developer.log('⚠️ OpenAIP service not available for frequencies: $e');
     }
@@ -71,7 +68,6 @@ class FrequencyService {
       );
       
       if (testFrequencies.isNotEmpty) {
-        developer.log('✅ Using tiled frequency data');
         _useTiledData = true;
         _useBundledData = false;
         return;
@@ -86,15 +82,11 @@ class FrequencyService {
     
     // If bundled data is available, use it
     if (_bundledService.frequencies.isNotEmpty) {
-      developer.log('✅ Using bundled frequency data (${_bundledService.frequencies.length} frequencies)');
       _useBundledData = true;
     } else {
       // Fall back to old method
       _useBundledData = false;
       await _loadCachedFrequencies();
-      developer.log(
-        '🔧 FrequencyService: Cached frequencies loaded, count: ${_frequencies.length}',
-      );
     }
   }
 
@@ -177,8 +169,6 @@ class FrequencyService {
       }
       
       _loadedAreas.add(areaKey);
-      
-      developer.log('📻 Loaded ${frequencies.length} frequencies for area');
     } catch (e) {
       developer.log('❌ Error loading frequencies for area: $e');
     }
@@ -201,7 +191,6 @@ class FrequencyService {
             .difference(lastFetch)
             .inHours;
         if (hoursSinceLastFetch < 24) {
-          developer.log('🔄 Frequencies data is recent, skipping fetch');
           return;
         }
       }
@@ -210,8 +199,6 @@ class FrequencyService {
     _isLoading = true;
 
     try {
-      developer.log('🌐 Fetching frequencies data from remote source...');
-
       final response = await http
           .get(Uri.parse(_frequenciesUrl), headers: {'Accept': 'text/csv'})
           .timeout(const Duration(seconds: 30));
@@ -452,7 +439,6 @@ class FrequencyService {
       _unifiedFrequenciesByAirport.clear();
       _loadedAreas.clear();
       _tiledDataLoader.clearCacheForType('frequencies');
-      developer.log('✅ Frequency cache cleared');
     } catch (e) {
       developer.log('❌ Error clearing frequency cache: $e');
     }

@@ -70,7 +70,7 @@ class SmallIndicatorWidget extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: Colors.white,
                     fontSize: labelFontSize,
                     letterSpacing: 0.2,
                   ),

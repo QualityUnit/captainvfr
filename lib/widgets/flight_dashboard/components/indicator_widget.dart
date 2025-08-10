@@ -76,7 +76,7 @@ class IndicatorWidget extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: Colors.white,
                     fontSize: labelFontSize,
                     letterSpacing: 0.5,
                   ),

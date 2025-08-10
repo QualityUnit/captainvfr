@@ -12,6 +12,7 @@ import '../../utils/runway_wind_calculator.dart';
 import '../common/loading_widget.dart';
 import '../../constants/app_theme.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../common/error_widget.dart' as custom;
 import '../common/status_chip.dart';
 
@@ -217,8 +218,10 @@ class _AirportRunwaysTabState extends State<AirportRunwaysTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (widget.isLoading) {
-      return const LoadingWidget(message: 'Loading runway data...');
+      return LoadingWidget(message: l10n.loadingRunwayData);
     }
 
     if (widget.error != null) {
@@ -230,16 +233,16 @@ class _AirportRunwaysTabState extends State<AirportRunwaysTab> {
     final hasUnifiedRunways = _unifiedRunways != null && _unifiedRunways!.isNotEmpty;
     
     if (!hasOurAirportsRunways && !hasUnifiedRunways) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.airplanemode_off, size: 48, color: AppColors.secondaryTextColor),
-              SizedBox(height: 16),
+              const Icon(Icons.airplanemode_off, size: 48, color: AppColors.secondaryTextColor),
+              const SizedBox(height: 16),
               Text(
-                'No runway data available for this airport',
+                l10n.noRunwayDataAvailable,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -263,7 +266,7 @@ class _AirportRunwaysTabState extends State<AirportRunwaysTab> {
           Row(
             children: [
               Text(
-                'Runways (${widget.runways.length})',
+                l10n.runwaysCount(widget.runways.length),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -329,6 +332,7 @@ class _AirportRunwaysTabState extends State<AirportRunwaysTab> {
   
   
   Widget _buildWindLoadingIndicator(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     
     return Card(
@@ -344,7 +348,7 @@ class _AirportRunwaysTabState extends State<AirportRunwaysTab> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Loading wind data...',
+              l10n.loadingWindData,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -396,6 +400,7 @@ class RunwayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Consumer<SettingsService>(
@@ -471,8 +476,8 @@ class RunwayCard extends StatelessWidget {
                                 color: Colors.green,
                                 borderRadius: AppTheme.extraLargeRadius,
                               ),
-                              child: const Text(
-                                'BEST',
+                              child: Text(
+                                l10n.best,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -500,11 +505,11 @@ class RunwayCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildRunwayDetail(context, 'Length', lengthStr),
+                      child: _buildRunwayDetail(context, l10n.length, lengthStr),
                     ),
                     if (widthStr != null)
                       Expanded(
-                        child: _buildRunwayDetail(context, 'Width', widthStr),
+                        child: _buildRunwayDetail(context, l10n.width, widthStr),
                       ),
                   ],
                 ),
@@ -514,7 +519,7 @@ class RunwayCard extends StatelessWidget {
                     Expanded(
                       child: _buildRunwayDetail(
                         context,
-                        'Surface',
+                        l10n.surface,
                         runway.surfaceFormatted,
                       ),
                     ),
@@ -523,8 +528,8 @@ class RunwayCard extends StatelessWidget {
                       Expanded(
                         child: _buildRunwayDetail(
                           context,
-                          'Heading',
-                          '${runway.leHeadingDegT?.toStringAsFixed(0) ?? 'N/A'}°/${runway.heHeadingDegT?.toStringAsFixed(0) ?? 'N/A'}°',
+                          l10n.heading,
+                          '${runway.leHeadingDegT?.toStringAsFixed(0) ?? l10n.notAvailable}°/${runway.heHeadingDegT?.toStringAsFixed(0) ?? l10n.notAvailable}°',
                         ),
                       ),
                   ],
@@ -534,7 +539,7 @@ class RunwayCard extends StatelessWidget {
                 if (windComponents != null && windComponents!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'Wind Components',
+                    l10n.windComponents,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
@@ -580,7 +585,7 @@ class RunwayCard extends StatelessWidget {
                                     style: TextStyle(color: AppColors.primaryTextColor),
                                   ),
                                   TextSpan(
-                                    text: '${component.headwindAbs.toStringAsFixed(0)} ${component.isHeadwind ? "Headwind" : "Tailwind"}',
+                                    text: '${component.headwindAbs.toStringAsFixed(0)} ${component.isHeadwind ? l10n.headwind : l10n.tailwind}',
                                     style: TextStyle(
                                       color: _getWindStrengthColor(component.headwindAbs, component.isHeadwind),
                                       fontWeight: FontWeight.w600,
@@ -615,11 +620,11 @@ class RunwayCard extends StatelessWidget {
                     children: [
                       if (runway.lighted)
                         StatusChip(
-                          label: 'Lighted',
+                          label: l10n.lighted,
                           color: Colors.yellow[700]!,
                         ),
                       if (runway.closed)
-                        StatusChip(label: 'Closed', color: Colors.red[700]!),
+                        StatusChip(label: l10n.closed, color: Colors.red[700]!),
                     ],
                   ),
                 ],
@@ -652,6 +657,7 @@ class RunwayCard extends StatelessWidget {
   }
 
   Widget _buildRunwayVisualization(BuildContext context, Runway runway) {
+    final l10n = AppLocalizations.of(context)!;
     return CustomPaint(
       size: const Size(60, 80),
       painter: _CompactRunwayPainter(
@@ -660,6 +666,7 @@ class RunwayCard extends StatelessWidget {
         windData: windData,
         leDesignation: runway.designation.split('/').first,
         heDesignation: runway.designation.split('/').last,
+        notAvailableText: l10n.notAvailable,
       ),
     );
   }
@@ -704,6 +711,7 @@ class UnifiedRunwayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Consumer<SettingsService>(
@@ -796,8 +804,8 @@ class UnifiedRunwayCard extends StatelessWidget {
                                 color: Colors.green,
                                 borderRadius: AppTheme.extraLargeRadius,
                               ),
-                              child: const Text(
-                                'BEST',
+                              child: Text(
+                                l10n.best,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 9,
@@ -826,11 +834,11 @@ class UnifiedRunwayCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildRunwayDetail(context, 'Length', lengthStr),
+                      child: _buildRunwayDetail(context, l10n.length, lengthStr),
                     ),
                     if (widthStr != null)
                       Expanded(
-                        child: _buildRunwayDetail(context, 'Width', widthStr),
+                        child: _buildRunwayDetail(context, l10n.width, widthStr),
                       ),
                   ],
                 ),
@@ -840,7 +848,7 @@ class UnifiedRunwayCard extends StatelessWidget {
                     Expanded(
                       child: _buildRunwayDetail(
                         context,
-                        'Surface',
+                        l10n.surface,
                         runway.surfaceDescription,
                       ),
                     ),
@@ -849,8 +857,8 @@ class UnifiedRunwayCard extends StatelessWidget {
                       Expanded(
                         child: _buildRunwayDetail(
                           context,
-                          'Heading',
-                          '${runway.leHeadingDegT?.toStringAsFixed(0) ?? 'N/A'}°/${runway.heHeadingDegT?.toStringAsFixed(0) ?? 'N/A'}°',
+                          l10n.heading,
+                          '${runway.leHeadingDegT?.toStringAsFixed(0) ?? l10n.notAvailable}°/${runway.heHeadingDegT?.toStringAsFixed(0) ?? l10n.notAvailable}°',
                         ),
                       ),
                   ],
@@ -860,7 +868,7 @@ class UnifiedRunwayCard extends StatelessWidget {
                 if (windComponents != null && windComponents!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'Wind Components',
+                    l10n.windComponents,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
@@ -906,7 +914,7 @@ class UnifiedRunwayCard extends StatelessWidget {
                                     style: TextStyle(color: AppColors.primaryTextColor),
                                   ),
                                   TextSpan(
-                                    text: '${component.headwindAbs.toStringAsFixed(0)} ${component.isHeadwind ? "Headwind" : "Tailwind"}',
+                                    text: '${component.headwindAbs.toStringAsFixed(0)} ${component.isHeadwind ? l10n.headwind : l10n.tailwind}',
                                     style: TextStyle(
                                       color: _getWindStrengthColor(component.headwindAbs, component.isHeadwind),
                                       fontWeight: FontWeight.w600,
@@ -941,11 +949,11 @@ class UnifiedRunwayCard extends StatelessWidget {
                     children: [
                       if (runway.lighted)
                         StatusChip(
-                          label: 'Lighted',
+                          label: l10n.lighted,
                           color: Colors.yellow[700]!,
                         ),
                       if (runway.closed)
-                        StatusChip(label: 'Closed', color: Colors.red[700]!),
+                        StatusChip(label: l10n.closed, color: Colors.red[700]!),
                     ],
                   ),
                 ],
@@ -978,6 +986,7 @@ class UnifiedRunwayCard extends StatelessWidget {
   }
 
   Widget _buildUnifiedRunwayVisualization(BuildContext context, UnifiedRunway runway) {
+    final l10n = AppLocalizations.of(context)!;
     return CustomPaint(
       size: const Size(60, 80),
       painter: _CompactRunwayPainter(
@@ -986,6 +995,7 @@ class UnifiedRunwayCard extends StatelessWidget {
         windData: windData,
         leDesignation: runway.leIdent,
         heDesignation: runway.heIdent,
+        notAvailableText: l10n.notAvailable,
       ),
     );
   }
@@ -998,6 +1008,7 @@ class _CompactRunwayPainter extends CustomPainter {
   final Map<String, double>? windData;
   final String leDesignation;
   final String heDesignation;
+  final String notAvailableText;
 
   _CompactRunwayPainter({
     this.leHeading,
@@ -1005,6 +1016,7 @@ class _CompactRunwayPainter extends CustomPainter {
     this.windData,
     required this.leDesignation,
     required this.heDesignation,
+    required this.notAvailableText,
   });
 
   @override
@@ -1016,7 +1028,7 @@ class _CompactRunwayPainter extends CustomPainter {
     if (heading == null) {
       // Draw placeholder circle if no heading data (smaller)
       final placeholderPaint = Paint()
-        ..color = Colors.grey[600]!
+        ..color = const Color(0x99FFFFFF)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1;
       
@@ -1024,8 +1036,8 @@ class _CompactRunwayPainter extends CustomPainter {
       
       // Draw "N/A" text
       final textPainter = TextPainter(
-        text: const TextSpan(
-          text: 'N/A',
+        text: TextSpan(
+          text: notAvailableText,
           style: TextStyle(
             color: Colors.white,
             fontSize: 8,
@@ -1047,14 +1059,14 @@ class _CompactRunwayPainter extends CustomPainter {
     
     // Draw background circle (smaller - half size: 11px radius)
     final backgroundPaint = Paint()
-      ..color = Colors.grey[800]!
+      ..color = const Color(0xFF424242)
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(center, 11, backgroundPaint);
     
     // Draw border circle
     final borderPaint = Paint()
-      ..color = Colors.grey[600]!
+      ..color = const Color(0x99FFFFFF)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     

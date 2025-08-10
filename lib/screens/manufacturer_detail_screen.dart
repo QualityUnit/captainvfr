@@ -8,6 +8,7 @@ import '../widgets/model_form_dialog.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class ManufacturerDetailScreen extends StatelessWidget {
   final Manufacturer manufacturer;
@@ -16,6 +17,7 @@ class ManufacturerDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
@@ -148,7 +150,7 @@ class ManufacturerDetailScreen extends StatelessWidget {
                           _showModelForm(context, currentManufacturer),
                       style: FormThemeHelper.getPrimaryButtonStyle(),
                       icon: const Icon(Icons.add),
-                      label: const Text('Add Model'),
+                      label: Text(l10n.addModel),
                     ),
                   ],
                 ),
@@ -188,7 +190,7 @@ class ManufacturerDetailScreen extends StatelessWidget {
                                   _showModelForm(context, currentManufacturer),
                               style: FormThemeHelper.getPrimaryButtonStyle(),
                               icon: const Icon(Icons.add),
-                              label: const Text('Add First Model'),
+                              label: Text(l10n.addFirstModel),
                             ),
                           ],
                         ),
@@ -230,7 +232,7 @@ class ManufacturerDetailScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Category: ${_getCategoryDisplayName(model.category)}',
+                                    '${l10n.category}: ${_getCategoryDisplayName(context, model.category)}',
                                     style: TextStyle(color: AppColors.secondaryTextColor),
                                   ),
                                   Text(
@@ -260,35 +262,38 @@ class ManufacturerDetailScreen extends StatelessWidget {
                                     );
                                   }
                                 },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'edit',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.edit, size: 20, color: AppColors.primaryTextColor),
-                                        const SizedBox(width: 8),
-                                        Text('Edit', style: TextStyle(color: AppColors.primaryTextColor)),
-                                      ],
+                                itemBuilder: (context) {
+                                  final l10n = AppLocalizations.of(context)!;
+                                  return [
+                                    PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit, size: 20, color: AppColors.primaryTextColor),
+                                          const SizedBox(width: 8),
+                                          Text(l10n.edit, style: TextStyle(color: AppColors.primaryTextColor)),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.delete,
-                                          size: 20,
-                                          color: Colors.red,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Delete',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                      ],
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.delete,
+                                            size: 20,
+                                            color: Colors.red,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            l10n.delete,
+                                            style: const TextStyle(color: Colors.red),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ];
+                                },
                               ),
                             ),
                           );
@@ -328,40 +333,44 @@ class ManufacturerDetailScreen extends StatelessWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Model'),
-        content: Text('Are you sure you want to delete "${model.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final service = Provider.of<AircraftSettingsService>(
-                context,
-                listen: false,
-              );
-              service.deleteModel(model.id);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Deleted "${model.name}"')),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.deleteModel),
+          content: Text(l10n.confirmDeleteModel(model.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                final service = Provider.of<AircraftSettingsService>(
+                  context,
+                  listen: false,
+                );
+                service.deleteModel(model.id);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.deletedModel(model.name))),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  String _getCategoryDisplayName(AircraftCategory category) {
+  String _getCategoryDisplayName(BuildContext context, AircraftCategory category) {
+    final l10n = AppLocalizations.of(context)!;
     switch (category) {
       case AircraftCategory.singleEngine:
-        return 'Single Engine';
+        return l10n.singleEngine;
       case AircraftCategory.multiEngine:
-        return 'Multi Engine';
+        return l10n.multiEngine;
       case AircraftCategory.jet:
         return 'Jet';
       case AircraftCategory.helicopter:

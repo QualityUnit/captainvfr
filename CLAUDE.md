@@ -16,6 +16,7 @@ If you can do some tasks parallel, you can use multiple agents at the same time.
 - Use github CLI (gh command) to interact with issues, PRs, branches, and commits
 - Before you start development, Create new branch from main (latest pull from github)
 - Reference issue in PR for automatic closing when merged
+- make sure all texts added in the app are possible to translate and included in all translation files
 
 # Application design
 - background of form and dialogs should be black

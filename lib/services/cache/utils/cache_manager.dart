@@ -48,7 +48,6 @@ class CacheManager {
       _weatherBox = await Hive.openBox<String>(CacheConstants.weatherBoxName);
 
       _isInitialized = true;
-      developer.log('✅ Cache manager initialized');
     } catch (e) {
       developer.log('❌ Error initializing cache manager: $e');
       rethrow;
@@ -65,35 +64,27 @@ class CacheManager {
     // Check if boxes are still open, and reopen them if they've been closed
     try {
       if (!_airportsBox.isOpen) {
-        developer.log('🔄 Airports box was closed, reopening...');
         _airportsBox = await Hive.openBox<Map>(CacheConstants.airportsBoxName);
       }
       if (!_navaidsBox.isOpen) {
-        developer.log('🔄 Navaids box was closed, reopening...');
         _navaidsBox = await Hive.openBox<Map>(CacheConstants.navaidsBoxName);
       }
       if (!_runwaysBox.isOpen) {
-        developer.log('🔄 Runways box was closed, reopening...');
         _runwaysBox = await Hive.openBox<Map>(CacheConstants.runwaysBoxName);
       }
       if (!_frequenciesBox.isOpen) {
-        developer.log('🔄 Frequencies box was closed, reopening...');
         _frequenciesBox = await Hive.openBox<Map>(CacheConstants.frequenciesBoxName);
       }
       if (!_airspacesBox.isOpen) {
-        developer.log('🔄 Airspaces box was closed, reopening...');
         _airspacesBox = await Hive.openBox<Map>(CacheConstants.airspacesBoxName);
       }
       if (!_reportingPointsBox.isOpen) {
-        developer.log('🔄 Reporting points box was closed, reopening...');
         _reportingPointsBox = await Hive.openBox<Map>(CacheConstants.reportingPointsBoxName);
       }
       if (!_metadataBox.isOpen) {
-        developer.log('🔄 Metadata box was closed, reopening...');
         _metadataBox = await Hive.openBox(CacheConstants.metadataBoxName);
       }
       if (!_weatherBox.isOpen) {
-        developer.log('🔄 Weather box was closed, reopening...');
         _weatherBox = await Hive.openBox<String>(CacheConstants.weatherBoxName);
       }
     } catch (e) {
@@ -121,7 +112,6 @@ class CacheManager {
     if (_isInitialized) {
       Hive.close();
       _isInitialized = false;
-      developer.log('📦 All Hive boxes closed');
     }
   }
 }

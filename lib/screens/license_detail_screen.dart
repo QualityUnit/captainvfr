@@ -7,6 +7,7 @@ import '../widgets/license_photos_widget.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_colors.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class LicenseDetailScreen extends StatefulWidget {
   final License? license;
@@ -84,6 +85,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.license != null;
 
     return Scaffold(
@@ -106,7 +108,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
               style: const TextStyle(color: AppColors.primaryTextColor),
               decoration: FormThemeHelper.getInputDecoration(
                 'License Name',
-                hintText: 'e.g., PPL, CPL, IR, Medical Class 1',
+                hintText: l10n.egPplCplIr,
               ).copyWith(
                 prefixIcon: const Icon(Icons.card_membership, color: AppColors.primaryAccent),
               ),
@@ -122,8 +124,8 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
               controller: _descriptionController,
               style: const TextStyle(color: AppColors.primaryTextColor),
               decoration: FormThemeHelper.getInputDecoration(
-                'Description',
-                hintText: 'e.g., Private Pilot License - SEP(land)',
+                l10n.description,
+                hintText: l10n.egPrivatePilot,
               ).copyWith(
                 prefixIcon: const Icon(Icons.description, color: AppColors.primaryAccent),
               ),
@@ -141,7 +143,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
               style: const TextStyle(color: AppColors.primaryTextColor),
               decoration: FormThemeHelper.getInputDecoration(
                 'License Number (Optional)',
-                hintText: 'e.g., UK.FCL.PPL.12345',
+                hintText: l10n.egUkFclPpl,
               ).copyWith(
                 prefixIcon: const Icon(Icons.confirmation_number, color: AppColors.primaryAccent),
               ),
@@ -164,8 +166,8 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
                 }
                 
                 return DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Assign to Pilot',
+                  decoration: InputDecoration(
+                    labelText: l10n.assignToPilot,
                     prefixIcon: Icon(Icons.person),
                   ),
                   value: _selectedPilotId,
@@ -184,7 +186,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
                                 borderRadius: AppTheme.defaultRadius,
                               ),
                               child: Text(
-                                'Current',
+                                l10n.current,
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.onPrimary,
                                   fontSize: 12,
@@ -213,7 +215,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
             const SizedBox(height: 24),
             _buildDateField(
               context,
-              label: 'Issue Date',
+              label: l10n.issueDate,
               value: _issueDate,
               icon: Icons.calendar_today,
               onChanged: (date) => setState(() => _issueDate = date),
@@ -223,7 +225,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
             const SizedBox(height: 16),
             _buildDateField(
               context,
-              label: 'Expiration Date',
+              label: l10n.expirationDate,
               value: _expirationDate,
               icon: Icons.event_busy,
               onChanged: (date) => setState(() => _expirationDate = date),
@@ -244,7 +246,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: _isSaving ? null : () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -257,7 +259,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(isEditing ? 'Update' : 'Save'),
+                        : Text(isEditing ? l10n.update : l10n.save),
                   ),
                 ),
               ],
@@ -360,6 +362,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
   }
 
   Future<void> _saveLicense() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
@@ -427,7 +430,7 @@ class _LicenseDetailScreenState extends State<LicenseDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving license: $e'),
+            content: Text(l10n.errorSavingLicense(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

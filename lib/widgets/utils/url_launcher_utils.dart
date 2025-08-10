@@ -1,10 +1,13 @@
 // import 'dart:developer' show log;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 
 class UrlLauncherUtils {
   /// Launches a URL in the default browser or phone app
   static Future<void> launch(BuildContext context, String url) async {
+    final l10n = AppLocalizations.of(context)!;
+    
     try {
       final uri = _parseUrl(url);
 
@@ -12,7 +15,7 @@ class UrlLauncherUtils {
         if (context.mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+          ).showSnackBar(SnackBar(content: Text(l10n.couldNotLaunchUrl(url))));
         }
       }
     } on FormatException {
@@ -20,14 +23,14 @@ class UrlLauncherUtils {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid URL format')));
+        ).showSnackBar(SnackBar(content: Text(l10n.invalidUrlFormat)));
       }
     } catch (e) {
       // log('Could not launch $url', error: e);
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+        ).showSnackBar(SnackBar(content: Text(l10n.couldNotLaunchUrl(url))));
       }
     }
   }
