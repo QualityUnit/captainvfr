@@ -14,7 +14,6 @@ class LogBookEntriesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final logBookService = context.watch<LogBookService>();
     final entries = logBookService.entries;
 

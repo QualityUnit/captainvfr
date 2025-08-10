@@ -666,5 +666,35 @@
   "licenseNumber": "Č. licence:",
   "expires": "Vyprší:",
   "noLicensesAddedYet": "Zatím nejsou přidány žádné licence",
-  "dismiss": "Zavřít"
+  "dismiss": "Zavřít",
+
+  "navigation": "Navigace",
+  "@navigation": {
+    "description": "Navigation menu section title"
+  },
+  "autoInTime": "Auto za: {time}",
+  "@autoInTime": {
+    "description": "Auto-centering countdown display with placeholder {time}",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stats": "Statistiky",
+  "@stats": {
+    "description": "Stats menu item label"
+  },
+  "flight": "Let",
+  "@flight": {
+    "description": "Flight menu item label"
+  },
+  "checklists": "Kontrolní seznamy",
+  "@checklists": {
+    "description": "Checklists menu item label"
+  },
+  "aircrafts": "Letadla",
+  "@aircrafts": {
+    "description": "Aircrafts menu item label"
+  }
 }

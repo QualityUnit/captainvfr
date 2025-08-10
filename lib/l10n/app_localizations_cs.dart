@@ -2626,4 +2626,24 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get confirmDeleteEntry =>
       'Are you sure you want to delete this logbook entry?';
+
+  @override
+  String get navigation => 'Navigace';
+
+  @override
+  String autoInTime(String time) {
+    return 'Auto za: $time';
+  }
+
+  @override
+  String get stats => 'Statistiky';
+
+  @override
+  String get flight => 'Let';
+
+  @override
+  String get checklists => 'Kontrolní seznamy';
+
+  @override
+  String get aircrafts => 'Letadla';
 }

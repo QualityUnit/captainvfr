@@ -219,42 +219,30 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
     
 
     // Calculate base marker size with smooth interpolation based on zoom level
-    // At zoom 10-13, use smaller markers to not overlap with runway visualizations
-    // At higher zoom levels, scale up for better visibility
+    // At zoom 11+, use consistent marker size for all airports
     double baseMarkerSize;
     if (currentZoom >= 14) {
       // Scale up at very high zoom for visibility
       baseMarkerSize = 16.0 + (currentZoom - 14) * 2.0; // 16 at zoom 14, up to 24 at zoom 18
-    } else if (currentZoom >= 10) {
-      // Smaller size when runways are visible but not too zoomed in
-      baseMarkerSize = 14.0;
+    } else if (currentZoom >= GeoConstants.minZoomForRunways) {
+      // Consistent size when runways are visible (zoom 11-13)
+      baseMarkerSize = 16.0;
     } else if (currentZoom >= 8) {
-      // Reduced base size at zoom 8 for better differentiation
-      baseMarkerSize = 18.0 - (currentZoom - 8) * 2.0; // 18 at zoom 8, down to 14 at zoom 10
+      // Interpolate from zoom 8 to 11
+      baseMarkerSize = 20.0 - (currentZoom - 8) * 1.33; // 20 at zoom 8, down to 16 at zoom 11
     } else if (currentZoom >= 5) {
       // Linear interpolation from zoom 5 to 8
-      baseMarkerSize = 12.0 + (currentZoom - 5) * 2.0; // 12 at zoom 5, 18 at zoom 8
+      baseMarkerSize = 14.0 + (currentZoom - 5) * 2.0; // 14 at zoom 5, 20 at zoom 8
     } else {
       // Minimum size for very far zoom
-      baseMarkerSize = 12.0;
+      baseMarkerSize = 14.0;
     }
     
     // Clamp to reasonable bounds
     baseMarkerSize = baseMarkerSize.clamp(12.0, 40.0);
 
-    // Find the maximum marker size to use for the layer
+    // Use the same maximum marker size for all airport types
     double maxMarkerSize = baseMarkerSize;
-    // Check if we have any large airports
-    if (visibleAirports.any((a) => a.type == 'large_airport')) {
-      maxMarkerSize = baseMarkerSize;
-    } else if (visibleAirports.any((a) => a.type == 'medium_airport')) {
-      maxMarkerSize = baseMarkerSize * 0.85;
-    } else if (visibleAirports.any((a) => a.type == 'small_airport')) {
-      maxMarkerSize = baseMarkerSize * 0.7;
-    } else {
-      // Only heliports
-      maxMarkerSize = baseMarkerSize * 0.6;
-    }
     
     // Don't increase marker bounds for runway visualization
     // Keep markers small when runways are visible to avoid overlap
@@ -289,7 +277,11 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
           }
           
           if (maxLengthM > 0) {
-            final runwaySize = (maxLengthM / metersPerPixel) * 1.05;
+            final calculatedSize = (maxLengthM / metersPerPixel) * 1.05;
+            // Limit runway size at lower zoom levels to prevent oversized visualizations
+            final runwaySize = currentZoom < 13 
+                ? calculatedSize.clamp(baseMarkerSize * 1.5, baseMarkerSize * 3.0)
+                : calculatedSize;
             if (runwaySize > maxRunwaySize) maxRunwaySize = runwaySize;
           }
         }
@@ -314,22 +306,8 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
       markerBuilder: (index, position) {
         final airport = visibleAirports[index];
         
-        // Adjust marker size based on airport type with more aggressive differentiation
-        double airportMarkerSize;
-        if (airport.type == 'small_airport') {
-          // Much smaller for small airports, especially at lower zoom levels
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.4 : baseMarkerSize * 0.5;
-        } else if (airport.type == 'heliport' || airport.type == 'balloonport') {
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.45 : baseMarkerSize * 0.55;
-          // Ensure minimum size for heliports and balloonports
-          airportMarkerSize = airportMarkerSize.clamp(8.0, 40.0);
-        } else if (airport.type == 'seaplane_base') {
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.5 : baseMarkerSize * 0.6;
-        } else if (airport.type == 'medium_airport') {
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.7 : baseMarkerSize * 0.75;
-        } else {
-          airportMarkerSize = baseMarkerSize; // Full size for large airports
-        }
+        // Use same marker size for all airport types for consistent visibility
+        double airportMarkerSize = baseMarkerSize; // All airports use full size
         
 
         return AirportMarker(

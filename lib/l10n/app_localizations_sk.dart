@@ -2621,4 +2621,24 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get confirmDeleteEntry =>
       'Are you sure you want to delete this logbook entry?';
+
+  @override
+  String get navigation => 'Navigácia';
+
+  @override
+  String autoInTime(String time) {
+    return 'Auto za: $time';
+  }
+
+  @override
+  String get stats => 'Štatistiky';
+
+  @override
+  String get flight => 'Let';
+
+  @override
+  String get checklists => 'Kontrolné zoznamy';
+
+  @override
+  String get aircrafts => 'Lietadlá';
 }

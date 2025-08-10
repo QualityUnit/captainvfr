@@ -666,5 +666,35 @@
   "licenseNumber": "Lizenz-Nr.:",
   "expires": "Läuft ab:",
   "noLicensesAddedYet": "Noch keine Lizenzen hinzugefügt",
-  "dismiss": "Schließen"
+  "dismiss": "Schließen",
+
+  "navigation": "Navigation",
+  "@navigation": {
+    "description": "Navigation menu section title"
+  },
+  "autoInTime": "Auto in: {time}",
+  "@autoInTime": {
+    "description": "Auto-centering countdown display with placeholder {time}",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stats": "Statistiken",
+  "@stats": {
+    "description": "Stats menu item label"
+  },
+  "flight": "Flug",
+  "@flight": {
+    "description": "Flight menu item label"
+  },
+  "checklists": "Checklisten",
+  "@checklists": {
+    "description": "Checklists menu item label"
+  },
+  "aircrafts": "Flugzeuge",
+  "@aircrafts": {
+    "description": "Aircrafts menu item label"
+  }
 }

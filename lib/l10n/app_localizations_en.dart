@@ -2616,4 +2616,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirmDeleteEntry =>
       'Are you sure you want to delete this logbook entry?';
+
+  @override
+  String get navigation => 'Navigation';
+
+  @override
+  String autoInTime(String time) {
+    return 'Auto in: $time';
+  }
+
+  @override
+  String get stats => 'Stats';
+
+  @override
+  String get flight => 'Flight';
+
+  @override
+  String get checklists => 'Checklists';
+
+  @override
+  String get aircrafts => 'Aircrafts';
 }

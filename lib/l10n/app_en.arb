@@ -5134,5 +5134,41 @@
   "confirmDeleteEntry": "Are you sure you want to delete this logbook entry?",
   "@confirmDeleteEntry": {
     "description": "Confirm delete logbook entry"
+  },
+
+  "navigation": "Navigation",
+  "@navigation": {
+    "description": "Navigation menu section title"
+  },
+
+  "autoInTime": "Auto in: {time}",
+  "@autoInTime": {
+    "description": "Auto-centering countdown display",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "description": "Time remaining in MM:SS format"
+      }
+    }
+  },
+
+  "stats": "Stats",
+  "@stats": {
+    "description": "Stats menu item label"
+  },
+
+  "flight": "Flight",
+  "@flight": {
+    "description": "Flight menu item label"
+  },
+
+  "checklists": "Checklists",
+  "@checklists": {
+    "description": "Checklists menu item label"
+  },
+
+  "aircrafts": "Aircrafts",
+  "@aircrafts": {
+    "description": "Aircrafts menu item label"
   }
 }
