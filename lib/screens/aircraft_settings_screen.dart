@@ -10,6 +10,7 @@ import 'aircraft_detail_screen.dart';
 import 'manufacturer_detail_screen.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_colors.dart';
+import '../l10n/app_localizations.dart';
 
 class AircraftSettingsScreen extends StatefulWidget {
   const AircraftSettingsScreen({super.key});
@@ -41,11 +42,12 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Aircraft Settings',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.aircraft,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
@@ -54,9 +56,9 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
           indicatorColor: AppColors.primaryAccent,
           labelColor: AppColors.primaryTextColor,
           unselectedLabelColor: AppColors.secondaryTextColor,
-          tabs: const [
-            Tab(icon: Icon(Icons.airplanemode_active), text: 'Aircraft'),
-            Tab(icon: Icon(Icons.business), text: 'Manufacturers'),
+          tabs: [
+            Tab(icon: const Icon(Icons.airplanemode_active), text: l10n.aircraft),
+            Tab(icon: const Icon(Icons.business), text: l10n.manufacturers),
           ],
         ),
       ),
@@ -71,6 +73,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
   Widget _buildAircraftTab() {
     return Consumer<AircraftSettingsService>(
       builder: (context, service, child) {
+        final l10n = AppLocalizations.of(context)!;
         if (service.aircrafts.isEmpty) {
           return Center(
             child: Column(
@@ -82,15 +85,15 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                   color: Colors.white54,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'No aircraft configured',
-                  style: TextStyle(fontSize: 18, color: Colors.white70),
+                Text(
+                  l10n.noAircraftConfigured,
+                  style: const TextStyle(fontSize: 18, color: Colors.white70),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () => _showAircraftForm(),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add First Aircraft'),
+                  label: Text(l10n.addFirstAircraft),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF448AFF),
                     foregroundColor: Colors.white,
@@ -120,7 +123,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                   ElevatedButton.icon(
                     onPressed: () => _showAircraftForm(),
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Aircraft'),
+                    label: Text(l10n.addAircraft),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF448AFF),
                       foregroundColor: Colors.white,
@@ -169,7 +172,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                             style: const TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            '${_getCategoryDisplayName(aircraft.category)} • ${aircraft.cruiseSpeed} kts',
+                            '${_getCategoryDisplayName(context, aircraft.category)} • ${aircraft.cruiseSpeed} kts',
                             style: const TextStyle(color: Colors.white70),
                           ),
                         ],
@@ -184,34 +187,37 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                             _confirmDeleteAircraft(aircraft);
                           }
                         },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 20, color: Colors.white70),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Edit',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
+                        itemBuilder: (context) {
+                          final l10n = AppLocalizations.of(context)!;
+                          return [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.edit, size: 20, color: Colors.white70),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.edit,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, size: 20, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.delete, size: 20, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.delete,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ];
+                        },
                       ),
                       onTap: () => _showAircraftDetails(aircraft),
                     ),
@@ -228,6 +234,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
   Widget _buildManufacturersTab() {
     return Consumer<AircraftSettingsService>(
       builder: (context, service, child) {
+        final l10n = AppLocalizations.of(context)!;
         if (service.manufacturers.isEmpty) {
           return Center(
             child: Column(
@@ -240,7 +247,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No manufacturers configured',
+                  'No manufacturers configured', // TODO: Add to localization
                   style: TextStyle(
                     fontSize: 18,
                     color: AppColors.primaryTextColor,
@@ -254,7 +261,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                     foregroundColor: Colors.white,
                   ),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add First Manufacturer'),
+                  label: Text(l10n.addManufacturer),
                 ),
               ],
             ),
@@ -283,7 +290,7 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                     foregroundColor: Colors.white,
                   ),
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Manufacturer'),
+                    label: Text(l10n.addManufacturer),
                   ),
                 ],
               ),
@@ -341,31 +348,34 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
                             _confirmDeleteManufacturer(manufacturer);
                           }
                         },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 20, color: AppColors.primaryTextColor),
-                                const SizedBox(width: 8),
-                                Text('Edit', style: TextStyle(color: AppColors.primaryTextColor)),
-                              ],
+                        itemBuilder: (context) {
+                          final l10n = AppLocalizations.of(context)!;
+                          return [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 20, color: AppColors.primaryTextColor),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.edit, style: TextStyle(color: AppColors.primaryTextColor)),
+                                ],
+                              ),
                             ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, size: 20, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.delete, size: 20, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.delete,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ];
+                        },
                       ),
                       onTap: () => _showManufacturerDetails(manufacturer),
                     ),
@@ -405,56 +415,62 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
   void _confirmDeleteAircraft(Aircraft aircraft) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Aircraft'),
-        content: Text('Are you sure you want to delete "${aircraft.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              _aircraftService.deleteAircraft(aircraft.id);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Deleted "${aircraft.name}"')),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.deleteAircraft),
+          content: Text(l10n.confirmDeleteAircraft(aircraft.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                _aircraftService.deleteAircraft(aircraft.id);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.deletedAircraft(aircraft.name))),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void _confirmDeleteManufacturer(Manufacturer manufacturer) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Manufacturer'),
-        content: Text(
-          'Are you sure you want to delete "${manufacturer.name}"? This will also delete all associated models.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return AlertDialog(
+          title: Text(l10n.deleteManufacturer),
+          content: Text(
+            l10n.confirmDeleteManufacturer(manufacturer.name),
           ),
-          TextButton(
-            onPressed: () {
-              _aircraftService.deleteManufacturer(manufacturer.id);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Deleted "${manufacturer.name}"')),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                _aircraftService.deleteManufacturer(manufacturer.id);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.deletedManufacturer(manufacturer.name))),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -479,21 +495,22 @@ class _AircraftSettingsScreenState extends State<AircraftSettingsScreen>
     return '${manufacturer.name} ${aircraft.model}';
   }
 
-  String _getCategoryDisplayName(AircraftCategory? category) {
-    if (category == null) return 'Unknown';
+  String _getCategoryDisplayName(BuildContext context, AircraftCategory? category) {
+    final l10n = AppLocalizations.of(context)!;
+    if (category == null) return 'Unknown'; // TODO: Add to localization
     switch (category) {
       case AircraftCategory.singleEngine:
-        return 'Single Engine';
+        return l10n.singleEngine;
       case AircraftCategory.multiEngine:
-        return 'Multi Engine';
+        return l10n.multiEngine;
       case AircraftCategory.jet:
-        return 'Jet';
+        return 'Jet'; // TODO: Add to localization
       case AircraftCategory.helicopter:
-        return 'Helicopter';
+        return 'Helicopter'; // TODO: Add to localization
       case AircraftCategory.glider:
-        return 'Glider';
+        return 'Glider'; // TODO: Add to localization
       case AircraftCategory.turboprop:
-        return 'Turboprop';
+        return 'Turboprop'; // TODO: Add to localization
     }
   }
 }

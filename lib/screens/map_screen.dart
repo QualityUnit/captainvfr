@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
@@ -696,7 +697,7 @@ class MapScreenState extends State<MapScreen>
         shape: RoundedRectangleBorder(
           borderRadius: AppTheme.dialogRadius,
         ),
-        title: const Text('Missing Map Tiles'),
+        title: Text(AppLocalizations.of(context)!.missingMapTiles),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -723,7 +724,7 @@ class MapScreenState extends State<MapScreen>
                       child: Text(
                         '${result.flightPlan.name}: ${result.missingTiles} tiles '
                         '(${result.percentageMissing.toStringAsFixed(1)}% missing)',
-                        style: const TextStyle(fontSize: 14),
+                        style: TextStyle(fontSize: 14),
                       ),
                     ),
                   ],
@@ -735,11 +736,11 @@ class MapScreenState extends State<MapScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Later'),
+            child: Text(AppLocalizations.of(context)!.later),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Download Now'),
+            child: Text(AppLocalizations.of(context)!.downloadNow),
           ),
         ],
       ),
@@ -1608,7 +1609,7 @@ class MapScreenState extends State<MapScreen>
         } else {
           // Other location errors
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not get current location')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.couldNotGetCurrentLocation)),
           );
         }
         return;
@@ -2454,8 +2455,9 @@ class MapScreenState extends State<MapScreen>
       // debugPrint('Stack trace: $stackTrace');
       // Try to show error to user
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error showing airport details')),
+          SnackBar(content: Text(l10n.errorShowingAirportDetails)),
         );
       }
     }
@@ -2717,8 +2719,9 @@ class MapScreenState extends State<MapScreen>
       // debugPrint('Bottom sheet closed for ${navaid.ident}');
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error showing navaid details')),
+          SnackBar(content: Text(l10n.errorShowingNavaidDetails)),
         );
       }
     }
@@ -2731,6 +2734,7 @@ class MapScreenState extends State<MapScreen>
     }
 
     try {
+      final l10n = AppLocalizations.of(context)!;
       // Create a themed dialog to show airspace information
       await ThemedDialog.show(
         context: context,
@@ -2754,9 +2758,9 @@ class MapScreenState extends State<MapScreen>
                 'Activity',
                 AirspaceUtils.getActivityName(airspace.activity),
               ),
-            _buildThemedInfoRow('Altitude', airspace.altitudeRange),
+            _buildThemedInfoRow(l10n.altitude, airspace.altitudeRange),
             if (airspace.country != null)
-              _buildThemedInfoRow('Country', airspace.country!),
+              _buildThemedInfoRow(l10n.country, airspace.country!),
             // Extract and display frequency if available in remarks
             if (airspace.remarks != null &&
                 _extractFrequency(airspace.remarks!) != null)
@@ -2803,7 +2807,7 @@ class MapScreenState extends State<MapScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Remarks:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -2823,15 +2827,16 @@ class MapScreenState extends State<MapScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(l10n.close),
           ),
         ],
       );
     } catch (e) {
       // debugPrint('Error showing airspace details: $e');
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error showing airspace details')),
+          SnackBar(content: Text(l10n.errorShowingAirspaceDetails)),
         );
       }
     }
@@ -2850,6 +2855,7 @@ class MapScreenState extends State<MapScreen>
     }
 
     try {
+      final l10n = AppLocalizations.of(context)!;
       // Create a themed dialog to show reporting point information
       await ThemedDialog.show(
         context: context,
@@ -2858,22 +2864,22 @@ class MapScreenState extends State<MapScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildThemedInfoRow('Name', point.name),
-            if (point.type != null) _buildThemedInfoRow('Type', point.type!),
+            _buildThemedInfoRow(l10n.name, point.name),
+            if (point.type != null) _buildThemedInfoRow(l10n.type, point.type!),
             if (point.elevationString.isNotEmpty)
-              _buildThemedInfoRow('Elevation', point.elevationString),
+              _buildThemedInfoRow(l10n.elevation, point.elevationString),
             if (point.country != null)
-              _buildThemedInfoRow('Country', point.country!),
-            if (point.state != null) _buildThemedInfoRow('State', point.state!),
+              _buildThemedInfoRow(l10n.country, point.country!),
+            if (point.state != null) _buildThemedInfoRow(l10n.state, point.state!),
             if (point.airportName != null)
-              _buildThemedInfoRow('Airport', point.airportName!),
+              _buildThemedInfoRow(l10n.airport, point.airportName!),
             if (point.description != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Description:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -2894,7 +2900,7 @@ class MapScreenState extends State<MapScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Remarks:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -2915,8 +2921,8 @@ class MapScreenState extends State<MapScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Tags:',
+                    Text(
+                      '${l10n.tags}:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.primaryAccent,
@@ -2935,16 +2941,17 @@ class MapScreenState extends State<MapScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(l10n.close),
           ),
         ],
       );
     } catch (e) {
       // debugPrint('Error showing reporting point details: $e');
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error showing reporting point details'),
+          SnackBar(
+            content: Text(l10n.errorShowingReportingPointDetails),
           ),
         );
       }
@@ -2957,6 +2964,7 @@ class MapScreenState extends State<MapScreen>
       return;
     }
     try {
+      final l10n = AppLocalizations.of(context)!;
       // Create a themed dialog to show obstacle information
       await ThemedDialog.show(
         context: context,
@@ -2965,19 +2973,19 @@ class MapScreenState extends State<MapScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildThemedInfoRow('Name', obstacle.name),
+            _buildThemedInfoRow(l10n.name, obstacle.name),
             if (obstacle.type != null)
-              _buildThemedInfoRow('Type', obstacle.type!),
+              _buildThemedInfoRow(l10n.type, obstacle.type!),
             if (obstacle.heightFt != null)
-              _buildThemedInfoRow('Height', '${obstacle.heightFt} ft'),
+              _buildThemedInfoRow(l10n.height, '${obstacle.heightFt} ft'),
             if (obstacle.elevationFt != null)
-              _buildThemedInfoRow('Elevation', '${obstacle.elevationFt} ft'),
-            _buildThemedInfoRow('Total Height', '${obstacle.totalHeightFt} ft MSL'),
-            _buildThemedInfoRow('Lighted', obstacle.lighted ? 'Yes' : 'No'),
+              _buildThemedInfoRow(l10n.elevation, '${obstacle.elevationFt} ft'),
+            _buildThemedInfoRow(l10n.totalHeight, '${obstacle.totalHeightFt} ft MSL'),
+            _buildThemedInfoRow(l10n.lighted, obstacle.lighted ? l10n.yes : l10n.no),
             if (obstacle.marking != null && obstacle.marking!.isNotEmpty)
-              _buildThemedInfoRow('Marking', obstacle.marking!),
+              _buildThemedInfoRow(l10n.marking, obstacle.marking!),
             if (obstacle.country != null)
-              _buildThemedInfoRow('Country', obstacle.country!),
+              _buildThemedInfoRow(l10n.country, obstacle.country!),
             const SizedBox(height: 8),
             Text(
               'Position: ${obstacle.latitude.toStringAsFixed(5)}, ${obstacle.longitude.toStringAsFixed(5)}',
@@ -2988,9 +2996,10 @@ class MapScreenState extends State<MapScreen>
       );
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error showing obstacle details'),
+          SnackBar(
+            content: Text(l10n.errorShowingObstacleDetails),
           ),
         );
       }
@@ -3003,6 +3012,7 @@ class MapScreenState extends State<MapScreen>
       return;
     }
     try {
+      final l10n = AppLocalizations.of(context)!;
       // Create a themed dialog to show hotspot information
       await ThemedDialog.show(
         context: context,
@@ -3011,21 +3021,21 @@ class MapScreenState extends State<MapScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildThemedInfoRow('Name', hotspot.name),
+            _buildThemedInfoRow(l10n.name, hotspot.name),
             if (hotspot.type != null)
-              _buildThemedInfoRow('Type', hotspot.type!),
+              _buildThemedInfoRow(l10n.type, hotspot.type!),
             if (hotspot.elevationFt != null)
-              _buildThemedInfoRow('Elevation', hotspot.elevationString),
+              _buildThemedInfoRow(l10n.elevation, hotspot.elevationString),
             if (hotspot.reliability != null)
-              _buildThemedInfoRow('Reliability', hotspot.reliabilityString),
+              _buildThemedInfoRow(l10n.reliability, hotspot.reliabilityString),
             if (hotspot.occurrence != null && hotspot.occurrence!.isNotEmpty)
-              _buildThemedInfoRow('Occurrence', hotspot.occurrence!),
+              _buildThemedInfoRow(l10n.occurrence, hotspot.occurrence!),
             if (hotspot.conditions != null && hotspot.conditions!.isNotEmpty)
-              _buildThemedInfoRow('Conditions', hotspot.conditions!),
+              _buildThemedInfoRow(l10n.conditions, hotspot.conditions!),
             if (hotspot.description != null && hotspot.description!.isNotEmpty)
-              _buildThemedInfoRow('Description', hotspot.description!),
+              _buildThemedInfoRow(l10n.description, hotspot.description!),
             if (hotspot.country != null)
-              _buildThemedInfoRow('Country', hotspot.country!),
+              _buildThemedInfoRow(l10n.country, hotspot.country!),
             const SizedBox(height: 8),
             Text(
               'Position: ${hotspot.latitude.toStringAsFixed(5)}, ${hotspot.longitude.toStringAsFixed(5)}',
@@ -3036,9 +3046,10 @@ class MapScreenState extends State<MapScreen>
       );
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error showing hotspot details'),
+          SnackBar(
+            content: Text(l10n.errorShowingHotspotDetails),
           ),
         );
       }
@@ -3059,7 +3070,7 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
           Expanded(
-            child: Text(value, style: TextStyle(color: AppColors.secondaryTextColor)),
+            child: Text(value, style: const TextStyle(color: AppColors.secondaryTextColor)),
           ),
         ],
       ),
@@ -3229,6 +3240,7 @@ class MapScreenState extends State<MapScreen>
   }
   
   Widget _buildContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       key: _scaffoldKey,
       body: LayoutBuilder(
@@ -4002,7 +4014,7 @@ class MapScreenState extends State<MapScreen>
                                       size: 24,
                                     ),
                                     const SizedBox(width: 12),
-                                    const Text(
+                                    Text(
                                       'Menu',
                                       style: TextStyle(
                                         color: Colors.white,
@@ -4027,7 +4039,7 @@ class MapScreenState extends State<MapScreen>
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      _buildUnifiedMenuContent(),
+                                      _buildUnifiedMenuContent(l10n),
                                     ],
                                   ),
                                 ),
@@ -4188,8 +4200,8 @@ class MapScreenState extends State<MapScreen>
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: SensorNotification(
-                    sensorName: 'Getting location...',
-                    message: 'Acquiring GPS position',
+                    sensorName: l10n.gettingLocation,
+                    message: l10n.acquiringGpsPosition,
                     icon: Icons.location_searching,
                     backgroundColor: const Color(0xFFE3F2FD), // Light blue
                     iconColor: const Color(0xFF1976D2), // Blue
@@ -4278,14 +4290,14 @@ class MapScreenState extends State<MapScreen>
     return SegmentUtils.getSegmentIcon(segmentType);
   }
 
-  Widget _buildUnifiedMenuContent() {
+  Widget _buildUnifiedMenuContent(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Layer Toggles Section
-        const Text(
-          'Map Layers',
-          style: TextStyle(
+        Text(
+          l10n.mapLayers,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -4308,7 +4320,7 @@ class MapScreenState extends State<MapScreen>
               icon: _mapStateController.showNavaids
                   ? Icons.navigation
                   : Icons.navigation_outlined,
-              label: 'Navaids',
+              label: l10n.navaids,
               isActive: _mapStateController.showNavaids,
               onPressed: _toggleNavaids,
             ),
@@ -4316,7 +4328,7 @@ class MapScreenState extends State<MapScreen>
               icon: _mapStateController.showMetar
                   ? Icons.cloud
                   : Icons.cloud_outlined,
-              label: 'METAR',
+              label: l10n.metar,
               isActive: _mapStateController.showMetar,
               onPressed: _toggleMetar,
             ),
@@ -4324,19 +4336,19 @@ class MapScreenState extends State<MapScreen>
               icon: _mapStateController.showAirspaces
                   ? Icons.layers
                   : Icons.layers_outlined,
-              label: 'Airspaces',
+              label: l10n.airspaces,
               isActive: _mapStateController.showAirspaces,
               onPressed: _toggleAirspaces,
             ),
             _buildMenuToggleButton(
               icon: Icons.warning_amber_rounded,
-              label: 'Obstacles',
+              label: l10n.obstacles,
               isActive: _mapStateController.showObstacles,
               onPressed: _toggleObstacles,
             ),
             _buildMenuToggleButton(
               icon: Icons.location_on,
-              label: 'Hotspots',
+              label: l10n.hotspots,
               isActive: _mapStateController.showHotspots,
               onPressed: _toggleHotspots,
             ),
@@ -4344,7 +4356,7 @@ class MapScreenState extends State<MapScreen>
               icon: _mapStateController.showHeatmap
                   ? Icons.whatshot
                   : Icons.whatshot_outlined,
-              label: 'Heatmap',
+              label: l10n.heatmap,
               isActive: _mapStateController.showHeatmap,
               onPressed: _toggleHeatmap,
             ),
@@ -4352,7 +4364,7 @@ class MapScreenState extends State<MapScreen>
               icon: _showCurrentAirspacePanel
                   ? Icons.account_tree
                   : Icons.account_tree_outlined,
-              label: 'Current Airspace',
+              label: l10n.currentAirspace,
               isActive: _showCurrentAirspacePanel,
               onPressed: () {
                 setState(() {
@@ -4398,9 +4410,9 @@ class MapScreenState extends State<MapScreen>
         const SizedBox(height: 24),
         
         // Menu Items Section
-        const Text(
+        Text(
           'Navigation',
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -4639,7 +4651,7 @@ class MapScreenState extends State<MapScreen>
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                     ),
@@ -4650,7 +4662,7 @@ class MapScreenState extends State<MapScreen>
                       subtitle,
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.orange.shade400,
+                        color: Color(0xFFFFB74D),
                       ),
                     ),
                   ],
@@ -4660,7 +4672,7 @@ class MapScreenState extends State<MapScreen>
             const Icon(
               Icons.chevron_right,
               size: 16,
-              color: Colors.grey,
+              color: Colors.white,
             ),
           ],
         ),

@@ -37,10 +37,6 @@ class ReportingPointCacheRepository extends BaseCacheRepository<ReportingPoint> 
       await PerformanceMonitor().measureAsync(
         'appendReportingPoints',
         () async {
-          developer.log('💾 Appending ${points.length} reporting points...');
-          developer.log(
-            '📊 Current box status: isOpen=${box.isOpen}, length=${box.length}',
-          );
 
           // Don't clear existing data - append mode
           int added = 0;

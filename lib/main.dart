@@ -287,10 +287,7 @@ Future<void> _initializeApp() async {
     
     // Initialize sensor availability service
     final sensorAvailabilityService = SensorAvailabilityService();
-    // Check sensors after a short delay to avoid blocking startup
-    Future.delayed(const Duration(seconds: 2), () {
-      sensorAvailabilityService.checkSensorAvailability();
-    });
+    // Note: Sensor check will be performed in UI context where localization is available
 
     // Initialize background data service
     final backgroundDataService = BackgroundDataService();
@@ -666,7 +663,7 @@ class _CaptainVFRAppState extends State<CaptainVFRApp> {
           surfaceContainerHighest: const Color(0xFF121212),
         ),
         cardTheme: CardThemeData(
-          color: Colors.grey[900],
+          color: const Color(0xFF212121),
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: AppTheme.largeRadius,

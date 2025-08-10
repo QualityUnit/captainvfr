@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/pilot.dart';
 import '../../services/pilot_service.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class PilotForm extends StatefulWidget {
   final Pilot? pilot;
@@ -92,6 +93,7 @@ class _PilotFormState extends State<PilotForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.pilot != null;
 
     return Scaffold(
@@ -99,7 +101,7 @@ class _PilotFormState extends State<PilotForm> {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         title: Text(
-          isEditing ? 'Edit Pilot' : 'Add Pilot',
+          isEditing ? l10n.editPilot : l10n.addPilot,
           style: TextStyle(color: AppColors.primaryTextColor),
         ),
         iconTheme: IconThemeData(color: AppColors.primaryTextColor),
@@ -113,7 +115,7 @@ class _PilotFormState extends State<PilotForm> {
             children: [
               // Basic Information
               Text(
-                'Basic Information',
+                l10n.basicInformation,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -125,8 +127,8 @@ class _PilotFormState extends State<PilotForm> {
                 controller: _nameController,
                 style: TextStyle(color: AppColors.primaryTextColor),
                 decoration: InputDecoration(
-                  labelText: 'Name *',
-                  hintText: 'John Doe',
+                  labelText: l10n.nameRequired,
+                  hintText: l10n.johnDoe,
                   prefixIcon: Icon(Icons.person, color: AppColors.secondaryTextColor),
                   labelStyle: TextStyle(color: AppColors.secondaryTextColor),
                   hintStyle: TextStyle(color: AppColors.secondaryTextColor.withValues(alpha: 0.5)),
@@ -151,7 +153,7 @@ class _PilotFormState extends State<PilotForm> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter pilot name';
+                    return l10n.pleaseEnterPilotName;
                   }
                   return null;
                 },
@@ -166,13 +168,13 @@ class _PilotFormState extends State<PilotForm> {
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   title: Text(
-                    'Date of Birth',
+                    l10n.dateOfBirth,
                     style: TextStyle(color: AppColors.primaryTextColor),
                   ),
                   subtitle: Text(
                     _birthdate != null
                         ? '${_birthdate!.day}/${_birthdate!.month}/${_birthdate!.year}'
-                        : 'Not set',
+                        : l10n.notSet,
                     style: TextStyle(color: AppColors.secondaryTextColor),
                   ),
                   trailing: Row(
@@ -216,7 +218,7 @@ class _PilotFormState extends State<PilotForm> {
 
               // Contact Information
               Text(
-                'Contact Information',
+                l10n.contactInformation,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -228,8 +230,8 @@ class _PilotFormState extends State<PilotForm> {
                 controller: _emailController,
                 style: TextStyle(color: AppColors.primaryTextColor),
                 decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'pilot@example.com',
+                  labelText: l10n.email,
+                  hintText: l10n.pilotExampleEmail,
                   prefixIcon: Icon(Icons.email, color: AppColors.secondaryTextColor),
                   labelStyle: TextStyle(color: AppColors.secondaryTextColor),
                   hintStyle: TextStyle(color: AppColors.secondaryTextColor.withValues(alpha: 0.5)),
@@ -257,7 +259,7 @@ class _PilotFormState extends State<PilotForm> {
                   if (value != null && value.isNotEmpty) {
                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                         .hasMatch(value)) {
-                      return 'Please enter a valid email';
+                      return l10n.pleaseEnterValidEmail;
                     }
                   }
                   return null;
@@ -268,8 +270,8 @@ class _PilotFormState extends State<PilotForm> {
                 controller: _phoneController,
                 style: TextStyle(color: AppColors.primaryTextColor),
                 decoration: InputDecoration(
-                  labelText: 'Phone',
-                  hintText: '+1 234 567 8900',
+                  labelText: l10n.phone,
+                  hintText: l10n.phoneExample,
                   prefixIcon: Icon(Icons.phone, color: AppColors.secondaryTextColor),
                   labelStyle: TextStyle(color: AppColors.secondaryTextColor),
                   hintStyle: TextStyle(color: AppColors.secondaryTextColor.withValues(alpha: 0.5)),
@@ -299,7 +301,7 @@ class _PilotFormState extends State<PilotForm> {
 
               // Certificate Information
               Text(
-                'Certificate Information',
+                l10n.certificateInformation,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -311,8 +313,8 @@ class _PilotFormState extends State<PilotForm> {
                 controller: _certificateNumberController,
                 style: TextStyle(color: AppColors.primaryTextColor),
                 decoration: InputDecoration(
-                  labelText: 'Certificate Number',
-                  hintText: '123456789',
+                  labelText: l10n.certificateNumber,
+                  hintText: l10n.certificateNumberExample,
                   prefixIcon: Icon(Icons.badge, color: AppColors.secondaryTextColor),
                   labelStyle: TextStyle(color: AppColors.secondaryTextColor),
                   hintStyle: TextStyle(color: AppColors.secondaryTextColor.withValues(alpha: 0.5)),
@@ -341,7 +343,7 @@ class _PilotFormState extends State<PilotForm> {
 
               // Settings
               Text(
-                'Settings',
+                l10n.settings,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -357,11 +359,11 @@ class _PilotFormState extends State<PilotForm> {
                 ),
                 child: SwitchListTile(
                   title: Text(
-                    'Set as Current Pilot',
+                    l10n.setAsCurrentPilot,
                     style: TextStyle(color: AppColors.primaryTextColor),
                   ),
                   subtitle: Text(
-                    'This pilot will be selected by default for new entries',
+                    l10n.defaultPilotDescription,
                     style: TextStyle(color: AppColors.secondaryTextColor),
                   ),
                   value: _isCurrentUser,
@@ -390,7 +392,7 @@ class _PilotFormState extends State<PilotForm> {
                     ),
                   ),
                   child: Text(
-                    isEditing ? 'Update Pilot' : 'Add Pilot',
+                    isEditing ? l10n.updatePilot : l10n.addPilot,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),

@@ -13,6 +13,7 @@ import '../widgets/flight_detail/flight_segments_tab.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
 import '../constants/flight_detail_constants.dart';
+import '../l10n/app_localizations.dart';
 
 class FlightDetailScreen extends StatefulWidget {
   final Flight flight;
@@ -104,6 +105,7 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasAltitudeData =
         widget.flight.altitudes.isNotEmpty &&
         widget.flight.altitudes.any((alt) => alt > 0);
@@ -114,8 +116,8 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
         backgroundColor: AppColors.backgroundColor,
         appBar: AppBar(
           backgroundColor: AppColors.dialogBackgroundColor,
-          title: const Text(
-            'Flight Details',
+          title: Text(
+            l10n.flightDetails,
             style: TextStyle(color: AppColors.primaryTextColor),
           ),
           iconTheme: const IconThemeData(color: AppColors.primaryTextColor),
@@ -124,10 +126,10 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
             indicatorColor: AppColors.primaryAccent,
             labelColor: AppColors.primaryAccent,
             unselectedLabelColor: AppColors.secondaryTextColor,
-            tabs: const [
-              Tab(icon: Icon(Icons.info_outline), text: 'Info'),
+            tabs: [
+              Tab(icon: Icon(Icons.info_outline), text: l10n.info),
               Tab(icon: Icon(Icons.timeline), text: 'Segments'),
-              Tab(icon: Icon(Icons.speed), text: 'Speed'),
+              Tab(icon: Icon(Icons.speed), text: l10n.speed),
               Tab(icon: Icon(Icons.vibration), text: 'Turbulence'),
               Tab(icon: Icon(Icons.terrain), text: 'Altitude'),
             ],
@@ -137,7 +139,7 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
               padding: const EdgeInsets.only(right: 8.0),
               child: TextButton.icon(
                 icon: const Icon(Icons.menu_book, color: AppColors.primaryTextColor),
-                label: const Text(
+                label: Text(
                   '+ Logbook',
                   style: TextStyle(color: AppColors.primaryTextColor),
                 ),
@@ -156,8 +158,8 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
                     
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Logbook entry created successfully'),
+                        SnackBar(
+                          content: Text(l10n.logbookEntryCreatedSuccessfully),
                           duration: Duration(seconds: 2),
                         ),
                       );
@@ -174,7 +176,7 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Error creating logbook entry: $e'),
+                          content: Text(l10n.errorCreatingLogbookEntry(e.toString())),
                           backgroundColor: AppColors.errorColor,
                         ),
                       );
@@ -334,7 +336,7 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
                           )
                         : null,
                     Icons.speed,
-                    'No speed data available',
+                    l10n.noSpeedDataAvailable,
                   ),
 
                   // Turbulence Tab
@@ -356,7 +358,7 @@ class _FlightDetailScreenState extends State<FlightDetailScreen> {
                           )
                         : null,
                     Icons.vibration,
-                    'No turbulence data available',
+                    l10n.noTurbulenceDataAvailable,
                   ),
 
                   // Altitude Tab

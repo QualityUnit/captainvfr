@@ -55,22 +55,17 @@ class AirportService {
 
   /// Initialize the service and load cached data
   Future<void> initialize() async {
-    developer.log('🚀 AirportService.initialize() called');
     await _cacheService.initialize();
     
     // Try to load bundled data first
     await _loadBundledAirports();
     
     if (!_bundledDataLoaded) {
-      developer.log('📦 No bundled data loaded, trying cache...');
       await _loadFromCache();
     }
-    
-    developer.log('✅ AirportService initialized with ${_airports.length} airports');
-    
+
     // If still no airports, load from TiledDataLoader as a temporary fix
     if (_airports.isEmpty) {
-      developer.log('⚠️ No airports loaded, loading from TiledDataLoader...');
       try {
         final tiledLoader = TiledDataLoader();
         
@@ -82,9 +77,7 @@ class AirportService {
           minLon: -10.0, // Western Europe
           maxLon: 30.0,  // Eastern Europe
         );
-        
-        developer.log('📦 Loaded ${tiledAirports.length} airports from tiles');
-        
+
         // Use the loaded airports directly - they already have runway data!
         _airports = tiledAirports;
         
@@ -124,15 +117,13 @@ class AirportService {
   /// Load bundled airports data
   Future<void> _loadBundledAirports() async {
     try {
-      developer.log('📦 Bundled airport data loading...');
-      
+
       // Note: Bundled airport data is now loaded through TiledDataLoader when needed
       // The old JSON files have been replaced with tiled CSV format
       // OpenAIPService uses TiledDataLoader to load airports from tiles
       
       // This service currently relies on OurAirports API for initial data
-      developer.log('ℹ️ AirportService uses OurAirports API. For bundled data, use OpenAIPService with TiledDataLoader.');
-      
+
       /* Old compressed data loading code - no longer used
       // Try compressed data first
       try {
@@ -263,16 +254,12 @@ class AirportService {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        developer.log('📊 Successfully fetched airport data. Parsing...');
         // Parse CSV response
         final lines = const LineSplitter().convert(response.body);
-        developer.log('📄 Parsed ${lines.length} lines from CSV');
 
         if (lines.length > 1) {
           // Skip header
-          developer.log('🔍 Filtering valid airport entries...');
           final header = lines[0].split(',');
-          developer.log('📋 CSV Header: $header');
 
           final filteredAirports = <String>[];
           int invalidCount = 0;
@@ -304,11 +291,6 @@ class AirportService {
             }
           }
 
-          developer.log(
-            '✅ Found ${filteredAirports.length} valid airport entries in CSV ($invalidCount invalid entries skipped, $closedCount closed airports excluded)',
-          );
-
-          developer.log('🏗  Creating Airport objects...');
           final parsedAirports = filteredAirports
               .map((line) {
                 final values = line.split(',');
@@ -375,8 +357,6 @@ class AirportService {
   List<Airport> searchAirports(String query) {
     if (query.isEmpty) return [];
 
-    developer.log('🔍 Searching airports with query: "$query", total airports: ${_airports.length}');
-    
     final searchQuery = query.toLowerCase().trim();
 
     final results = _airports.where((airport) {

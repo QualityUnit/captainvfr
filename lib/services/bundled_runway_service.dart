@@ -23,9 +23,7 @@ class BundledRunwayService {
 
   /// Initialize the service and load bundled data
   Future<void> initialize() async {
-    developer.log('🔧 BundledRunwayService: Starting initialization...');
     await _cacheService.initialize();
-    developer.log('🔧 BundledRunwayService: Cache service initialized');
     
     // Try to load bundled data first
     await _loadBundledRunways();
@@ -45,14 +43,11 @@ class BundledRunwayService {
     if (_bundledDataLoaded) return;
     
     try {
-      developer.log('📦 Loading bundled runway data...');
       
       // Note: Runway data is typically included with airport data from APIs
       // The old standalone runway JSON files have been removed
       // Runways should be loaded as part of airport data
-      
-      developer.log('ℹ️ Runway data should be loaded as part of airport data from APIs');
-      
+
       /* Old compressed/uncompressed data loading code - no longer used
       // Try to load compressed data first
       try {

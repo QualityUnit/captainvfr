@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class MapZoomControls extends StatelessWidget {
   final MapController mapController;
@@ -47,6 +48,8 @@ class MapZoomControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return StreamBuilder(
       stream: mapController.mapEventStream,
       builder: (context, snapshot) {
@@ -71,8 +74,8 @@ class MapZoomControls extends StatelessWidget {
             children: [
               _buildZoomButton(
                 icon: Icons.add,
-                tooltip: canZoomIn ? 'Zoom in' : 'Maximum zoom reached',
-                semanticLabel: 'Zoom in',
+                tooltip: canZoomIn ? l10n.zoomIn : l10n.maximumZoomReached,
+                semanticLabel: l10n.zoomIn,
                 enabled: canZoomIn,
                 onTap: _zoomIn,
                 borderRadius: const BorderRadius.only(
@@ -83,7 +86,7 @@ class MapZoomControls extends StatelessWidget {
               Container(
                 width: 1,
                 height: 20,
-                color: Colors.grey.withValues(alpha: 0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
               // Zoom level indicator
               Container(
@@ -100,12 +103,12 @@ class MapZoomControls extends StatelessWidget {
               Container(
                 width: 1,
                 height: 20,
-                color: Colors.grey.withValues(alpha: 0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
               _buildZoomButton(
                 icon: Icons.remove,
-                tooltip: canZoomOut ? 'Zoom out' : 'Minimum zoom reached',
-                semanticLabel: 'Zoom out',
+                tooltip: canZoomOut ? l10n.zoomOut : l10n.minimumZoomReached,
+                semanticLabel: l10n.zoomOut,
                 enabled: canZoomOut,
                 onTap: _zoomOut,
                 borderRadius: const BorderRadius.only(
@@ -144,7 +147,7 @@ class MapZoomControls extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 20,
-                color: enabled ? Colors.black87 : Colors.grey,
+                color: enabled ? Colors.black87 : Colors.white,
               ),
             ),
           ),

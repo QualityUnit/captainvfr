@@ -5,6 +5,7 @@ import '../services/airport_service.dart';
 import '../services/navaid_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class AirportSearchDialog extends StatefulWidget {
   final AirportService airportService;
@@ -69,6 +70,8 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Dialog(
       backgroundColor: AppColors.dialogBackgroundColor,
       shape: RoundedRectangleBorder(
@@ -82,7 +85,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Search Airports & Navaids',
+              l10n.searchAirportsNavaids,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -96,8 +99,8 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
               autofocus: true,
               style: TextStyle(color: AppColors.primaryTextColor),
               decoration: InputDecoration(
-                labelText: 'Search',
-                hintText: 'Enter airport/navaid name, code, or city',
+                labelText: l10n.search,
+                hintText: l10n.enterAirportNavaidName,
                 labelStyle: TextStyle(color: AppColors.secondaryTextColor),
                 hintStyle: TextStyle(color: AppColors.secondaryTextColor.withValues(alpha: 0.5)),
                 prefixIcon: Icon(Icons.search, color: AppColors.secondaryTextColor),
@@ -136,7 +139,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.secondaryTextColor,
                   ),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
               ],
             ),
@@ -147,10 +150,12 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
   }
 
   Widget _buildSearchResults() {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (_searchController.text.isEmpty) {
       return Center(
         child: Text(
-          'Search for airports and navaids by name or code\n(e.g., "KJFK", "Kennedy", "VOR", "SFO")',
+          l10n.searchForAirports,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: AppColors.secondaryTextColor),
         ),
@@ -171,7 +176,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
             Icon(Icons.search_off, size: 64, color: AppColors.secondaryTextColor),
             const SizedBox(height: 16),
             Text(
-              'No results found for "${_searchController.text}"',
+              l10n.noResultsFoundForQuery(_searchController.text),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -180,7 +185,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Try searching by:\n• Airport name (e.g., "Kennedy")\n• ICAO code (e.g., "KJFK")\n• IATA code (e.g., "JFK")\n• Navaid ID (e.g., "SFO")\n• VOR/NDB name',
+              l10n.trySearchingBy,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.secondaryTextColor),
             ),
@@ -197,7 +202,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
         // Airports section
         if (_airportResults.isNotEmpty) {
           if (index == currentIndex) {
-            return _buildSectionHeader('Airports (${_airportResults.length})');
+            return _buildSectionHeader(l10n.airportsCountLabel(_airportResults.length));
           }
           currentIndex++;
           
@@ -211,7 +216,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
         // Navaids section
         if (_navaidResults.isNotEmpty) {
           if (index == currentIndex) {
-            return _buildSectionHeader('Navigation Aids (${_navaidResults.length})');
+            return _buildSectionHeader(l10n.navigationAidsCountLabel(_navaidResults.length));
           }
           currentIndex++;
           

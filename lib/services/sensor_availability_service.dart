@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
+import '../l10n/app_localizations.dart';
 import '../widgets/sensor_notification_widget.dart';
 
 /// Service to check sensor availability and manage notifications
@@ -20,7 +21,7 @@ class SensorAvailabilityService extends ChangeNotifier {
   bool get hasNotifications => _notifications.isNotEmpty;
 
   /// Check all sensors and generate notifications for unavailable ones
-  Future<void> checkSensorAvailability() async {
+  Future<void> checkSensorAvailability(AppLocalizations l10n) async {
     if (_hasCheckedSensors) return;
     _hasCheckedSensors = true;
     
@@ -28,9 +29,9 @@ class SensorAvailabilityService extends ChangeNotifier {
 
     // Check platform
     if (kIsWeb) {
-      _addWebPlatformNotifications();
+      _addWebPlatformNotifications(l10n);
     } else {
-      await _checkMobileSensors();
+      await _checkMobileSensors(l10n);
     }
 
     if (_notifications.isNotEmpty) {
@@ -39,78 +40,78 @@ class SensorAvailabilityService extends ChangeNotifier {
   }
 
   /// Add notifications for web platform limitations
-  void _addWebPlatformNotifications() {
+  void _addWebPlatformNotifications(AppLocalizations l10n) {
     _notifications.addAll([
       SensorNotificationData(
         id: 'web_accelerometer',
-        sensorName: 'Accelerometer Not Available',
-        message: 'Vibration measurement is not supported in web browsers',
+        sensorName: l10n.accelerometerNotAvailable,
+        message: l10n.vibrationMeasurementNotSupportedWeb,
         icon: Icons.vibration,
       ),
       SensorNotificationData(
         id: 'web_barometer',
-        sensorName: 'Barometer Not Available', 
-        message: 'Altitude and pressure sensors are not available in web browsers',
+        sensorName: l10n.barometerNotAvailable, 
+        message: l10n.altitudePressureSensorsNotAvailableWeb,
         icon: Icons.speed,
       ),
-      const SensorNotificationData(
+      SensorNotificationData(
         id: 'web_offline_maps',
-        sensorName: 'Offline Maps Not Available',
-        message: 'Offline map storage is not supported in web browsers',
+        sensorName: l10n.offlineMapsNotAvailable,
+        message: l10n.offlineMapsNotSupportedWeb,
         icon: Icons.map,
       ),
     ]);
   }
 
   /// Add notifications for macOS platform limitations
-  void _addMacOSNotifications() {
+  void _addMacOSNotifications(AppLocalizations l10n) {
     _notifications.addAll([
-      const SensorNotificationData(
+      SensorNotificationData(
         id: 'macos_accelerometer',
-        sensorName: 'Accelerometer Not Available',
-        message: 'Vibration measurement is not supported on macOS',
+        sensorName: l10n.accelerometerNotAvailable,
+        message: l10n.vibrationMeasurementNotSupported('macOS'),
         icon: Icons.vibration,
       ),
-      const SensorNotificationData(
+      SensorNotificationData(
         id: 'macos_barometer',
-        sensorName: 'Barometer Not Available', 
-        message: 'Altitude sensors are not available on macOS',
+        sensorName: l10n.barometerNotAvailable, 
+        message: l10n.altitudeSensorsNotAvailable('macOS'),
         icon: Icons.speed,
       ),
     ]);
   }
 
   /// Check mobile platform sensors
-  Future<void> _checkMobileSensors() async {
+  Future<void> _checkMobileSensors(AppLocalizations l10n) async {
     // Check GPS/Location
-    await _checkLocationSensor();
+    await _checkLocationSensor(l10n);
     
     // Check accelerometer (not available on macOS)
     if (!Platform.isMacOS) {
-      await _checkAccelerometer();
+      await _checkAccelerometer(l10n);
     }
     
     // Check barometer (platform specific)
     if (Platform.isIOS || Platform.isAndroid) {
-      await _checkBarometer();
+      await _checkBarometer(l10n);
     }
     
     // Add macOS-specific notifications
     if (Platform.isMacOS) {
-      _addMacOSNotifications();
+      _addMacOSNotifications(l10n);
     }
   }
 
   /// Check if location services are available
-  Future<void> _checkLocationSensor() async {
+  Future<void> _checkLocationSensor(AppLocalizations l10n) async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _notifications.add(
-          const SensorNotificationData(
+          SensorNotificationData(
             id: 'location_disabled',
-            sensorName: 'Location Services Disabled',
-            message: 'Enable location services for navigation and flight tracking',
+            sensorName: l10n.locationServicesDisabled,
+            message: l10n.enableLocationServices,
             icon: Icons.location_off,
           ),
         );
@@ -123,10 +124,10 @@ class SensorAvailabilityService extends ChangeNotifier {
         _notifications.add(
           SensorNotificationData(
             id: 'location_permission',
-            sensorName: 'Location Permission Required',
+            sensorName: l10n.locationPermissionRequired,
             message: permission == LocationPermission.deniedForever
-                ? 'Location permission denied. Enable in device settings.'
-                : 'Location permission needed for navigation features',
+                ? l10n.locationPermissionDeniedPermanently
+                : l10n.locationPermissionNeededForNavigation,
             icon: Icons.location_disabled,
           ),
         );
@@ -134,10 +135,10 @@ class SensorAvailabilityService extends ChangeNotifier {
     } catch (e) {
       // Location service check failed
       _notifications.add(
-        const SensorNotificationData(
+        SensorNotificationData(
           id: 'location_error',
-          sensorName: 'Location Service Error',
-          message: 'Unable to access location services',
+          sensorName: l10n.locationServiceError,
+          message: l10n.unableToAccessLocationServices,
           icon: Icons.error_outline,
         ),
       );
@@ -145,7 +146,7 @@ class SensorAvailabilityService extends ChangeNotifier {
   }
 
   /// Check if accelerometer is available
-  Future<void> _checkAccelerometer() async {
+  Future<void> _checkAccelerometer(AppLocalizations l10n) async {
     try {
       // Try to get a single accelerometer reading
       final stream = accelerometerEventStream();
@@ -155,10 +156,10 @@ class SensorAvailabilityService extends ChangeNotifier {
       );
     } catch (e) {
       _notifications.add(
-        const SensorNotificationData(
+        SensorNotificationData(
           id: 'accelerometer_unavailable',
-          sensorName: 'Accelerometer Not Available',
-          message: 'Vibration measurement features will be disabled',
+          sensorName: l10n.accelerometerNotAvailable,
+          message: l10n.vibrationMeasurementFeaturesDisabled,
           icon: Icons.vibration,
         ),
       );
@@ -166,17 +167,17 @@ class SensorAvailabilityService extends ChangeNotifier {
   }
 
   /// Check if barometer is available
-  Future<void> _checkBarometer() async {
+  Future<void> _checkBarometer(AppLocalizations l10n) async {
     try {
       // Check if we have pressure sensor permission on Android
       if (Platform.isAndroid) {
         final status = await perm.Permission.sensors.status;
         if (!status.isGranted) {
           _notifications.add(
-            const SensorNotificationData(
+            SensorNotificationData(
               id: 'barometer_permission',
-              sensorName: 'Barometer Permission Required',
-              message: 'Sensor permission needed for altitude measurements',
+              sensorName: l10n.barometerPermissionRequired,
+              message: l10n.sensorPermissionNeededForAltitude,
               icon: Icons.speed,
             ),
           );
@@ -192,10 +193,10 @@ class SensorAvailabilityService extends ChangeNotifier {
       );
     } catch (e) {
       _notifications.add(
-        const SensorNotificationData(
+        SensorNotificationData(
           id: 'barometer_unavailable',
-          sensorName: 'Barometer Not Available',
-          message: 'Pressure altitude features will be limited',
+          sensorName: l10n.barometerNotAvailable,
+          message: l10n.pressureAltitudeFeaturesLimited,
           icon: Icons.speed,
         ),
       );

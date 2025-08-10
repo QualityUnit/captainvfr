@@ -262,7 +262,7 @@ class AirportMarker extends StatelessWidget {
         return Colors.blue[300]!;
       case 'small_airport':
       default:
-        return Colors.grey;
+        return Colors.white;
     }
   }
 }

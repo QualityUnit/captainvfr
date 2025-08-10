@@ -10,6 +10,7 @@ import '../services/heading_service.dart';
 import 'flight_dashboard/components/expanded_view.dart';
 import 'flight_dashboard/components/collapsed_view.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class FlightDashboard extends StatefulWidget {
   final bool? isExpanded;
@@ -132,6 +133,8 @@ class _FlightDashboardState extends State<FlightDashboard> with WidgetsBindingOb
   void _showPermissionDeniedNotification() async {
     if (!mounted) return;
     
+    final l10n = AppLocalizations.of(context)!;
+    
     // Save that we've shown the notification
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_permissionNotificationKey, true);
@@ -147,19 +150,19 @@ class _FlightDashboardState extends State<FlightDashboard> with WidgetsBindingOb
               size: 18,
             ),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Location permission needed',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, height: 1.1),
+                    l10n.locationPermissionNeeded,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, height: 1.1),
                   ),
                   Text(
-                    'Enable for compass heading',
-                    style: TextStyle(fontSize: 10, color: Colors.white70, height: 1.1),
+                    l10n.enableForCompassHeading,
+                    style: const TextStyle(fontSize: 10, color: Colors.white70, height: 1.1),
                   ),
                 ],
               ),
@@ -173,9 +176,9 @@ class _FlightDashboardState extends State<FlightDashboard> with WidgetsBindingOb
                   minimumSize: const Size(50, 28),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                child: const Text(
-                  'Settings',
-                  style: TextStyle(
+                child: Text(
+                  l10n.settingsButton,
+                  style: const TextStyle(
                     color: Color(0xFF448AFF),
                     fontSize: 11,
                     fontWeight: FontWeight.bold,

@@ -6,6 +6,7 @@ import '../../../services/settings_service.dart';
 import '../../../services/aircraft_settings_service.dart';
 import '../../../widgets/themed_dialog.dart';
 import 'small_indicator_widget.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Additional indicators showing pressure, QNH, and fuel information
 class AdditionalIndicators extends StatelessWidget {
@@ -95,12 +96,12 @@ class AdditionalIndicators extends StatelessWidget {
 
     ThemedDialog.show(
       context: context,
-      title: 'Set QNH',
+      title: AppLocalizations.of(context)!.setQnh,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Enter QNH value in ${settings.pressureUnit}',
+            AppLocalizations.of(context)!.enterQnhValue(settings.pressureUnit),
             style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 16),
@@ -109,7 +110,7 @@ class AdditionalIndicators extends StatelessWidget {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              labelText: 'QNH (${settings.pressureUnit})',
+              labelText: AppLocalizations.of(context)!.qnhUnitLabel(settings.pressureUnit),
               labelStyle: const TextStyle(color: Colors.white54),
               border: const OutlineInputBorder(),
               focusedBorder: const OutlineInputBorder(
@@ -126,7 +127,7 @@ class AdditionalIndicators extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         TextButton(
           onPressed: () {
@@ -143,7 +144,7 @@ class AdditionalIndicators extends StatelessWidget {
               }
             }
           },
-          child: const Text('Set'),
+          child: Text(AppLocalizations.of(context)!.set),
         ),
       ],
     );

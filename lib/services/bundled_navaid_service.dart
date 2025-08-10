@@ -24,9 +24,7 @@ class BundledNavaidService {
 
   /// Initialize the service and load bundled data
   Future<void> initialize() async {
-    developer.log('🔧 BundledNavaidService: Starting initialization...');
     await _cacheService.initialize();
-    developer.log('🔧 BundledNavaidService: Cache service initialized');
     
     // Try to load bundled data first
     await _loadBundledNavaids();
@@ -165,7 +163,6 @@ class BundledNavaidService {
   Future<void> clearCache() async {
     await _cacheService.clearNavaidsCache();
     _navaids.clear();
-    developer.log('🗑️ Navaid cache cleared');
   }
 
   /// Clean up resources

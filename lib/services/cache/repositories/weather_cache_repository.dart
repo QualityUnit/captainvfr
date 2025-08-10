@@ -32,8 +32,6 @@ class WeatherCacheRepository {
   /// Cache weather data in bulk
   Future<void> cacheWeatherBulk(Map<String, dynamic> weatherData) async {
     try {
-      developer.log('💾 Caching weather data for ${weatherData.length} airports...');
-
       // Clear existing weather data
       await _weatherBox.clear();
 
@@ -62,8 +60,6 @@ class WeatherCacheRepository {
         CacheConstants.weatherLastFetchKey,
         DateTime.now().toIso8601String(),
       );
-
-      developer.log('✅ Cached weather data successfully');
     } catch (e) {
       developer.log('❌ Error caching weather data: $e');
       rethrow;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/airport.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/frequency.dart';
 import '../common/loading_widget.dart';
 import '../common/error_widget.dart' as custom;
@@ -23,8 +24,10 @@ class AirportFrequenciesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (isLoading) {
-      return const LoadingWidget(message: 'Loading frequency data...');
+      return LoadingWidget(message: l10n.loadingFrequencyData);
     }
 
     if (error != null) {

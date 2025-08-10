@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import '../models/flight_plan.dart';
 import 'offline_map_service.dart';
 import '../screens/offline_data/controllers/offline_data_state_controller.dart';
+import '../l10n/app_localizations.dart';
 
 /// Service for downloading map tiles along flight plan routes
 class FlightPlanTileDownloadService {
@@ -56,25 +57,25 @@ class FlightPlanTileDownloadService {
       if (context.mounted) {
         final result = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Large Download Warning'),
+          builder: (context) {
+            final l10n = AppLocalizations.of(context)!;
+            return AlertDialog(
+            title: Text(l10n.largeDownloadWarning),
             content: Text(
-              'This flight plan requires downloading approximately $estimatedTiles map tiles, '
-              'which exceeds the recommended limit of $maxTilesPerDownload tiles. '
-              'This may take a long time and use significant storage space.\n\n'
-              'Do you want to continue?',
+              l10n.largeDownloadDescription(estimatedTiles),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Continue'),
+                child: Text(l10n.continueText),
               ),
             ],
-          ),
+          );
+          },
         );
         
         if (result != true) {
@@ -88,6 +89,7 @@ class FlightPlanTileDownloadService {
     
     // Show notification that download is starting
     if (context.mounted) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -102,7 +104,7 @@ class FlightPlanTileDownloadService {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text('Downloading $estimatedTiles map tiles for flight plan...'),
+                child: Text(l10n.downloadingMapTiles(estimatedTiles)),
               ),
             ],
           ),

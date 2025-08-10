@@ -81,7 +81,7 @@ class SegmentUtils {
       case 'cruise':
         return Colors.blue;
       default:
-        return Colors.grey;
+        return Colors.white;
     }
   }
 

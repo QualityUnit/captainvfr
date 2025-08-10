@@ -64,10 +64,10 @@ class BackgroundDataService extends ChangeNotifier {
 
     try {
       final tasks = [
-        _LoadTask('Loading airports...', 'airports', _loadAirports),
-        _LoadTask('Loading runways...', 'runways', _loadRunways),
-        _LoadTask('Loading navaids...', 'navaids', _loadNavaids),
-        _LoadTask('Loading frequencies...', 'frequencies', _loadFrequencies),
+        _LoadTask('loadingAirports', 'airports', _loadAirports),
+        _LoadTask('loadingRunways', 'runways', _loadRunways),
+        _LoadTask('loadingNavaids', 'navaids', _loadNavaids),
+        _LoadTask('loadingFrequencies', 'frequencies', _loadFrequencies),
       ];
 
       final totalTasks = tasks.length;
@@ -93,7 +93,7 @@ class BackgroundDataService extends ChangeNotifier {
         await Future.delayed(const Duration(milliseconds: 100));
       }
 
-      _currentTask = 'Data loading complete';
+      _currentTask = 'dataLoadingComplete';
       await Future.delayed(const Duration(seconds: 2));
     } finally {
       _isLoading = false;
@@ -126,20 +126,13 @@ class BackgroundDataService extends ChangeNotifier {
       // Only fetch from network if we have internet connection
       if (_connectivityService.hasInternetConnection) {
         await _airportService.fetchNearbyAirports();
-      } else {
-        developer.log('⚠️ No cached airports and no internet connection');
       }
     }
   }
 
   Future<void> _loadRunways() async {
-    developer.log('🛬 Loading runways from bundled data...');
-    
     // Initialize the runway service (loads bundled data)
     await _runwayService.initialize();
-    
-    final runwayCount = _runwayService.runways.length;
-    developer.log('✅ Loaded $runwayCount runways from bundled data');
   }
 
   Future<void> _loadNavaids() async {
@@ -148,26 +141,17 @@ class BackgroundDataService extends ChangeNotifier {
 
     if (cachedNavaids.isEmpty) {
       if (_connectivityService.hasInternetConnection) {
-        developer.log('📡 No cached navaids, fetching from API...');
         await _navaidService.fetchNavaids();
-      } else {
-        developer.log('⚠️ No cached navaids and no internet connection');
       }
     } else {
-      developer.log('✅ Loaded ${cachedNavaids.length} navaids from cache');
       // Initialize the service with cached data
       await _navaidService.initialize();
     }
   }
 
   Future<void> _loadFrequencies() async {
-    developer.log('📻 Loading frequencies from bundled data...');
-    
     // Initialize the bundled frequency service
     await _frequencyService.initialize();
-    
-    final frequencyCount = _frequencyService.frequencies.length;
-    developer.log('✅ Loaded $frequencyCount frequencies from bundled data');
   }
 }
 

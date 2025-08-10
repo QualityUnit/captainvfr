@@ -16,6 +16,7 @@ import 'airport_info_sheet/airport_notams_tab.dart';
 import 'airport_info_sheet/airport_data_fetcher.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_colors.dart';
+import '../l10n/app_localizations.dart';
 
 // Key for testing
 const Key kAirportInfoSheetKey = Key('airport_info_sheet');
@@ -254,6 +255,7 @@ class _AirportInfoSheetState extends State<AirportInfoSheet>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Container(
@@ -322,12 +324,12 @@ class _AirportInfoSheetState extends State<AirportInfoSheet>
               labelColor: AppColors.primaryTextColor,
               unselectedLabelColor: AppColors.secondaryTextColor,
               indicatorColor: AppColors.primaryAccent,
-              tabs: const [
-              Tab(text: 'Info', icon: Icon(Icons.info_outline)),
-              Tab(text: 'Weather', icon: Icon(Icons.cloud_outlined)),
-              Tab(text: 'Runways', icon: Icon(Icons.straighten)),
-              Tab(text: 'Frequencies', icon: Icon(Icons.radio)),
-              Tab(text: 'NOTAMs', icon: Icon(Icons.description)),
+              tabs: [
+              Tab(text: l10n.info, icon: const Icon(Icons.info_outline)),
+              Tab(text: l10n.weather, icon: const Icon(Icons.cloud_outlined)),
+              Tab(text: l10n.runways, icon: const Icon(Icons.straighten)),
+              Tab(text: l10n.frequencies, icon: const Icon(Icons.radio)),
+              Tab(text: l10n.notams, icon: const Icon(Icons.description)),
             ],
             ),
           ),

@@ -4,6 +4,7 @@ import '../../constants/app_colors.dart';
 import '../../services/weather_interpretation_service.dart';
 import '../common/loading_widget.dart';
 import '../common/error_widget.dart' as custom;
+import '../../l10n/app_localizations.dart';
 
 class AirportWeatherTab extends StatelessWidget {
   final Airport airport;
@@ -23,8 +24,9 @@ class AirportWeatherTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (isLoading) {
-      return const LoadingWidget(message: 'Loading weather data...');
+      return LoadingWidget(message: l10n.loadingWeatherData);
     }
 
     if (error != null) {
@@ -279,6 +281,7 @@ class AirportWeatherTab extends StatelessWidget {
   }
 
   Widget _buildNoDataSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Center(
@@ -287,14 +290,14 @@ class AirportWeatherTab extends StatelessWidget {
           Icon(Icons.cloud_off, size: 48, color: AppColors.secondaryTextColor),
           const SizedBox(height: 16),
           Text(
-            'No weather data available for ${airport.icao}',
+            l10n.noWeatherDataAvailable(airport.icao),
             style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.secondaryTextColor),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: onRetry,
-            child: const Text('Refresh Weather'),
+            child: Text(l10n.refreshWeather),
           ),
         ],
       ),

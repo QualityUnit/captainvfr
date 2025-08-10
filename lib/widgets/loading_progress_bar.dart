@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/background_data_service.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class LoadingProgressBar extends StatefulWidget {
   const LoadingProgressBar({super.key});
@@ -12,6 +13,24 @@ class LoadingProgressBar extends StatefulWidget {
 
 class _LoadingProgressBarState extends State<LoadingProgressBar> {
   bool _isDismissed = false;
+
+  String _getLocalizedTask(BuildContext context, String taskKey) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (taskKey) {
+      case 'loadingAirports':
+        return l10n.loadingAirports;
+      case 'loadingRunways':
+        return l10n.loadingRunways;
+      case 'loadingNavaids':
+        return l10n.loadingNavaids;
+      case 'loadingFrequencies':
+        return l10n.loadingFrequencies;
+      case 'dataLoadingComplete':
+        return l10n.dataLoadingComplete;
+      default:
+        return taskKey; // Fallback to key if not found
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +85,8 @@ class _LoadingProgressBarState extends State<LoadingProgressBar> {
                       children: [
                         Text(
                           dataService.isLoading
-                              ? dataService.currentTask
-                              : 'Some data may still be loading...',
+                              ? _getLocalizedTask(context, dataService.currentTask)
+                              : AppLocalizations.of(context)!.someDataStillLoading,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -99,9 +118,9 @@ class _LoadingProgressBarState extends State<LoadingProgressBar> {
                         // Dismiss by navigating to offline data settings
                         Navigator.pushNamed(context, '/offline_data');
                       },
-                      child: const Text(
-                        'Load Data',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.loadData,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

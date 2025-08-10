@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class CompassWidget extends StatelessWidget {
   final double heading;
@@ -21,6 +22,7 @@ class CompassWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -35,6 +37,7 @@ class CompassWidget extends StatelessWidget {
                 targetHeading: targetHeading,
                 primaryColor: primaryColor,
                 accentColor: accentColor,
+                directions: [l10n.north, l10n.east, l10n.south, l10n.west],
               ),
             ),
           ),
@@ -50,7 +53,7 @@ class CompassWidget extends StatelessWidget {
         ),
         if (targetHeading != null)
           Text(
-            'Target: ${targetHeading!.toStringAsFixed(0)}°',
+            l10n.targetHeading(targetHeading!.toStringAsFixed(0)),
             style: TextStyle(color: accentColor, fontSize: 11),
           ),
       ],
@@ -63,12 +66,14 @@ class CompassPainter extends CustomPainter {
   final double? targetHeading;
   final Color primaryColor;
   final Color accentColor;
+  final List<String> directions;
 
   CompassPainter({
     required this.heading,
     this.targetHeading,
     required this.primaryColor,
     required this.accentColor,
+    required this.directions,
   });
 
   @override
@@ -118,7 +123,7 @@ class CompassPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
 
-    final directions = ['N', 'E', 'S', 'W'];
+    // Use the passed directions
     final angles = [0, 90, 180, 270];
 
     for (int i = 0; i < directions.length; i++) {

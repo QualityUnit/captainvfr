@@ -25,9 +25,10 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n?.settings ?? 'Settings'),
         backgroundColor: const Color(0xE6000000),
       ),
       backgroundColor: Colors.black87,
@@ -56,21 +57,21 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildSection(
-                title: 'Map Settings',
+                title: l10n?.mapSettings ?? 'Map Settings',
                 children: [
                   _buildDropdownTile<MapRotationMode>(
-                    title: 'Map Rotation Mode',
-                    subtitle: 'How map and aircraft marker should rotate',
+                    title: l10n?.mapRotationMode ?? 'Map Rotation Mode',
+                    subtitle: l10n?.mapRotationDescription ?? 'How map and aircraft marker should rotate',
                     value: settings.mapRotationMode,
-                    items: const {
-                      MapRotationMode.none: 'No Rotation',
-                      MapRotationMode.mapRotates: 'Map Rotates',
-                      MapRotationMode.aircraftRotates: 'Aircraft Rotates',
+                    items: {
+                      MapRotationMode.none: l10n?.noRotation ?? 'No Rotation',
+                      MapRotationMode.mapRotates: l10n?.mapRotates ?? 'Map Rotates',
+                      MapRotationMode.aircraftRotates: l10n?.aircraftRotates ?? 'Aircraft Rotates',
                     },
-                    descriptions: const {
-                      MapRotationMode.none: 'Map fixed north-up, aircraft marker fixed',
-                      MapRotationMode.mapRotates: 'Map rotates with heading, aircraft points north',
-                      MapRotationMode.aircraftRotates: 'Map fixed north-up, aircraft rotates with heading',
+                    descriptions: {
+                      MapRotationMode.none: l10n?.noRotationDescription ?? 'Map fixed north-up, aircraft marker fixed',
+                      MapRotationMode.mapRotates: l10n?.mapRotatesDescription ?? 'Map rotates with heading, aircraft points north',
+                      MapRotationMode.aircraftRotates: l10n?.aircraftRotatesDescription ?? 'Map fixed north-up, aircraft rotates with heading',
                     },
                     onChanged: (value) => settings.setMapRotationMode(value!),
                   ),
@@ -78,18 +79,18 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildSection(
-                title: 'Flight Tracking',
+                title: l10n?.flightTracking ?? 'Flight Tracking',
                 children: [
                   _buildSwitchTile(
-                    title: 'High Precision Mode',
-                    subtitle: 'Use high accuracy GPS (uses more battery)',
+                    title: l10n?.highPrecisionMode ?? 'High Precision Mode',
+                    subtitle: l10n?.highPrecisionDescription ?? 'Use high accuracy GPS (uses more battery)',
                     value: settings.highPrecisionTracking,
                     onChanged: (value) =>
                         settings.setHighPrecisionTracking(value),
                   ),
                   _buildSwitchTile(
-                    title: 'Auto-create Logbook Entry',
-                    subtitle: 'Automatically create logbook entry after flight',
+                    title: l10n?.autoCreateLogbookEntry ?? 'Auto-create Logbook Entry',
+                    subtitle: l10n?.autoCreateLogbookDescription ?? 'Automatically create logbook entry after flight',
                     value: settings.autoCreateLogbookEntry,
                     onChanged: (value) =>
                         settings.setAutoCreateLogbookEntry(value),
@@ -98,46 +99,46 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildSection(
-                title: 'Unit Settings',
+                title: l10n?.unitSettings ?? 'Unit Settings',
                 children: [
                   // Legacy unit selector for quick presets
                   ListTile(
-                    title: const Text(
-                      'Quick Presets',
-                      style: TextStyle(color: Colors.white),
+                    title: Text(
+                      l10n?.quickPresets ?? 'Quick Presets',
+                      style: const TextStyle(color: Colors.white),
                     ),
                     subtitle: Text(
-                      'Apply common unit combinations',
-                      style: TextStyle(color: Colors.white70),
+                      l10n?.applyCommonUnitCombinations ?? 'Apply common unit combinations',
+                      style: const TextStyle(color: Colors.white70),
                     ),
                     trailing: DropdownButton<String>(
                       value: settings.units,
                       dropdownColor: const Color(0xE6000000),
                       style: const TextStyle(color: Colors.white),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'european_aviation',
-                          child: Text('European Aviation'),
+                          child: Text(l10n?.europeanAviation ?? 'European Aviation'),
                         ),
                         DropdownMenuItem(
                           value: 'us_general_aviation',
-                          child: Text('US General Aviation'),
+                          child: Text(l10n?.usGeneralAviation ?? 'US General Aviation'),
                         ),
                         DropdownMenuItem(
                           value: 'metric_preference',
-                          child: Text('Metric Preference'),
+                          child: Text(l10n?.metricPreference ?? 'Metric Preference'),
                         ),
                         DropdownMenuItem(
                           value: 'mixed_international',
-                          child: Text('Mixed International'),
+                          child: Text(l10n?.mixedInternational ?? 'Mixed International'),
                         ),
                         DropdownMenuItem(
                           value: 'metric',
-                          child: Text('Legacy Metric'),
+                          child: Text(l10n?.legacyMetric ?? 'Legacy Metric'),
                         ),
                         DropdownMenuItem(
                           value: 'imperial',
-                          child: Text('Legacy Imperial'),
+                          child: Text(l10n?.legacyImperial ?? 'Legacy Imperial'),
                         ),
                       ],
                       onChanged: (value) async {
@@ -151,59 +152,59 @@ class SettingsScreen extends StatelessWidget {
                   
                   // Individual unit controls
                   _buildUnitDropdown(
-                    'Altitude',
+                    l10n?.altitude ?? 'Altitude',
                     settings.altitudeUnit,
                     const ['ft', 'm'],
-                    const ['Feet', 'Meters'],
+                    [l10n?.feet ?? 'Feet', l10n?.meters ?? 'Meters'],
                     settings.setAltitudeUnit,
                   ),
                   _buildUnitDropdown(
-                    'Distance',
+                    l10n?.distance ?? 'Distance',
                     settings.distanceUnit,
                     const ['nm', 'km', 'mi'],
-                    const ['Nautical Miles', 'Kilometers', 'Statute Miles'],
+                    [l10n?.nauticalMiles ?? 'Nautical Miles', l10n?.kilometers ?? 'Kilometers', l10n?.statuteMiles ?? 'Statute Miles'],
                     settings.setDistanceUnit,
                   ),
                   _buildUnitDropdown(
-                    'Airspeed',
+                    l10n?.airspeed ?? 'Airspeed',
                     settings.speedUnit,
                     const ['kt', 'mph', 'km/h'],
-                    const ['Knots', 'Miles per Hour', 'Kilometers per Hour'],
+                    [l10n?.knots ?? 'Knots', l10n?.milesPerHour ?? 'Miles per Hour', l10n?.kilometersPerHour ?? 'Kilometers per Hour'],
                     settings.setSpeedUnit,
                   ),
                   _buildUnitDropdown(
-                    'Wind Speed',
+                    l10n?.windSpeed ?? 'Wind Speed',
                     settings.windUnit,
                     const ['kt', 'mph', 'km/h'],
-                    const ['Knots', 'Miles per Hour', 'Kilometers per Hour'],
+                    [l10n?.knots ?? 'Knots', l10n?.milesPerHour ?? 'Miles per Hour', l10n?.kilometersPerHour ?? 'Kilometers per Hour'],
                     settings.setWindUnit,
                   ),
                   _buildUnitDropdown(
-                    'Temperature',
+                    l10n?.temperature ?? 'Temperature',
                     settings.temperatureUnit,
                     const ['C', 'F'],
-                    const ['Celsius', 'Fahrenheit'],
+                    [l10n?.celsius ?? 'Celsius', l10n?.fahrenheit ?? 'Fahrenheit'],
                     settings.setTemperatureUnit,
                   ),
                   _buildUnitDropdown(
-                    'Weight',
+                    l10n?.weight ?? 'Weight',
                     settings.weightUnit,
                     const ['lbs', 'kg'],
-                    const ['Pounds', 'Kilograms'],
+                    [l10n?.pounds ?? 'Pounds', l10n?.kilograms ?? 'Kilograms'],
                     settings.setWeightUnit,
                   ),
                   _buildUnitDropdown(
-                    'Fuel',
+                    l10n?.fuel ?? 'Fuel',
                     settings.fuelUnit,
                     const ['gal', 'L'],
-                    const ['US Gallons', 'Liters'],
+                    [l10n?.usGallons ?? 'US Gallons', l10n?.liters ?? 'Liters'],
                     settings.setFuelUnit,
                   ),
                   _buildUnitDropdown(
-                    'Pressure',
+                    l10n?.pressure ?? 'Pressure',
                     settings.pressureUnit,
                     const ['inHg', 'hPa'],
-                    const ['Inches of Mercury', 'Hectopascals'],
+                    [l10n?.inchesOfMercury ?? 'Inches of Mercury', l10n?.hectopascals ?? 'Hectopascals'],
                     settings.setPressureUnit,
                   ),
                 ],
@@ -216,7 +217,7 @@ class SettingsScreen extends StatelessWidget {
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Reset to Defaults'),
+                  child: Text(l10n?.resetToDefaults ?? 'Reset to Defaults'),
                 ),
               ),
             ],
@@ -292,14 +293,14 @@ class SettingsScreen extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.grey[800],
+              color: const Color(0xFF424242),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFF448AFF), width: 1),
             ),
             child: DropdownButton<T>(
               value: value,
               onChanged: onChanged,
-              dropdownColor: Colors.grey[800],
+              dropdownColor: const Color(0xFF424242),
               style: const TextStyle(color: Colors.white),
               underline: Container(),
               isExpanded: true,
@@ -342,22 +343,23 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showResetDialog(BuildContext context, SettingsService settings) {
+    final l10n = AppLocalizations.of(context);
     ThemedDialog.showConfirmation(
       context: context,
-      title: 'Reset Settings',
+      title: l10n?.resetSettings ?? 'Reset Settings',
       message:
-          'Are you sure you want to reset all settings to their default values?',
-      confirmText: 'Reset',
-      cancelText: 'Cancel',
+          l10n?.confirmResetSettings ?? 'Are you sure you want to reset all settings to their default values?',
+      confirmText: l10n?.reset ?? 'Reset',
+      cancelText: l10n?.cancel ?? 'Cancel',
       destructive: true,
     ).then((confirmed) {
       if (confirmed == true) {
         settings.resetToDefaults();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Settings reset to defaults'),
-              backgroundColor: Color(0xE6000000),
+            SnackBar(
+              content: Text(l10n?.settingsResetToDefaults ?? 'Settings reset to defaults'),
+              backgroundColor: const Color(0xE6000000),
             ),
           );
         }
@@ -581,7 +583,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
       _stateController.setLoading(false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading cache stats: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)?.errorLoadingCacheStats(e.toString()) ?? 'Error loading cache stats: $e')),
         );
       }
     }
@@ -758,30 +760,30 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                               fontSize: 11,
                             ),
                             isDense: true,
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: 'european_aviation',
-                                child: Text('European Aviation'),
+                                child: Text(l10n?.europeanAviation ?? 'European Aviation'),
                               ),
                               DropdownMenuItem(
                                 value: 'us_general_aviation',
-                                child: Text('US General Aviation'),
+                                child: Text(l10n?.usGeneralAviation ?? 'US General Aviation'),
                               ),
                               DropdownMenuItem(
                                 value: 'metric_preference',
-                                child: Text('Metric Preference'),
+                                child: Text(l10n?.metricPreference ?? 'Metric Preference'),
                               ),
                               DropdownMenuItem(
                                 value: 'mixed_international',
-                                child: Text('Mixed International'),
+                                child: Text(l10n?.mixedInternational ?? 'Mixed International'),
                               ),
                               DropdownMenuItem(
                                 value: 'metric',
-                                child: Text('Legacy Metric'),
+                                child: Text(l10n?.legacyMetric ?? 'Legacy Metric'),
                               ),
                               DropdownMenuItem(
                                 value: 'imperial',
-                                child: Text('Legacy Imperial'),
+                                child: Text(l10n?.legacyImperial ?? 'Legacy Imperial'),
                               ),
                             ],
                             onChanged: (value) async {
@@ -837,9 +839,9 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Aviation Data Caches',
+                      AppLocalizations.of(context)?.aviationDataCaches ?? 'Aviation Data Caches',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -854,7 +856,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                       IconButton(
                         icon: const Icon(Icons.refresh, size: 20),
                         onPressed: _stateController.isRefreshing ? null : _refreshAllData,
-                        tooltip: 'Refresh all data',
+                        tooltip: AppLocalizations.of(context)?.refreshAllData ?? 'Refresh all data',
                         color: AppColors.primaryAccent,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(maxHeight: 32, maxWidth: 32),
@@ -862,7 +864,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                       IconButton(
                         icon: const Icon(Icons.delete_forever, size: 20),
                         onPressed: _clearAllCaches,
-                        tooltip: 'Clear all caches',
+                        tooltip: AppLocalizations.of(context)?.clearAllCaches ?? 'Clear all caches',
                         color: Colors.red,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(maxHeight: 32, maxWidth: 32),
@@ -943,8 +945,8 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
               const SizedBox(height: 16),
 
               // Offline Map Tiles Section
-              const Text(
-                'Offline Map Tiles',
+              Text(
+                AppLocalizations.of(context)?.offlineMapTiles ?? 'Offline Map Tiles',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -1099,19 +1101,19 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
     try {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 16),
-                Expanded(child: Text('Refreshing all aviation data...')),
+                const SizedBox(width: 16),
+                Expanded(child: Text(AppLocalizations.of(context)?.refreshingAllAviationData ?? 'Refreshing all aviation data...')),
               ],
             ),
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -1130,10 +1132,10 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('All data refreshed successfully'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)?.allDataRefreshedSuccessfully ?? 'All data refreshed successfully'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -1141,7 +1143,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error refreshing data: $e'),
+            content: Text(AppLocalizations.of(context)?.errorRefreshingData(e.toString()) ?? 'Error refreshing data: $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -1162,19 +1164,19 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
     try {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 16),
-                Expanded(child: Text('Refreshing weather data...')),
+                const SizedBox(width: 16),
+                Expanded(child: Text(AppLocalizations.of(context)?.refreshingWeatherData ?? 'Refreshing weather data...')),
               ],
             ),
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -1187,10 +1189,10 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Weather data refreshed successfully'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)?.weatherDataRefreshedSuccessfully ?? 'Weather data refreshed successfully'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -1198,7 +1200,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error refreshing weather data: $e'),
+            content: Text(AppLocalizations.of(context)?.errorRefreshingWeatherData(e.toString()) ?? 'Error refreshing weather data: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1252,17 +1254,19 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
         }
         await _loadAllCacheStats();
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('$cacheName cache cleared successfully'),
+              content: Text(l10n.clearedCache(cacheName)),
               backgroundColor: Colors.green,
             ),
           );
         }
       } catch (e) {
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error clearing $cacheName cache: $e')),
+            SnackBar(content: Text(l10n.errorClearingCache(cacheName, e.toString()))),
           );
         }
       }
@@ -1287,8 +1291,8 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
         await _loadAllCacheStats();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('All caches cleared successfully'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)?.allCachesClearedSuccessfully ?? 'All caches cleared successfully'),
               backgroundColor: Colors.green,
             ),
           );
@@ -1296,7 +1300,7 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error clearing caches: $e')),
+            SnackBar(content: Text(AppLocalizations.of(context)?.errorClearingCaches(e.toString()) ?? 'Error clearing caches: $e')),
           );
         }
       }
@@ -1307,10 +1311,10 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
     if (widget.currentMapBounds == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please open this screen from the map to download the current area'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)?.pleaseOpenFromMapToDownload ?? 'Please open this screen from the map to download the current area'),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
