@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 /// A custom dialog widget that matches the flight data panel style
 /// with dark background, rounded corners, and blue accent border
@@ -196,10 +197,11 @@ class ThemedDialog extends StatelessWidget {
     required BuildContext context,
     required String title,
     required String message,
-    String confirmText = 'Confirm',
-    String cancelText = 'Cancel',
+    String? confirmText,
+    String? cancelText,
     bool destructive = false,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return show<bool>(
       context: context,
       title: title,
@@ -207,7 +209,7 @@ class ThemedDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(cancelText),
+          child: Text(cancelText ?? l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
@@ -217,7 +219,7 @@ class ThemedDialog extends StatelessWidget {
                   foregroundColor: AppColors.primaryTextColor,
                 )
               : null,
-          child: Text(confirmText),
+          child: Text(confirmText ?? l10n.confirm),
         ),
       ],
     );

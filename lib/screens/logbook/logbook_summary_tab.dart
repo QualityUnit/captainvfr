@@ -5,6 +5,7 @@ import '../../services/pilot_service.dart';
 import '../../widgets/common/info_row.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class LogBookSummaryTab extends StatelessWidget {
   const LogBookSummaryTab({super.key});
@@ -23,6 +24,7 @@ class LogBookSummaryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final logBookService = context.watch<LogBookService>();
     final pilotService = context.watch<PilotService>();
     final currentPilot = pilotService.currentPilot;
@@ -44,7 +46,7 @@ class LogBookSummaryTab extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Current Pilot',
+                      l10n.currentPilot,
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.secondaryTextColor,
@@ -88,11 +90,11 @@ class LogBookSummaryTab extends StatelessWidget {
                   ),
                   Divider(color: AppColors.sectionBorderColor),
                   InfoRow(
-                    label: 'Single Engine',
+                    label: l10n.singleEngine,
                     value: logBookService.formatDuration(statistics.singleEngineDuration),
                   ),
                   InfoRow(
-                    label: 'Multi Engine',
+                    label: l10n.multiEngine,
                     value: logBookService.formatDuration(statistics.multiEngineDuration),
                   ),
                   Divider(color: AppColors.sectionBorderColor),
@@ -132,20 +134,20 @@ class LogBookSummaryTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   InfoRow(
-                    label: 'VFR',
+                    label: l10n.vfr,
                     value: logBookService.formatDuration(statistics.vfrDuration),
                   ),
                   InfoRow(
-                    label: 'IFR',
+                    label: l10n.ifr,
                     value: logBookService.formatDuration(statistics.ifrDuration),
                   ),
                   Divider(color: AppColors.sectionBorderColor),
                   InfoRow(
-                    label: 'Day',
+                    label: l10n.day,
                     value: logBookService.formatDuration(statistics.dayDuration),
                   ),
                   InfoRow(
-                    label: 'Night',
+                    label: l10n.night,
                     value: logBookService.formatDuration(statistics.nightDuration),
                   ),
                   Divider(color: AppColors.sectionBorderColor),
@@ -187,7 +189,7 @@ class LogBookSummaryTab extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Takeoffs',
+                              l10n.takeoffs,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -200,11 +202,11 @@ class LogBookSummaryTab extends StatelessWidget {
                               value: statistics.totalTakeoffs.toString(),
                             ),
                             InfoRow(
-                              label: 'Day',
+                              label: l10n.day,
                               value: statistics.dayTakeoffs.toString(),
                             ),
                             InfoRow(
-                              label: 'Night',
+                              label: l10n.night,
                               value: statistics.nightTakeoffs.toString(),
                             ),
                           ],
@@ -216,7 +218,7 @@ class LogBookSummaryTab extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Landings',
+                              l10n.landings,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -229,11 +231,11 @@ class LogBookSummaryTab extends StatelessWidget {
                               value: statistics.totalLandings.toString(),
                             ),
                             InfoRow(
-                              label: 'Day',
+                              label: l10n.day,
                               value: statistics.dayLandings.toString(),
                             ),
                             InfoRow(
-                              label: 'Night',
+                              label: l10n.night,
                               value: statistics.nightLandings.toString(),
                             ),
                           ],

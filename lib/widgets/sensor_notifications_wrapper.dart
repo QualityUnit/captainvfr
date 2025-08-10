@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/sensor_availability_service.dart';
 import 'sensor_notification_widget.dart';
 
 /// Wrapper widget that displays sensor availability notifications
-class SensorNotificationsWrapper extends StatelessWidget {
+class SensorNotificationsWrapper extends StatefulWidget {
   final Widget child;
 
   const SensorNotificationsWrapper({
@@ -13,10 +14,31 @@ class SensorNotificationsWrapper extends StatelessWidget {
   });
 
   @override
+  State<SensorNotificationsWrapper> createState() => _SensorNotificationsWrapperState();
+}
+
+class _SensorNotificationsWrapperState extends State<SensorNotificationsWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    // Schedule sensor check after widget is built and localization is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l10n = AppLocalizations.of(context);
+      if (l10n != null) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            context.read<SensorAvailabilityService>().checkSensorAvailability(l10n);
+          }
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        child,
+        widget.child,
         Positioned(
           bottom: 0,
           left: 0,

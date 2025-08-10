@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../services/aircraft_settings_service.dart';
 import '../../../services/flight_service.dart';
 import '../../themed_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Compact aircraft selector widget for the flight dashboard
 class AircraftSelector extends StatelessWidget {
@@ -46,7 +47,7 @@ class AircraftSelector extends StatelessWidget {
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
-                    selectedAircraft?.name ?? 'Select',
+                    selectedAircraft?.name ?? AppLocalizations.of(context)!.selectAircraftHint,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -75,13 +76,13 @@ class AircraftSelector extends StatelessWidget {
   ) {
     ThemedDialog.show(
       context: context,
-      title: 'Select Aircraft',
+      title: AppLocalizations.of(context)!.selectAircraft,
       content: SizedBox(
         width: double.maxFinite,
         child: aircraftService.aircrafts.isEmpty
-            ? const Text(
-                'No aircraft available. Please add an aircraft first.',
-                style: TextStyle(color: Colors.white70),
+            ? Text(
+                AppLocalizations.of(context)!.noAircraftAvailable,
+                style: const TextStyle(color: Colors.white70),
               )
             : ListView.builder(
                 shrinkWrap: true,
@@ -147,7 +148,7 @@ class AircraftSelector extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
       ],
     );

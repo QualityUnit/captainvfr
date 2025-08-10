@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -37,6 +38,7 @@ class _LoadingScreenState extends State<LoadingScreen>
     // Add debug print to verify LoadingScreen is being built
     debugPrint('🏗️ Building LoadingScreen...');
     
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
@@ -54,7 +56,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                    color: isDarkMode ? const Color(0xFF424242) : const Color(0xFFF5F5F5),
                     borderRadius: AppTheme.extraLargeRadius,
                     boxShadow: [
                       BoxShadow(
@@ -94,9 +96,9 @@ class _LoadingScreenState extends State<LoadingScreen>
             const SizedBox(height: 20),
             // Loading text
             Text(
-              'Initializing flight systems...',
+              l10n.initializingFlightSystems,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                color: isDarkMode ? const Color(0x66FFFFFF) : const Color(0x99FFFFFF),
               ),
             ),
             const SizedBox(height: 40),
@@ -116,9 +118,9 @@ class _LoadingScreenState extends State<LoadingScreen>
             const SizedBox(height: 80),
             // Aviation-themed tagline
             Text(
-              'Your digital co-pilot for VFR flights',
+              l10n.appTagline,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: isDarkMode ? Colors.grey[500] : Colors.grey[700],
+                color: isDarkMode ? const Color(0x80FFFFFF) : const Color(0xB3FFFFFF),
                 fontStyle: FontStyle.italic,
               ),
             ),

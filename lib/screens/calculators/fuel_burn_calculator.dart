@@ -4,6 +4,7 @@ import '../../services/settings_service.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_theme.dart';
 import '../../utils/form_theme_helper.dart';
+import '../../l10n/app_localizations.dart';
 
 class FuelBurnCalculator extends StatefulWidget {
   const FuelBurnCalculator({super.key});
@@ -91,14 +92,15 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
     final isImperial = settingsService.units == 'imperial';
     final fuelUnit = isImperial ? 'gal' : 'L';
     final flowUnit = isImperial ? 'gal/hr' : 'L/hr';
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.dialogBackgroundColor,
-        title: const Text(
-          'Fuel Burn Calculator',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.fuelBurnCalc,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryTextColor),
@@ -111,12 +113,12 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FormThemeHelper.buildSection(
-              title: 'Flight Parameters',
+              title: l10n.flightParameters,
               children: [
                 FormThemeHelper.buildFormField(
                   controller: _fuelFlowController,
-                  labelText: 'Fuel Flow Rate ($flowUnit)',
-                  hintText: 'Average cruise fuel consumption',
+                  labelText: '${l10n.fuelFlowRate} ($flowUnit)',
+                  hintText: l10n.averageCruiseFuelConsumption,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -127,7 +129,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                         Expanded(
                           child: FormThemeHelper.buildFormField(
                             controller: _flightTimeHoursController,
-                            labelText: 'Flight Time (Hours)',
+                            labelText: l10n.flightTimeHours,
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: false,
                             ),
@@ -137,7 +139,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                         Expanded(
                           child: FormThemeHelper.buildFormField(
                             controller: _flightTimeMinutesController,
-                            labelText: 'Minutes',
+                            labelText: l10n.minutes,
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: false,
                             ),
@@ -148,7 +150,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                     const SizedBox(height: 16),
                     FormThemeHelper.buildFormField(
                       controller: _reserveTimeController,
-                      labelText: 'Reserve Time (Minutes)',
+                      labelText: l10n.reserveTimeMinutes,
                       hintText: 'FAA minimum: 30 min VFR, 45 min IFR',
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: false,
@@ -157,8 +159,8 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                     const SizedBox(height: 16),
                     FormThemeHelper.buildFormField(
                       controller: _totalFuelController,
-                      labelText: 'Available Fuel ($fuelUnit) - Optional',
-                      hintText: 'Total usable fuel on board',
+                      labelText: '${l10n.availableFuel} ($fuelUnit) - Optional',
+                      hintText: l10n.totalUsableFuelOnBoard,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -171,7 +173,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Calculate', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.calculate, style: const TextStyle(fontSize: 16)),
             ),
             if (_fuelRequired != null) ...[
               const SizedBox(height: 24),
@@ -192,7 +194,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                   child: Column(
                     children: [
                       Text(
-                        'Fuel Requirements',
+                        l10n.results,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor).copyWith(
                           color: AppColors.primaryTextColor,
                         ),
@@ -205,7 +207,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                             children: [
                               const Icon(Icons.flight, size: 32),
                               const SizedBox(height: 4),
-                              const Text('Flight Fuel'),
+                              Text(l10n.flightFuel),
                               Text(
                                 '${_fuelRequired!.toStringAsFixed(1)} $fuelUnit',
                                 style: const TextStyle(
@@ -219,7 +221,7 @@ class _FuelBurnCalculatorState extends State<FuelBurnCalculator> {
                             children: [
                               const Icon(Icons.security, size: 32),
                               const SizedBox(height: 4),
-                              const Text('Reserve Fuel'),
+                              Text(l10n.reserveFuel),
                               Text(
                                 '${_reserveFuel!.toStringAsFixed(1)} $fuelUnit',
                                 style: const TextStyle(

@@ -9,6 +9,7 @@ import '../../../services/flight_plan_service.dart';
 import '../../../widgets/compass_widget.dart';
 import '../models/flight_icons.dart';
 import 'indicator_widget.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Main indicators section showing altitude, speed and compass
 class MainIndicators extends StatelessWidget {
@@ -85,11 +86,12 @@ class MainIndicators extends StatelessWidget {
                   onTap: () async {
                     await headingService.requestCalibration();
                     if (context.mounted) {
+                      final l10n = AppLocalizations.of(context)!;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Compass calibration requested'),
-                          duration: Duration(seconds: 2),
-                          backgroundColor: Color(0xE6000000),
+                        SnackBar(
+                          content: Text(l10n.compassCalibrationRequested),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: const Color(0xE6000000),
                         ),
                       );
                     }

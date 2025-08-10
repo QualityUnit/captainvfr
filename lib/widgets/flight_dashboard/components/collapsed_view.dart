@@ -137,7 +137,7 @@ class CollapsedView extends StatelessWidget {
                         Icons.navigation,
                         color: headingService.currentHeading != null 
                             ? Colors.blueAccent 
-                            : Colors.grey,
+                            : Colors.white,
                         size: iconSize,
                       ),
                       SizedBox(width: spacing),
@@ -162,7 +162,7 @@ class CollapsedView extends StatelessWidget {
                             style: TextStyle(
                               color: headingService.currentHeading != null 
                                   ? Colors.white 
-                                  : headingService.hasError ? Colors.orange : Colors.grey,
+                                  : headingService.hasError ? Colors.orange : Colors.white,
                               fontSize: fontSize,
                               fontWeight: FontWeight.bold,
                             ),

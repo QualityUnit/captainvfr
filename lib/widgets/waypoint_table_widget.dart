@@ -7,6 +7,7 @@ import '../services/flight_plan_service.dart';
 import '../services/settings_service.dart';
 import 'waypoint_editor_dialog.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class WaypointTableWidget extends StatefulWidget {
   final FlightPlan? flightPlan;
@@ -216,6 +217,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final waypoints = widget.flightPlan?.waypoints ?? [];
     final cruiseSpeed =
         widget.flightPlan?.cruiseSpeed ??
@@ -268,7 +270,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Waypoints (${waypoints.length})',
+                        l10n.waypointsCount(waypoints.length),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -279,7 +281,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                       if (waypoints.isNotEmpty && cruiseSpeed != null)
                         Expanded(
                           child: Text(
-                            'Total: ${_formatDistance(widget.flightPlan!.totalDistance, isMetric)} ${_getDistanceUnit(isMetric)}, '
+                            '${l10n.total}: ${_formatDistance(widget.flightPlan!.totalDistance, isMetric)} ${_getDistanceUnit(isMetric)}, '
                             '${_formatTime(widget.flightPlan!.totalFlightTime)}',
                             style: const TextStyle(
                               color: Colors.white70,
@@ -307,7 +309,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                                       ),
                                       onPressed: () => flightPlanService
                                           .removeLastWaypoint(),
-                                      tooltip: 'Remove last waypoint',
+                                      tooltip: l10n.removeLastWaypoint,
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(
                                         minWidth: 32,
@@ -338,7 +340,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                       ? Padding(
                           padding: const EdgeInsets.all(32),
                           child: Text(
-                            'No waypoints added yet',
+                            l10n.noWaypointsAdded,
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
@@ -506,7 +508,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                                                                     ),
                                                                 decoration: InputDecoration(
                                                                   hintText:
-                                                                      'WP${index + 1}',
+                                                                      l10n.defaultWaypointName(index + 1),
                                                                   hintStyle:
                                                                       const TextStyle(
                                                                         color: Colors
@@ -552,7 +554,7 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                                                                     vertical: 8,  // Increased from 2 for better touch target
                                                                   ),
                                                                   child: Text(
-                                                                    waypoint.name ?? 'WP${index + 1}',
+                                                                    waypoint.name ?? l10n.defaultWaypointName(index + 1),
                                                                     style: const TextStyle(
                                                                       color: Colors.white,
                                                                       fontSize: 12,

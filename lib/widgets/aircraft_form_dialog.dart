@@ -6,6 +6,7 @@ import '../models/manufacturer.dart';
 import '../models/model.dart';
 import '../constants/app_colors.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class AircraftFormDialog extends StatefulWidget {
   final Aircraft? aircraft;
@@ -211,11 +212,12 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<AircraftSettingsService>(
       builder: (context, service, child) {
         return FormThemeHelper.buildDialog(
           context: context,
-          title: widget.aircraft == null ? 'Add Aircraft' : 'Edit Aircraft',
+          title: widget.aircraft == null ? l10n.addAircraft : l10n.editAircraft,
           width: MediaQuery.of(context).size.width * 0.9,
           height: MediaQuery.of(context).size.height * 0.8,
           content: SingleChildScrollView(
@@ -233,17 +235,17 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Basic Information',
+                            l10n.basicInformation,
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor),
                           ),
                           const SizedBox(height: 16),
                           FormThemeHelper.buildFormField(
                             controller: _nameController,
-                            labelText: 'Aircraft Name *',
-                            hintText: 'e.g., My Cessna 172',
+                            labelText: '${l10n.aircraftName} *',
+                            hintText: l10n.egMyCessna172,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Please enter an aircraft name';
+                                return l10n.pleaseEnterAircraftName;
                               }
                               return null;
                             },
@@ -251,14 +253,14 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           const SizedBox(height: 16),
                           FormThemeHelper.buildFormField(
                             controller: _registrationController,
-                            labelText: 'Registration',
-                            hintText: 'e.g., N123AB',
+                            labelText: l10n.registration,
+                            hintText: l10n.egN123AB,
                           ),
                           const SizedBox(height: 16),
                           // Manufacturer Selection
                           FormThemeHelper.buildDropdownField<Manufacturer>(
                             value: _selectedManufacturer,
-                            labelText: 'Manufacturer *',
+                            labelText: '${l10n.manufacturer} *',
                             items: service.manufacturers.map((manufacturer) {
                               return DropdownMenuItem(
                                 value: manufacturer,
@@ -273,7 +275,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                             },
                             validator: (value) {
                               if (value == null) {
-                                return 'Please select a manufacturer';
+                                return l10n.pleaseSelectManufacturer;
                               }
                               return null;
                             },
@@ -282,7 +284,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           // Model Selection
                           FormThemeHelper.buildDropdownField<Model>(
                             value: _selectedModel,
-                            labelText: 'Model *',
+                            labelText: '${l10n.model} *',
                             items: _selectedManufacturer?.models.map((modelId) {
                               final model = Provider.of<AircraftSettingsService>(
                                 context,
@@ -303,7 +305,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                             },
                             validator: (value) {
                               if (value == null) {
-                                return 'Please select a model';
+                                return l10n.pleaseSelectModel;
                               }
                               return null;
                             },
@@ -314,7 +316,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                   ),
                   const SizedBox(height: 16),
                   FormThemeHelper.buildSection(
-                    title: 'Performance Specifications',
+                    title: l10n.performanceSpecifications,
                     children: [
 
                       Row(
@@ -322,15 +324,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _cruiseSpeedController,
-                              labelText: 'Cruise Speed (kts) *',
+                              labelText: '${l10n.cruiseSpeedKts} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final speed = int.tryParse(value);
                                 if (speed == null || speed <= 0) {
-                                  return 'Invalid speed';
+                                  return l10n.invalidSpeed;
                                 }
                                 return null;
                               },
@@ -340,15 +342,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _fuelConsumptionController,
-                              labelText: 'Fuel Consumption (GPH) *',
+                              labelText: '${l10n.fuelConsumptionGph} *',
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final consumption = double.tryParse(value);
                                 if (consumption == null || consumption <= 0) {
-                                  return 'Invalid consumption';
+                                  return l10n.invalidConsumption;
                                 }
                                 return null;
                               },
@@ -362,15 +364,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _maxAltitudeController,
-                              labelText: 'Max Altitude (ft) *',
+                              labelText: '${l10n.maxAltitudeFt} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final altitude = int.tryParse(value);
                                 if (altitude == null || altitude <= 0) {
-                                  return 'Invalid altitude';
+                                  return l10n.invalidAltitude;
                                 }
                                 return null;
                               },
@@ -380,15 +382,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _fuelCapacityController,
-                              labelText: 'Fuel Capacity (gal) *',
+                              labelText: '${l10n.fuelCapacityGal} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final capacity = int.tryParse(value);
                                 if (capacity == null || capacity <= 0) {
-                                  return 'Invalid capacity';
+                                  return l10n.invalidCapacity;
                                 }
                                 return null;
                               },
@@ -402,15 +404,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _maxClimbRateController,
-                              labelText: 'Max Climb Rate (fpm) *',
+                              labelText: '${l10n.maxClimbRateFpm} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final rate = int.tryParse(value);
                                 if (rate == null || rate <= 0) {
-                                  return 'Invalid rate';
+                                  return l10n.invalidRate;
                                 }
                                 return null;
                               },
@@ -420,15 +422,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _maxDescentRateController,
-                              labelText: 'Max Descent Rate (fpm) *',
+                              labelText: '${l10n.maxDescentRateFpm} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final rate = int.tryParse(value);
                                 if (rate == null || rate <= 0) {
-                                  return 'Invalid rate';
+                                  return l10n.invalidRate;
                                 }
                                 return null;
                               },
@@ -442,15 +444,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _maxTakeoffWeightController,
-                              labelText: 'Max Takeoff Weight (lbs) *',
+                              labelText: '${l10n.maxTakeoffWeightLbs} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final weight = int.tryParse(value);
                                 if (weight == null || weight <= 0) {
-                                  return 'Invalid weight';
+                                  return l10n.invalidWeight;
                                 }
                                 return null;
                               },
@@ -460,15 +462,15 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _maxLandingWeightController,
-                              labelText: 'Max Landing Weight (lbs) *',
+                              labelText: '${l10n.maxLandingWeightLbs} *',
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Required';
+                                  return l10n.required;
                                 }
                                 final weight = int.tryParse(value);
                                 if (weight == null || weight <= 0) {
-                                  return 'Invalid weight';
+                                  return l10n.invalidWeight;
                                 }
                                 return null;
                               },
@@ -480,7 +482,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                   ),
                   const SizedBox(height: 16),
                   FormThemeHelper.buildSection(
-                    title: 'Takeoff & Landing Performance',
+                    title: l10n.takeoffLandingPerformance,
                     children: [
 
                       Row(
@@ -488,7 +490,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _takeoffGroundRoll50ftController,
-                              labelText: 'Takeoff Ground Roll (ft)',
+                              labelText: l10n.takeoffGroundRollFt,
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -496,7 +498,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _takeoffOver50ftController,
-                              labelText: 'Takeoff Over 50ft (ft)',
+                              labelText: l10n.takeoffOver50ftFt,
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -508,7 +510,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _landingGroundRoll50ftController,
-                              labelText: 'Landing Ground Roll (ft)',
+                              labelText: l10n.landingGroundRollFt,
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -516,7 +518,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _landingOver50ftController,
-                              labelText: 'Landing Over 50ft (ft)',
+                              labelText: l10n.landingOver50ftFt,
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -526,7 +528,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                   ),
                   const SizedBox(height: 16),
                   FormThemeHelper.buildSection(
-                    title: 'V-Speeds',
+                    title: l10n.vSpeeds,
                     children: [
 
                       Row(
@@ -534,7 +536,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _stallSpeedCleanController,
-                              labelText: 'Vs1 (Clean) (kts)',
+                              labelText: l10n.vs1CleanKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -542,7 +544,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _stallSpeedLandingController,
-                              labelText: 'Vs0 (Landing) (kts)',
+                              labelText: l10n.vs0LandingKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -554,7 +556,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _vxController,
-                              labelText: 'Vx (Best Angle) (kts)',
+                              labelText: l10n.vxBestAngleKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -562,7 +564,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _vyController,
-                              labelText: 'Vy (Best Rate) (kts)',
+                              labelText: l10n.vyBestRateKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -574,7 +576,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _vaController,
-                              labelText: 'Va (Maneuvering) (kts)',
+                              labelText: l10n.vaManeuveringKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -582,7 +584,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _vnoController,
-                              labelText: 'Vno (Max Structural) (kts)',
+                              labelText: l10n.vnoMaxStructuralKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -591,14 +593,14 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                       const SizedBox(height: 16),
                       FormThemeHelper.buildFormField(
                         controller: _vneController,
-                        labelText: 'Vne (Never Exceed) (kts)',
+                        labelText: l10n.vneNeverExceedKts,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   FormThemeHelper.buildSection(
-                    title: 'Additional Performance Data',
+                    title: l10n.additionalPerformanceData,
                     children: [
 
                       Row(
@@ -606,7 +608,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _serviceAboveCeilingController,
-                              labelText: 'Service Ceiling (ft)',
+                              labelText: l10n.serviceCeilingFt,
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -614,7 +616,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _bestGlideSpeedController,
-                              labelText: 'Best Glide Speed (kts)',
+                              labelText: l10n.bestGlideSpeedKts,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -626,7 +628,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _bestGlideRatioController,
-                              labelText: 'Best Glide Ratio',
+                              labelText: l10n.bestGlideRatio,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
@@ -634,7 +636,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                           Expanded(
                             child: FormThemeHelper.buildFormField(
                               controller: _emptyWeightController,
-                              labelText: 'Empty Weight (lbs)',
+                              labelText: l10n.emptyWeightLbs,
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -643,7 +645,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                       const SizedBox(height: 16),
                       FormThemeHelper.buildFormField(
                         controller: _emptyWeightCGController,
-                        labelText: 'Empty Weight CG (inches from datum)',
+                        labelText: l10n.emptyWeightCg,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       ),
                     ],
@@ -656,7 +658,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
             TextButton(
               onPressed: _isLoading ? null : () => Navigator.pop(context),
               style: FormThemeHelper.getSecondaryButtonStyle(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: _isLoading ? null : _saveAircraft,
@@ -667,7 +669,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(widget.aircraft == null ? 'Add' : 'Save'),
+                  : Text(widget.aircraft == null ? l10n.add : l10n.save),
             ),
           ],
         );
@@ -682,6 +684,8 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
     setState(() {
       _isLoading = true;
     });
+
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final service = Provider.of<AircraftSettingsService>(
@@ -775,8 +779,8 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
           SnackBar(
             content: Text(
               widget.aircraft == null
-                  ? 'Aircraft "${aircraft.name}" added successfully'
-                  : 'Aircraft "${aircraft.name}" updated successfully',
+                  ? l10n.aircraftAddedSuccessfully(aircraft.name)
+                  : l10n.aircraftUpdatedSuccessfully(aircraft.name),
             ),
           ),
         );
@@ -785,7 +789,7 @@ class _AircraftFormDialogState extends State<AircraftFormDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving aircraft: $e'),
+            content: Text(l10n.errorSavingAircraft(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

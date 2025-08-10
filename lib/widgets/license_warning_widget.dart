@@ -4,6 +4,7 @@ import '../models/license.dart';
 import '../services/license_service.dart';
 import '../screens/licenses_screen.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class LicenseWarningWidget extends StatefulWidget {
   const LicenseWarningWidget({super.key});
@@ -18,6 +19,7 @@ class _LicenseWarningWidgetState extends State<LicenseWarningWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<LicenseService>(
       builder: (context, licenseService, child) {
         final licensesNeedingAttention =
@@ -85,7 +87,7 @@ class _LicenseWarningWidgetState extends State<LicenseWarningWidget> {
                                 ),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey.shade700,
+                                  color: const Color(0xB3FFFFFF),
                                 ),
                               ),
                           ],
@@ -98,11 +100,11 @@ class _LicenseWarningWidgetState extends State<LicenseWarningWidget> {
                             icon: const Icon(Icons.close, size: 20),
                             onPressed: () =>
                                 setState(() => _isDismissed = true),
-                            tooltip: 'Dismiss',
+                            tooltip: AppLocalizations.of(context)!.dismiss,
                           ),
                           Icon(
                             _isExpanded ? Icons.expand_less : Icons.expand_more,
-                            color: Colors.grey,
+                            color: Colors.white,
                           ),
                         ],
                       ),
@@ -137,7 +139,7 @@ class _LicenseWarningWidgetState extends State<LicenseWarningWidget> {
                     child: ElevatedButton.icon(
                       onPressed: () => _navigateToLicenses(context),
                       icon: const Icon(Icons.card_membership),
-                      label: const Text('Manage Licenses'),
+                      label: Text(l10n.manageLicenses),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: expiredCount > 0
                             ? Colors.red
@@ -195,8 +197,9 @@ class _LicenseWarningWidgetState extends State<LicenseWarningWidget> {
   }
 
   String _getWarningTitle(int expiredCount, int expiringCount) {
+    final l10n = AppLocalizations.of(context)!;
     if (expiredCount > 0 && expiringCount > 0) {
-      return 'License Attention Required';
+      return l10n.licenseAttentionRequired;
     } else if (expiredCount > 0) {
       return expiredCount == 1
           ? 'License Expired'
@@ -209,10 +212,11 @@ class _LicenseWarningWidgetState extends State<LicenseWarningWidget> {
   }
 
   String _getWarningSubtitle(int expiredCount, int expiringCount) {
+    final l10n = AppLocalizations.of(context)!;
     if (expiredCount > 0 && expiringCount > 0) {
       return '$expiredCount expired, $expiringCount expiring soon';
     } else if (expiredCount > 0) {
-      return 'Immediate attention required';
+      return l10n.immediateAttentionRequired;
     } else {
       return 'Within 30 days';
     }

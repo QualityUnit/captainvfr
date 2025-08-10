@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../utils/form_theme_helper.dart';
 import '../controllers/offline_data_state_controller.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Download map tiles section widget
 class DownloadMapTilesSection extends StatelessWidget {
@@ -18,22 +19,23 @@ class DownloadMapTilesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FormThemeHelper.buildSection(
-      title: 'Download Map Tiles',
+      title: l10n.downloadMapTiles,
       children: [
         Text(
-          'Download map tiles for offline use',
+          l10n.downloadMapTilesDescription,
           style: TextStyle(color: AppColors.secondaryTextColor),
         ),
         const SizedBox(height: 16),
         CheckboxListTile(
-          title: const Text(
-            'Flight plan - download map tiles',
-            style: TextStyle(color: AppColors.primaryTextColor),
+          title: Text(
+            l10n.flightPlanDownloadMapTiles,
+            style: const TextStyle(color: AppColors.primaryTextColor),
           ),
-          subtitle: const Text(
-            'Automatically download map tiles along saved flight plans',
-            style: TextStyle(color: AppColors.secondaryTextColor, fontSize: 12),
+          subtitle: Text(
+            l10n.automaticallyDownloadFlightPlanTiles,
+            style: const TextStyle(color: AppColors.secondaryTextColor, fontSize: 12),
           ),
           value: controller.downloadMapTilesForFlightPlan,
           onChanged: (value) {
@@ -46,13 +48,13 @@ class DownloadMapTilesSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         CheckboxListTile(
-          title: const Text(
-            'Validate tiles on startup',
-            style: TextStyle(color: AppColors.primaryTextColor),
+          title: Text(
+            l10n.validateTilesOnStartup,
+            style: const TextStyle(color: AppColors.primaryTextColor),
           ),
-          subtitle: const Text(
-            'Check for missing flight plan tiles when app starts',
-            style: TextStyle(color: AppColors.secondaryTextColor, fontSize: 12),
+          subtitle: Text(
+            l10n.checkMissingTilesOnStartup,
+            style: const TextStyle(color: AppColors.secondaryTextColor, fontSize: 12),
           ),
           value: controller.validateTilesOnStartup,
           onChanged: (value) {
@@ -71,7 +73,7 @@ class DownloadMapTilesSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Min Zoom: ${controller.minZoom}',
+                    '${l10n.minZoom}: ${controller.minZoom}',
                     style: TextStyle(color: AppColors.primaryTextColor),
                   ),
                   Slider(
@@ -94,7 +96,7 @@ class DownloadMapTilesSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Max Zoom: ${controller.maxZoom}',
+                    '${l10n.maxZoom}: ${controller.maxZoom}',
                     style: TextStyle(color: AppColors.primaryTextColor),
                   ),
                   Slider(
@@ -125,7 +127,7 @@ class DownloadMapTilesSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Progress: ${controller.currentTiles} / ${controller.totalTiles} tiles',
+                l10n.progressTiles(controller.currentTiles, controller.totalTiles),
                 style: TextStyle(color: AppColors.secondaryTextColor),
               ),
               Text(
@@ -142,14 +144,14 @@ class DownloadMapTilesSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Downloaded: ${controller.downloadedTiles}',
+                l10n.downloadedTiles(controller.downloadedTiles),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.secondaryTextColor,
                 ),
               ),
               Text(
-                'Skipped: ${controller.skippedTiles}',
+                l10n.skippedTiles(controller.skippedTiles),
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.secondaryTextColor,
@@ -165,14 +167,14 @@ class DownloadMapTilesSection extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.stop),
-            label: const Text('Stop Download'),
+            label: Text(l10n.stopDownload),
           ),
         ] else
           ElevatedButton.icon(
             onPressed: onDownload,
             style: FormThemeHelper.getPrimaryButtonStyle(),
             icon: const Icon(Icons.download),
-            label: const Text('Download Current Area'),
+            label: Text(l10n.downloadCurrentArea),
           ),
       ],
     );

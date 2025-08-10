@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/connectivity_service.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class ConnectivityBanner extends StatefulWidget {
   final Widget child;
@@ -17,6 +18,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Calculate responsive font size based on screen width
     final screenWidth = MediaQuery.of(context).size.width;
     final fontSize = screenWidth < 400
@@ -79,7 +81,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'No internet connection. Some features may be limited.',
+                                      l10n.noInternetConnection,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: fontSize,

@@ -6,6 +6,7 @@ import '../services/license_service.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class LicensePhotosWidget extends StatefulWidget {
   final License license;
@@ -32,21 +33,21 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'License Images',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.licenseImages,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
                   IconButton(
                     icon: const Icon(Icons.photo_library),
                     onPressed: _isLoading ? null : _pickFromGallery,
-                    tooltip: 'Add from gallery',
+                    tooltip: AppLocalizations.of(context)!.addFromGallery,
                   ),
                   IconButton(
                     icon: const Icon(Icons.camera_alt),
                     onPressed: _isLoading ? null : _takePhoto,
-                    tooltip: 'Take photo',
+                    tooltip: AppLocalizations.of(context)!.takePhoto,
                   ),
                 ],
               ),
@@ -63,25 +64,25 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
           ),
 
         if (photos.isEmpty && !_isLoading)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(40.0),
+              padding: const EdgeInsets.all(40.0),
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.photo_library_outlined,
                     size: 64,
-                    color: Colors.grey,
+                    color: Colors.white,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'No images yet',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    AppLocalizations.of(context)!.noImagesYet,
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Add photos of your license',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    AppLocalizations.of(context)!.addPhotosOfLicense,
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
                   ),
                 ],
               ),
@@ -127,8 +128,8 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey.shade300,
-                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                  color: const Color(0x4DFFFFFF),
+                  child: const Icon(Icons.broken_image, color: Colors.white),
                 );
               },
             ),
@@ -157,13 +158,13 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
   Widget _buildErrorPhoto(String photoPath) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: const Color(0x4DFFFFFF),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const Icon(Icons.broken_image, color: Colors.grey),
+          const Icon(Icons.broken_image, color: Colors.white),
           Positioned(
             top: 4,
             right: 4,
@@ -201,7 +202,7 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error picking image: ${e.toString()}'),
+            content: Text(AppLocalizations.of(context)!.errorPickingImage(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -229,7 +230,7 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error taking photo: ${e.toString()}'),
+            content: Text(AppLocalizations.of(context)!.errorTakingPhoto(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -253,7 +254,7 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Photo added successfully')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.photoAddedSuccessfully)));
     }
   }
 
@@ -261,17 +262,17 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Photo'),
-        content: const Text('Are you sure you want to delete this photo?'),
+        title: Text(AppLocalizations.of(context)!.deletePhoto),
+        content: Text(AppLocalizations.of(context)!.areYouSureDeletePhoto),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -301,13 +302,13 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Photo deleted')));
+          ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.photoDeleted)));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting photo: $e'),
+              content: Text(AppLocalizations.of(context)!.errorDeletingPhoto(e.toString())),
               backgroundColor: Colors.red,
             ),
           );
@@ -342,7 +343,7 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           if (e.isPermanentlyDenied)
             TextButton(
@@ -350,7 +351,7 @@ class _LicensePhotosWidgetState extends State<LicensePhotosWidget> {
                 Navigator.pop(context);
                 openAppSettings();
               },
-              child: const Text('Open Settings'),
+              child: Text(AppLocalizations.of(context)!.openSettings),
             ),
         ],
       ),

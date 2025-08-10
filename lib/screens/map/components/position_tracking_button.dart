@@ -32,7 +32,7 @@ class PositionTrackingButton extends StatelessWidget {
               positionTrackingEnabled ? Icons.gps_fixed : Icons.gps_not_fixed,
               color: positionTrackingEnabled 
                   ? (autoCenteringEnabled ? Colors.blue : Colors.orange)
-                  : Colors.grey,
+                  : Colors.white,
             ),
             onPressed: onToggle,
             tooltip: positionTrackingEnabled

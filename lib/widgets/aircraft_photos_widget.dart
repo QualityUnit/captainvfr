@@ -6,6 +6,7 @@ import '../services/aircraft_settings_service.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../constants/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class AircraftPhotosWidget extends StatefulWidget {
   final Aircraft aircraft;
@@ -32,21 +33,21 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Photos',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.photos,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
                   IconButton(
                     icon: const Icon(Icons.photo_library),
                     onPressed: _isLoading ? null : _pickFromGallery,
-                    tooltip: 'Add from gallery',
+                    tooltip: AppLocalizations.of(context)!.addFromGallery,
                   ),
                   IconButton(
                     icon: const Icon(Icons.camera_alt),
                     onPressed: _isLoading ? null : _takePhoto,
-                    tooltip: 'Take photo',
+                    tooltip: AppLocalizations.of(context)!.takePhoto,
                   ),
                 ],
               ),
@@ -63,25 +64,25 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
           ),
 
         if (photos.isEmpty && !_isLoading)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(40.0),
+              padding: const EdgeInsets.all(40.0),
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.photo_library_outlined,
                     size: 64,
-                    color: Colors.grey,
+                    color: Colors.white,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'No photos yet',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    AppLocalizations.of(context)!.noPhotosYet,
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Add photos from gallery or take new ones',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    AppLocalizations.of(context)!.addPhotosFromGallery,
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
                   ),
                 ],
               ),
@@ -127,8 +128,8 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey.shade300,
-                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                  color: const Color(0x4DFFFFFF),
+                  child: const Icon(Icons.broken_image, color: Colors.white),
                 );
               },
             ),
@@ -157,13 +158,13 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
   Widget _buildErrorPhoto(String photoPath) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: const Color(0x4DFFFFFF),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const Icon(Icons.broken_image, color: Colors.grey),
+          const Icon(Icons.broken_image, color: Colors.white),
           Positioned(
             top: 4,
             right: 4,
@@ -238,7 +239,7 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Photo added successfully')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.photoAddedSuccessfully)));
     }
   }
 
@@ -246,17 +247,17 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Photo'),
-        content: const Text('Are you sure you want to delete this photo?'),
+        title: Text(AppLocalizations.of(context)!.deletePhoto),
+        content: Text(AppLocalizations.of(context)!.areYouSureDeletePhoto),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -287,13 +288,13 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Photo deleted')));
+          ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.photoDeleted)));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting photo: $e'),
+              content: Text(AppLocalizations.of(context)!.errorDeletingPhoto(e.toString())),
               backgroundColor: Colors.red,
             ),
           );
@@ -327,14 +328,14 @@ class _AircraftPhotosWidgetState extends State<AircraftPhotosWidget> {
       message = error.message;
       if (error.isPermanentlyDenied) {
         action = SnackBarAction(
-          label: 'SETTINGS',
+          label: AppLocalizations.of(context)!.openSettings.toUpperCase(),
           onPressed: () {
             openAppSettings();
           },
         );
       }
     } else {
-      message = 'An error occurred: ${error.toString()}';
+      message = 'An error occurred: ${error.toString()}'; // Generic error message, keeping in English
     }
 
     ScaffoldMessenger.of(context).showSnackBar(

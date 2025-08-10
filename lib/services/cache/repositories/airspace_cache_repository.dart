@@ -37,10 +37,6 @@ class AirspaceCacheRepository extends BaseCacheRepository<Airspace> {
       await PerformanceMonitor().measureAsync(
         'appendAirspaces',
         () async {
-          developer.log('💾 Appending ${airspaces.length} airspaces...');
-          developer.log(
-            '📊 Current box status: isOpen=${box.isOpen}, length=${box.length}',
-          );
 
           // Don't clear existing data - append mode
           int added = 0;
@@ -61,10 +57,6 @@ class AirspaceCacheRepository extends BaseCacheRepository<Airspace> {
               developer.log('⚠️ Error caching airspace ${airspace.id}: $e');
             }
           }
-
-          developer.log(
-            '✅ Airspace append complete: $added added, $updated updated, total in cache: ${box.length}',
-          );
         },
       );
     } catch (e) {

@@ -4,6 +4,7 @@ import '../../services/settings_service.dart';
 import '../../models/aircraft.dart';
 import '../../widgets/aircraft_selector_widget.dart';
 import '../../constants/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:math';
 
 class CruisePerformanceCalculator extends StatefulWidget {
@@ -111,6 +112,7 @@ class _CruisePerformanceCalculatorState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final settings = Provider.of<SettingsService>(context);
     final isImperial = settings.units == 'imperial';
@@ -263,7 +265,7 @@ class _CruisePerformanceCalculatorState
                         ).copyWith(
                           minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
                         ),
-                        child: const Text('Calculate Cruise Performance'),
+                        child: Text(l10n.calculateCruisePerformance),
                       ),
                     ),
               ],

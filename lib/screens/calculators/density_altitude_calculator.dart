@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/settings_service.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/form_theme_helper.dart';
+import '../../l10n/app_localizations.dart';
 
 class DensityAltitudeCalculator extends StatefulWidget {
   const DensityAltitudeCalculator({super.key});
@@ -93,14 +94,15 @@ class _DensityAltitudeCalculatorState extends State<DensityAltitudeCalculator> {
     final settingsService = context.watch<SettingsService>();
     final isImperial = settingsService.units == 'imperial';
     final pressureUnit = settingsService.pressureUnit;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.dialogBackgroundColor,
-        title: const Text(
-          'Density Altitude Calculator',
-          style: TextStyle(color: AppColors.primaryTextColor),
+        title: Text(
+          l10n.densityAltitude,
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
         foregroundColor: AppColors.primaryTextColor,
       ),
@@ -110,10 +112,10 @@ class _DensityAltitudeCalculatorState extends State<DensityAltitudeCalculator> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FormThemeHelper.buildSection(
-              title: 'Input Method',
+              title: l10n.inputMethod,
               children: [
                 RadioListTile<bool>(
-                  title: const Text('Field Elevation + Altimeter', style: TextStyle(color: AppColors.primaryTextColor)),
+                  title: Text(l10n.fieldElevationAltimeter, style: const TextStyle(color: AppColors.primaryTextColor)),
                   value: true,
                   groupValue: _useFieldElevation,
                   activeColor: AppColors.primaryAccent,
@@ -126,7 +128,7 @@ class _DensityAltitudeCalculatorState extends State<DensityAltitudeCalculator> {
                   },
                 ),
                 RadioListTile<bool>(
-                  title: const Text('Pressure Altitude', style: TextStyle(color: AppColors.primaryTextColor)),
+                  title: Text(l10n.pressureAltitudeInput, style: const TextStyle(color: AppColors.primaryTextColor)),
                   value: false,
                   groupValue: _useFieldElevation,
                   activeColor: AppColors.primaryAccent,
@@ -142,31 +144,31 @@ class _DensityAltitudeCalculatorState extends State<DensityAltitudeCalculator> {
             ),
             const SizedBox(height: 16),
             FormThemeHelper.buildSection(
-              title: 'Inputs',
+              title: l10n.inputs,
               children: [
                 if (_useFieldElevation) ...[
                   FormThemeHelper.buildFormField(
                     controller: _fieldElevationController,
-                    labelText: 'Field Elevation (${isImperial ? "ft" : "m"})',
+                    labelText: '${l10n.fieldElevation} (${isImperial ? "ft" : "m"})',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 16),
                   FormThemeHelper.buildFormField(
                     controller: _altimeterController,
-                    labelText: 'Altimeter Setting ($pressureUnit)',
+                    labelText: '${l10n.altimeterSetting} ($pressureUnit)',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ] else ...[
                   FormThemeHelper.buildFormField(
                     controller: _pressureAltitudeController,
-                    labelText: 'Pressure Altitude (${isImperial ? "ft" : "m"})',
+                    labelText: '${l10n.pressureAltitude} (${isImperial ? "ft" : "m"})',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                 ],
                 const SizedBox(height: 16),
                 FormThemeHelper.buildFormField(
                   controller: _temperatureController,
-                  labelText: 'Temperature (${isImperial ? "°F" : "°C"})',
+                  labelText: '${l10n.temperature} (${isImperial ? "°F" : "°C"})',
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
               ],
@@ -177,22 +179,22 @@ class _DensityAltitudeCalculatorState extends State<DensityAltitudeCalculator> {
               style: FormThemeHelper.getPrimaryButtonStyle().copyWith(
                 minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
               ),
-              child: const Text('Calculate', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.calculate, style: const TextStyle(fontSize: 16)),
             ),
             if (_densityAltitude != null) ...[
               const SizedBox(height: 24),
               FormThemeHelper.buildSection(
-                title: 'Results',
+                title: l10n.results,
                 children: [
                   if (_useFieldElevation && _pressureAltitude != null) ...[
                     Text(
-                      'Pressure Altitude: ${isImperial ? _pressureAltitude!.toStringAsFixed(0) : (_pressureAltitude! / 3.28084).toStringAsFixed(0)} ${isImperial ? "ft" : "m"}',
+                      '${l10n.pressureAltitude}: ${isImperial ? _pressureAltitude!.toStringAsFixed(0) : (_pressureAltitude! / 3.28084).toStringAsFixed(0)} ${isImperial ? "ft" : "m"}',
                       style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                     const SizedBox(height: 8),
                   ],
                   Text(
-                    'Density Altitude: ${isImperial ? _densityAltitude!.toStringAsFixed(0) : (_densityAltitude! / 3.28084).toStringAsFixed(0)} ${isImperial ? "ft" : "m"}',
+                    '${l10n.densityAltitude}: ${isImperial ? _densityAltitude!.toStringAsFixed(0) : (_densityAltitude! / 3.28084).toStringAsFixed(0)} ${isImperial ? "ft" : "m"}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -208,14 +210,14 @@ class _DensityAltitudeCalculatorState extends State<DensityAltitudeCalculator> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.warning, color: Colors.orange),
-                          SizedBox(width: 8),
+                          const Icon(Icons.warning, color: Colors.orange),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'High density altitude! Aircraft performance will be significantly reduced.',
-                              style: TextStyle(color: Colors.orange),
+                              l10n.highDensityAltitudeWarning,
+                              style: const TextStyle(color: Colors.orange),
                             ),
                           ),
                         ],

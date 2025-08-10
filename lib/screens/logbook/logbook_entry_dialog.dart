@@ -12,6 +12,7 @@ import '../../services/aircraft_settings_service.dart';
 import '../../services/flight_service.dart';
 import '../../screens/flight_detail_screen.dart';
 import '../../widgets/themed_dialog.dart';
+import '../../l10n/app_localizations.dart';
 
 class LogBookEntryDialog extends StatefulWidget {
   final LogBookEntry? entry;
@@ -19,9 +20,10 @@ class LogBookEntryDialog extends StatefulWidget {
   const LogBookEntryDialog({super.key, this.entry});
   
   static Future<void> show(BuildContext context, {LogBookEntry? entry}) {
+    final l10n = AppLocalizations.of(context)!;
     return ThemedDialog.show(
       context: context,
-      title: entry != null ? 'Edit LogBook Entry' : 'New LogBook Entry',
+      title: entry != null ? l10n.editLogBookEntry : l10n.manualEntry,
       maxWidth: 600,
       maxHeight: null,
       content: LogBookEntryDialog(entry: entry),
@@ -234,6 +236,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.entry != null;
     final pilotService = context.watch<PilotService>();
     final aircraftService = context.watch<AircraftSettingsService>();
@@ -286,12 +289,12 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.white54,
                     labelStyle: const TextStyle(fontSize: 11),
-                    tabs: const [
-                      Tab(text: 'Timing'),
-                      Tab(text: 'Aircraft'),
-                      Tab(text: 'Pilots'),
-                      Tab(text: 'Conditions'),
-                      Tab(text: 'Notes'),
+                    tabs: [
+                      Tab(text: l10n.timing),
+                      Tab(text: l10n.aircraft),
+                      Tab(text: l10n.pilots),
+                      Tab(text: l10n.conditions),
+                      Tab(text: l10n.notes),
                     ],
                   ),
                   SizedBox(
@@ -299,15 +302,15 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
                     child: TabBarView(
                       children: [
                         // Timing Tab
-                        _buildTimingTab(),
+                        _buildTimingTab(l10n),
                         // Aircraft Tab
-                        _buildAircraftTab(aircraft),
+                        _buildAircraftTab(aircraft, l10n),
                         // Pilots Tab
-                        _buildPilotsTab(pilots),
+                        _buildPilotsTab(pilots, l10n),
                         // Conditions Tab
-                        _buildConditionsTab(),
+                        _buildConditionsTab(l10n),
                         // Notes Tab
-                        _buildNotesTab(),
+                        _buildNotesTab(l10n),
                       ],
                     ),
                   ),
@@ -321,7 +324,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
@@ -336,14 +339,14 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
     );
   }
 
-  Widget _buildTimingTab() {
+  Widget _buildTimingTab(AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildCompactDateTimeRow(
-            'Start',
+            l10n.start,
             _startDate,
             _startTime,
             (date) => setState(() => _startDate = date),
@@ -352,7 +355,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           ),
           const SizedBox(height: 12),
           _buildCompactDateTimeRow(
-            'Start Moving',
+            l10n.startMoving,
             _startMovingDate,
             _startMovingTime,
             (date) => setState(() => _startMovingDate = date),
@@ -361,9 +364,9 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _departureController,
-            decoration: const InputDecoration(
-              labelText: 'Departure Airport',
-              hintText: 'ICAO',
+            decoration: InputDecoration(
+              labelText: l10n.departureAirport,
+              hintText: l10n.icao,
               prefixIcon: Icon(Icons.flight_takeoff, size: 18),
             ),
             textCapitalization: TextCapitalization.characters,
@@ -371,7 +374,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           ),
           const SizedBox(height: 12),
           _buildCompactDateTimeRow(
-            'End',
+            l10n.end,
             _endDate,
             _endTime,
             (date) => setState(() => _endDate = date),
@@ -380,7 +383,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           ),
           const SizedBox(height: 12),
           _buildCompactDateTimeRow(
-            'End Moving',
+            l10n.endMoving,
             _endMovingDate,
             _endMovingTime,
             (date) => setState(() => _endMovingDate = date),
@@ -389,9 +392,9 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _arrivalController,
-            decoration: const InputDecoration(
-              labelText: 'Arrival Airport',
-              hintText: 'ICAO',
+            decoration: InputDecoration(
+              labelText: l10n.arrivalAirport,
+              hintText: l10n.icao,
               prefixIcon: Icon(Icons.flight_land, size: 18),
             ),
             textCapitalization: TextCapitalization.characters,
@@ -402,23 +405,23 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
     );
   }
 
-  Widget _buildAircraftTab(List<dynamic> aircraft) {
+  Widget _buildAircraftTab(List<dynamic> aircraft, AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           DropdownButtonFormField<String>(
             value: _selectedAircraftId,
-            decoration: const InputDecoration(
-              labelText: 'Select Aircraft',
+            decoration: InputDecoration(
+              labelText: l10n.selectAircraft,
               prefixIcon: Icon(Icons.airplanemode_active, size: 18),
             ),
             dropdownColor: const Color(0xF0000000),
             style: const TextStyle(fontSize: 12),
             items: [
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: null,
-                child: Text('Manual Entry'),
+                child: Text(l10n.manualEntry),
               ),
               ...aircraft.map((a) => DropdownMenuItem(
                 value: a.id,
@@ -446,8 +449,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _aircraftTypeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
+                  decoration: InputDecoration(
+                    labelText: l10n.type,
                     hintText: 'C172',
                   ),
                   enabled: _selectedAircraftId == null,
@@ -458,8 +461,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _aircraftIdController,
-                  decoration: const InputDecoration(
-                    labelText: 'Registration',
+                  decoration: InputDecoration(
+                    labelText: l10n.registration,
                     hintText: 'N12345',
                   ),
                   textCapitalization: TextCapitalization.characters,
@@ -472,26 +475,26 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           DropdownButtonFormField<EngineType>(
             value: _engineType,
-            decoration: const InputDecoration(
-              labelText: 'Engine Type *',
+            decoration: InputDecoration(
+              labelText: '${l10n.engineType} *',
               prefixIcon: Icon(Icons.settings, size: 18),
             ),
             dropdownColor: const Color(0xF0000000),
             style: const TextStyle(fontSize: 12),
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: EngineType.singleEngine,
-                child: Text('Single Engine', style: TextStyle(fontSize: 12)),
+                child: Text(l10n.singleEngine, style: TextStyle(fontSize: 12)),
               ),
               DropdownMenuItem(
                 value: EngineType.multiEngine,
-                child: Text('Multi Engine', style: TextStyle(fontSize: 12)),
+                child: Text(l10n.multiEngine, style: TextStyle(fontSize: 12)),
               ),
             ],
             onChanged: (value) => setState(() => _engineType = value),
             validator: (value) {
               if (value == null) {
-                return 'Required';
+                return l10n.required;
               }
               return null;
             },
@@ -501,15 +504,15 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
     );
   }
 
-  Widget _buildPilotsTab(List<Pilot> pilots) {
+  Widget _buildPilotsTab(List<Pilot> pilots, AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           DropdownButtonFormField<String>(
             value: _selectedPicId,
-            decoration: const InputDecoration(
-              labelText: 'Pilot in Command',
+            decoration: InputDecoration(
+              labelText: l10n.pilotInCommand,
               prefixIcon: Icon(Icons.person, size: 18),
             ),
             dropdownColor: const Color(0xF0000000),
@@ -521,7 +524,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
             onChanged: (value) => setState(() => _selectedPicId = value),
             validator: (value) {
               if (value == null) {
-                return 'Required';
+                return l10n.required;
               }
               return null;
             },
@@ -529,16 +532,16 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _selectedSicId,
-            decoration: const InputDecoration(
-              labelText: 'Second in Command',
+            decoration: InputDecoration(
+              labelText: l10n.secondInCommand,
               prefixIcon: Icon(Icons.person_outline, size: 18),
             ),
             dropdownColor: const Color(0xF0000000),
             style: const TextStyle(fontSize: 12),
             items: [
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: null,
-                child: Text('Solo Flight', style: TextStyle(fontSize: 12)),
+                child: Text(l10n.soloFlight, style: TextStyle(fontSize: 12)),
               ),
               ...pilots
                   .where((p) => p.id != _selectedPicId)
@@ -554,15 +557,15 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildCompactChip('Flight Review', _flightReview, 
+              _buildCompactChip(l10n.flightReview, _flightReview, 
                 (v) => setState(() => _flightReview = v)),
-              _buildCompactChip('IPC', _ipc, 
+              _buildCompactChip(l10n.ipc, _ipc, 
                 (v) => setState(() => _ipc = v)),
-              _buildCompactChip('Check Ride', _checkRide, 
+              _buildCompactChip(l10n.checkRide, _checkRide, 
                 (v) => setState(() => _checkRide = v)),
-              _buildCompactChip('FAA 61.58', _faa6158, 
+              _buildCompactChip(l10n.faa6158, _faa6158, 
                 (v) => setState(() => _faa6158 = v)),
-              _buildCompactChip('NVG Prof.', _nvgProficiency, 
+              _buildCompactChip(l10n.nvgProficiency, _nvgProficiency, 
                 (v) => setState(() => _nvgProficiency = v)),
             ],
           ),
@@ -571,7 +574,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
     );
   }
 
-  Widget _buildConditionsTab() {
+  Widget _buildConditionsTab(AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -581,20 +584,20 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: DropdownButtonFormField<FlightCondition>(
                   value: _flightCondition,
-                  decoration: const InputDecoration(
-                    labelText: 'Day/Night',
+                  decoration: InputDecoration(
+                    labelText: l10n.dayNight,
                     prefixIcon: Icon(Icons.brightness_4, size: 18),
                   ),
                   dropdownColor: const Color(0xF0000000),
                   style: const TextStyle(fontSize: 12),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: FlightCondition.day,
-                      child: Text('Day', style: TextStyle(fontSize: 12)),
+                      child: Text(l10n.day, style: TextStyle(fontSize: 12)),
                     ),
                     DropdownMenuItem(
                       value: FlightCondition.night,
-                      child: Text('Night', style: TextStyle(fontSize: 12)),
+                      child: Text(l10n.night, style: TextStyle(fontSize: 12)),
                     ),
                   ],
                   onChanged: (value) => setState(() => _flightCondition = value),
@@ -604,20 +607,20 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: DropdownButtonFormField<FlightRules>(
                   value: _flightRules,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'VFR/IFR',
                     prefixIcon: Icon(Icons.visibility, size: 18),
                   ),
                   dropdownColor: const Color(0xF0000000),
                   style: const TextStyle(fontSize: 12),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: FlightRules.vfr,
-                      child: Text('VFR', style: TextStyle(fontSize: 12)),
+                      child: Text(l10n.vfr, style: TextStyle(fontSize: 12)),
                     ),
                     DropdownMenuItem(
                       value: FlightRules.ifr,
-                      child: Text('IFR', style: TextStyle(fontSize: 12)),
+                      child: Text(l10n.ifr, style: TextStyle(fontSize: 12)),
                     ),
                   ],
                   onChanged: (value) => setState(() => _flightRules = value),
@@ -627,14 +630,14 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           ),
           const SizedBox(height: 12),
           CheckboxListTile(
-            title: const Text('Simulated Conditions', style: TextStyle(fontSize: 12)),
+            title: Text(l10n.simulatedConditions, style: TextStyle(fontSize: 12)),
             value: _simulated,
             onChanged: (value) => setState(() => _simulated = value ?? false),
             controlAffinity: ListTileControlAffinity.leading,
             dense: true,
           ),
           const SizedBox(height: 16),
-          const Text('Takeoffs & Landings', 
+          Text(l10n.takeoffsLandings, 
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
@@ -642,8 +645,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _dayTakeoffsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Day T/O',
+                  decoration: InputDecoration(
+                    labelText: l10n.dayTO,
                     prefixIcon: Icon(Icons.wb_sunny, size: 18),
                   ),
                   keyboardType: TextInputType.number,
@@ -655,8 +658,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _nightTakeoffsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Night T/O',
+                  decoration: InputDecoration(
+                    labelText: l10n.nightTO,
                     prefixIcon: Icon(Icons.nights_stay, size: 18),
                   ),
                   keyboardType: TextInputType.number,
@@ -672,8 +675,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _dayLandingsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Day Ldg',
+                  decoration: InputDecoration(
+                    labelText: l10n.dayLdg,
                     prefixIcon: Icon(Icons.wb_sunny, size: 18),
                   ),
                   keyboardType: TextInputType.number,
@@ -685,8 +688,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _nightLandingsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Night Ldg',
+                  decoration: InputDecoration(
+                    labelText: l10n.nightLdg,
                     prefixIcon: Icon(Icons.nights_stay, size: 18),
                   ),
                   keyboardType: TextInputType.number,
@@ -701,15 +704,15 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
     );
   }
 
-  Widget _buildNotesTab() {
+  Widget _buildNotesTab(AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           TextFormField(
             controller: _flightTrainingController,
-            decoration: const InputDecoration(
-              labelText: 'Flight Training',
+            decoration: InputDecoration(
+              labelText: l10n.flightTraining,
               alignLabelWithHint: true,
             ),
             maxLines: 2,
@@ -718,8 +721,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _groundTrainingController,
-            decoration: const InputDecoration(
-              labelText: 'Ground Training',
+            decoration: InputDecoration(
+              labelText: l10n.groundTraining,
               alignLabelWithHint: true,
             ),
             maxLines: 2,
@@ -728,8 +731,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _simulatorController,
-            decoration: const InputDecoration(
-              labelText: 'Simulator',
+            decoration: InputDecoration(
+              labelText: l10n.simulator,
               alignLabelWithHint: true,
             ),
             maxLines: 2,
@@ -738,8 +741,8 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _noteController,
-            decoration: const InputDecoration(
-              labelText: 'Flight Notes',
+            decoration: InputDecoration(
+              labelText: l10n.flightNotes,
               alignLabelWithHint: true,
             ),
             maxLines: 3,
@@ -762,9 +765,9 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Linked Flight Log', 
+                        Text(l10n.linkedFlightLog, 
                           style: TextStyle(fontSize: 11, color: Colors.white70)),
-                        Text('ID: $_linkedFlightLogId',
+                        Text('${l10n.id}: $_linkedFlightLogId',
                           style: const TextStyle(fontSize: 10, color: Colors.white54)),
                       ],
                     ),
@@ -803,6 +806,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
     Function(TimeOfDay) onTimeChanged, {
     bool required = false,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('MMM dd');
     final hasValue = date != null && time != null;
 
@@ -843,7 +847,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
                       border: Border.all(color: const Color(0x7F448AFF)),
                     ),
                     child: Text(
-                      date != null ? dateFormat.format(date) : 'Date',
+                      date != null ? dateFormat.format(date) : l10n.date,
                       style: TextStyle(
                         fontSize: 11,
                         color: date == null ? Colors.white30 : Colors.white,
@@ -875,7 +879,7 @@ class _LogBookEntryDialogState extends State<LogBookEntryDialog> {
                       border: Border.all(color: const Color(0x7F448AFF)),
                     ),
                     child: Text(
-                      time != null ? time.format(context) : 'Time',
+                      time != null ? time.format(context) : l10n.time,
                       style: TextStyle(
                         fontSize: 11,
                         color: time == null ? Colors.white30 : Colors.white,

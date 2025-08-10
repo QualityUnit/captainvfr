@@ -6,6 +6,7 @@ import '../services/flight_plan_service.dart';
 import '../services/settings_service.dart';
 import '../constants/app_colors.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class WaypointEditorDialog extends StatefulWidget {
   final int waypointIndex;
@@ -76,16 +77,18 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
   }
 
   void _deleteWaypoint() {
+    final l10n = AppLocalizations.of(context)!;
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return FormThemeHelper.buildDialog(
           context: context,
-          title: 'Delete Waypoint',
+          title: l10n.deleteWaypoint,
           content: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Are you sure you want to delete waypoint "${widget.waypoint.name ?? 'WP${widget.waypointIndex + 1}'}"?',
+              l10n.areYouSureDeleteWaypointWithName(widget.waypoint.name ?? 'WP${widget.waypointIndex + 1}'),
               style: TextStyle(color: AppColors.primaryTextColor),
             ),
           ),
@@ -93,7 +96,7 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: FormThemeHelper.getSecondaryButtonStyle(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -109,7 +112,7 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
           ],
         );
@@ -119,6 +122,8 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         final isMetric = settings.units == 'metric';
@@ -134,7 +139,7 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
 
         return FormThemeHelper.buildDialog(
           context: context,
-          title: 'Edit Waypoint ${widget.waypointIndex + 1}',
+          title: l10n.editWaypoint(widget.waypointIndex + 1),
           content: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -143,7 +148,7 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
               children: [
                 // Waypoint coordinates (read-only)
                 Text(
-                  'Position: ${widget.waypoint.latitude.toStringAsFixed(6)}, ${widget.waypoint.longitude.toStringAsFixed(6)}',
+                  '${l10n.position}: ${widget.waypoint.latitude.toStringAsFixed(6)}, ${widget.waypoint.longitude.toStringAsFixed(6)}',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.secondaryTextColor,
@@ -154,8 +159,8 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
                 // Name field
                 FormThemeHelper.buildFormField(
                   controller: _nameController,
-                  labelText: 'Name',
-                  hintText: 'Enter waypoint name',
+                  labelText: l10n.waypointName,
+                  hintText: l10n.enterWaypointName,
                 ),
                 const SizedBox(height: 16),
 
@@ -171,11 +176,11 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
                   ],
                   decoration: FormThemeHelper.getInputDecoration(
                     isMetric
-                        ? 'Altitude (m MSL)'
-                        : 'Altitude (ft MSL)',
+                        ? l10n.altitudeMetersMsl
+                        : l10n.altitudeFtMsl,
                     hintText: isMetric
-                        ? 'Enter altitude in meters'
-                        : 'Enter altitude in feet',
+                        ? l10n.enterAltitudeInMeters
+                        : l10n.enterAltitudeInFeet,
                   ).copyWith(
                     suffixText: isMetric ? 'm' : 'ft',
                     suffixStyle: TextStyle(color: AppColors.secondaryTextColor),
@@ -186,8 +191,8 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
                 // Notes field
                 FormThemeHelper.buildFormField(
                   controller: _notesController,
-                  labelText: 'Notes',
-                  hintText: 'Enter waypoint notes',
+                  labelText: l10n.notes,
+                  hintText: l10n.enterWaypointNotes,
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
@@ -208,7 +213,7 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
                     ),
                   ),
                   child: Text(
-                    'Type: ${_getWaypointTypeText(widget.waypoint.type)}',
+                    '${l10n.type}: ${_getWaypointTypeText(widget.waypoint.type, l10n)}',
                     style: TextStyle(
                       color: _getWaypointTypeColor(widget.waypoint.type),
                       fontWeight: FontWeight.w500,
@@ -222,17 +227,17 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
             TextButton(
               onPressed: _deleteWaypoint,
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: FormThemeHelper.getSecondaryButtonStyle(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: _saveChanges,
               style: FormThemeHelper.getPrimaryButtonStyle(),
-              child: const Text('Save'),
+              child: Text(l10n.save),
             ),
           ],
         );
@@ -253,16 +258,16 @@ class _WaypointEditorDialogState extends State<WaypointEditorDialog> {
     }
   }
 
-  String _getWaypointTypeText(WaypointType type) {
+  String _getWaypointTypeText(WaypointType type, AppLocalizations l10n) {
     switch (type) {
       case WaypointType.airport:
-        return 'Airport';
+        return l10n.airport;
       case WaypointType.navaid:
-        return 'Navaid';
+        return l10n.navaid;
       case WaypointType.fix:
-        return 'Fix';
+        return l10n.fix;
       default:
-        return 'User Waypoint';
+        return l10n.userWaypoint;
     }
   }
 }
