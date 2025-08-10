@@ -149,5 +149,2561 @@
   "airspaces": "Airspaces",
   "@airspaces": {
     "description": "Airspaces layer label"
+  },
+
+  "pilotCalculators": "Pilot Calculators",
+  "@pilotCalculators": {
+    "description": "Pilot calculators screen title"
+  },
+
+  "flightDetail": "Flight Detail",
+  "@flightDetail": {
+    "description": "Flight detail screen title"
+  },
+
+  "manufacturers": "Manufacturers",
+  "@manufacturers": {
+    "description": "Manufacturers screen title"
+  },
+
+  "noAircraftConfigured": "No aircraft configured",
+  "@noAircraftConfigured": {
+    "description": "Message when no aircraft are configured"
+  },
+
+  "addAircraftInSettings": "Add aircraft in the settings",
+  "@addAircraftInSettings": {
+    "description": "Instructions to add aircraft"
+  },
+
+  "selectAircraft": "Select Aircraft",
+  "@selectAircraft": {
+    "description": "Aircraft selection dialog title"
+  },
+
+  "cruiseSpeed": "Cruise Speed",
+  "@cruiseSpeed": {
+    "description": "Cruise speed label"
+  },
+
+  "fuelBurn": "Fuel Burn",
+  "@fuelBurn": {
+    "description": "Fuel burn label"
+  },
+
+  "mtow": "MTOW",
+  "@mtow": {
+    "description": "Maximum takeoff weight abbreviation"
+  },
+
+  "addAircraft": "Add Aircraft",
+  "@addAircraft": {
+    "description": "Add aircraft button label"
+  },
+
+  "editAircraft": "Edit Aircraft",
+  "@editAircraft": {
+    "description": "Edit aircraft button label"
+  },
+
+  "deleteAircraft": "Delete Aircraft",
+  "@deleteAircraft": {
+    "description": "Delete aircraft button label"
+  },
+
+  "aircraftName": "Aircraft Name",
+  "@aircraftName": {
+    "description": "Aircraft name field label"
+  },
+
+  "registration": "Registration",
+  "@registration": {
+    "description": "Aircraft registration field label"
+  },
+
+  "manufacturer": "Manufacturer",
+  "@manufacturer": {
+    "description": "Manufacturer field label"
+  },
+
+  "model": "Model",
+  "@model": {
+    "description": "Model field label"
+  },
+
+  "basicInformation": "Basic Information",
+  "@basicInformation": {
+    "description": "Basic information section title"
+  },
+
+  "performanceSpecifications": "Performance Specifications",
+  "@performanceSpecifications": {
+    "description": "Performance specifications section title"
+  },
+
+  "optionalPerformanceData": "Optional Performance Data",
+  "@optionalPerformanceData": {
+    "description": "Optional performance data section title"
+  },
+
+  "takeoffLandingPerformance": "Takeoff & Landing Performance",
+  "@takeoffLandingPerformance": {
+    "description": "Takeoff and landing performance section title"
+  },
+
+  "vSpeeds": "V-Speeds",
+  "@vSpeeds": {
+    "description": "V-speeds section title"
+  },
+
+  "additionalPerformanceData": "Additional Performance Data",
+  "@additionalPerformanceData": {
+    "description": "Additional performance data section title"
+  },
+
+  "pleaseEnterAircraftName": "Please enter an aircraft name",
+  "@pleaseEnterAircraftName": {
+    "description": "Validation message for aircraft name"
+  },
+
+  "pleaseSelectManufacturer": "Please select a manufacturer",
+  "@pleaseSelectManufacturer": {
+    "description": "Validation message for manufacturer selection"
+  },
+
+  "pleaseSelectModel": "Please select a model",
+  "@pleaseSelectModel": {
+    "description": "Validation message for model selection"
+  },
+
+  "aircraftSavedSuccessfully": "Aircraft saved successfully",
+  "@aircraftSavedSuccessfully": {
+    "description": "Success message for saving aircraft"
+  },
+
+  "addFirstAircraft": "Add First Aircraft",
+  "@addFirstAircraft": {
+    "description": "Button to add first aircraft"
+  },
+
+  "addManufacturer": "Add Manufacturer",
+  "@addManufacturer": {
+    "description": "Add manufacturer button label"
+  },
+
+  "editManufacturer": "Edit Manufacturer",
+  "@editManufacturer": {
+    "description": "Edit manufacturer button label"
+  },
+
+  "deleteManufacturer": "Delete Manufacturer",
+  "@deleteManufacturer": {
+    "description": "Delete manufacturer button label"
+  },
+
+  "manufacturerName": "Manufacturer Name",
+  "@manufacturerName": {
+    "description": "Manufacturer name field label"
+  },
+
+  "website": "Website",
+  "@website": {
+    "description": "Website field label"
+  },
+
+  "description": "Description",
+  "@description": {
+    "description": "Description field label"
+  },
+
+  "pleaseEnterManufacturerName": "Please enter a manufacturer name",
+  "@pleaseEnterManufacturerName": {
+    "description": "Validation message for manufacturer name"
+  },
+
+  "pleaseEnterValidUrl": "Please enter a valid URL",
+  "@pleaseEnterValidUrl": {
+    "description": "Validation message for URL format"
+  },
+
+  "briefDescriptionOfManufacturer": "Brief description of the manufacturer",
+  "@briefDescriptionOfManufacturer": {
+    "description": "Placeholder for manufacturer description"
+  },
+
+  "manufacturerAddedSuccessfully": "Manufacturer added successfully",
+  "@manufacturerAddedSuccessfully": {
+    "description": "Success message for adding manufacturer"
+  },
+
+  "manufacturerUpdatedSuccessfully": "Manufacturer updated successfully",
+  "@manufacturerUpdatedSuccessfully": {
+    "description": "Success message for updating manufacturer"
+  },
+
+  "addModel": "Add Model",
+  "@addModel": {
+    "description": "Add model button label"
+  },
+
+  "editModel": "Edit Model",
+  "@editModel": {
+    "description": "Edit model button label"
+  },
+
+  "deleteModel": "Delete Model",
+  "@deleteModel": {
+    "description": "Delete model button label"
+  },
+
+  "modelName": "Model Name",
+  "@modelName": {
+    "description": "Model name field label"
+  },
+
+  "aircraftCategory": "Aircraft Category",
+  "@aircraftCategory": {
+    "description": "Aircraft category field label"
+  },
+
+  "engineCount": "Engine Count",
+  "@engineCount": {
+    "description": "Engine count field label"
+  },
+
+  "maximumSeats": "Maximum Seats",
+  "@maximumSeats": {
+    "description": "Maximum seats field label"
+  },
+
+  "typicalCruiseSpeed": "Typical Cruise Speed (kts)",
+  "@typicalCruiseSpeed": {
+    "description": "Typical cruise speed field label"
+  },
+
+  "serviceCeiling": "Service Ceiling (ft)",
+  "@serviceCeiling": {
+    "description": "Service ceiling field label"
+  },
+
+  "fuelConsumption": "Fuel Consumption (gph)",
+  "@fuelConsumption": {
+    "description": "Fuel consumption field label"
+  },
+
+  "maxClimbRate": "Max Climb Rate (fpm)",
+  "@maxClimbRate": {
+    "description": "Maximum climb rate field label"
+  },
+
+  "maxDescentRate": "Max Descent Rate (fpm)",
+  "@maxDescentRate": {
+    "description": "Maximum descent rate field label"
+  },
+
+  "maxTakeoffWeight": "Max Takeoff Weight (lbs)",
+  "@maxTakeoffWeight": {
+    "description": "Maximum takeoff weight field label"
+  },
+
+  "maxLandingWeight": "Max Landing Weight (lbs)",
+  "@maxLandingWeight": {
+    "description": "Maximum landing weight field label"
+  },
+
+  "fuelCapacity": "Fuel Capacity (gallons)",
+  "@fuelCapacity": {
+    "description": "Fuel capacity field label"
+  },
+
+  "pleaseEnterModelName": "Please enter a model name",
+  "@pleaseEnterModelName": {
+    "description": "Validation message for model name"
+  },
+
+  "pleaseEnterEngineCount": "Please enter engine count",
+  "@pleaseEnterEngineCount": {
+    "description": "Validation message for engine count"
+  },
+
+  "pleaseEnterValidEngineCount": "Please enter a valid engine count",
+  "@pleaseEnterValidEngineCount": {
+    "description": "Validation message for valid engine count"
+  },
+
+  "pleaseEnterMaximumSeats": "Please enter maximum seats",
+  "@pleaseEnterMaximumSeats": {
+    "description": "Validation message for maximum seats"
+  },
+
+  "pleaseEnterValidSeatCount": "Please enter a valid seat count",
+  "@pleaseEnterValidSeatCount": {
+    "description": "Validation message for valid seat count"
+  },
+
+  "pleaseEnterCruiseSpeed": "Please enter cruise speed",
+  "@pleaseEnterCruiseSpeed": {
+    "description": "Validation message for cruise speed"
+  },
+
+  "pleaseEnterValidSpeed": "Please enter a valid speed",
+  "@pleaseEnterValidSpeed": {
+    "description": "Validation message for valid speed"
+  },
+
+  "pleaseEnterServiceCeiling": "Please enter service ceiling",
+  "@pleaseEnterServiceCeiling": {
+    "description": "Validation message for service ceiling"
+  },
+
+  "pleaseEnterValidCeiling": "Please enter a valid ceiling",
+  "@pleaseEnterValidCeiling": {
+    "description": "Validation message for valid ceiling"
+  },
+
+  "modelAddedSuccessfully": "Model added successfully",
+  "@modelAddedSuccessfully": {
+    "description": "Success message for adding model"
+  },
+
+  "modelUpdatedSuccessfully": "Model updated successfully",
+  "@modelUpdatedSuccessfully": {
+    "description": "Success message for updating model"
+  },
+
+  "addFirstModel": "Add First Model",
+  "@addFirstModel": {
+    "description": "Button to add first model"
+  },
+
+  "addChecklist": "Add Checklist",
+  "@addChecklist": {
+    "description": "Add checklist button label"
+  },
+
+  "editChecklist": "Edit Checklist",
+  "@editChecklist": {
+    "description": "Edit checklist button label"
+  },
+
+  "deleteChecklist": "Delete Checklist",
+  "@deleteChecklist": {
+    "description": "Delete checklist button label"
+  },
+
+  "checklistName": "Name",
+  "@checklistName": {
+    "description": "Checklist name field label"
+  },
+
+  "checklistDescription": "Description",
+  "@checklistDescription": {
+    "description": "Checklist description field label"
+  },
+
+  "items": "Items",
+  "@items": {
+    "description": "Checklist items section title"
+  },
+
+  "addItem": "Add Item",
+  "@addItem": {
+    "description": "Add item button label"
+  },
+
+  "editItem": "Edit Item",
+  "@editItem": {
+    "description": "Edit item button label"
+  },
+
+  "targetValue": "Target Value",
+  "@targetValue": {
+    "description": "Target value field label"
+  },
+
+  "pleaseEnterName": "Please enter a name",
+  "@pleaseEnterName": {
+    "description": "Validation message for name field"
+  },
+
+  "pleaseEnterItemName": "Please enter item name",
+  "@pleaseEnterItemName": {
+    "description": "Validation message for item name"
+  },
+
+  "saveChecklist": "Save Checklist",
+  "@saveChecklist": {
+    "description": "Save checklist button label"
+  },
+
+  "searchAirportsNavaids": "Search Airports & Navaids",
+  "@searchAirportsNavaids": {
+    "description": "Search airports and navaids title"
+  },
+
+  "enterAirportNavaidName": "Enter airport/navaid name, code, or city",
+  "@enterAirportNavaidName": {
+    "description": "Search input placeholder"
+  },
+
+  "searchForAirports": "Search for airports and navaids by name or code\n(e.g., \"KJFK\", \"Kennedy\", \"VOR\", \"SFO\")",
+  "@searchForAirports": {
+    "description": "Search instructions"
+  },
+
+  "noResultsFound": "No results found for \"{query}\"",
+  "@noResultsFound": {
+    "description": "No search results message",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "description": "The search query"
+      }
+    }
+  },
+
+  "trySearchingBy": "Try searching by:\n• Airport name (e.g., \"Kennedy\")\n• ICAO code (e.g., \"KJFK\")\n• IATA code (e.g., \"JFK\")\n• Navaid ID (e.g., \"SFO\")\n• VOR/NDB name",
+  "@trySearchingBy": {
+    "description": "Search suggestions message"
+  },
+
+  "airportsCount": "Airports ({count})",
+  "@airportsCount": {
+    "description": "Airports count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "description": "Number of airports"
+      }
+    }
+  },
+
+  "navigationAidsCount": "Navigation Aids ({count})",
+  "@navigationAidsCount": {
+    "description": "Navigation aids count label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "description": "Number of navigation aids"
+      }
+    }
+  },
+
+  "newFlightPlan": "New Flight Plan",
+  "@newFlightPlan": {
+    "description": "New flight plan button label"
+  },
+
+  "flightPlanName": "Flight Plan Name",
+  "@flightPlanName": {
+    "description": "Flight plan name field label"
+  },
+
+  "enterFlightPlanName": "Enter flight plan name",
+  "@enterFlightPlanName": {
+    "description": "Flight plan name input placeholder"
+  },
+
+  "deleteFlightPlan": "Delete Flight Plan",
+  "@deleteFlightPlan": {
+    "description": "Delete flight plan button label"
+  },
+
+  "loadedFlightPlan": "Loaded flight plan: {name}",
+  "@loadedFlightPlan": {
+    "description": "Flight plan loaded message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "Flight plan name"
+      }
+    }
+  },
+
+  "flightPlanDuplicated": "Flight plan duplicated",
+  "@flightPlanDuplicated": {
+    "description": "Flight plan duplicated message"
+  },
+
+  "flightPlanDeleted": "Flight plan deleted",
+  "@flightPlanDeleted": {
+    "description": "Flight plan deleted message"
+  },
+
+  "editWaypoint": "Edit Waypoint {index}",
+  "@editWaypoint": {
+    "description": "Edit waypoint dialog title",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "description": "Waypoint index"
+      }
+    }
+  },
+
+  "deleteWaypoint": "Delete Waypoint",
+  "@deleteWaypoint": {
+    "description": "Delete waypoint button label"
+  },
+
+  "areYouSureDeleteWaypoint": "Are you sure you want to delete waypoint \"{name}\"?",
+  "@areYouSureDeleteWaypoint": {
+    "description": "Delete waypoint confirmation message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "Waypoint name"
+      }
+    }
+  },
+
+  "position": "Position",
+  "@position": {
+    "description": "Position field label"
+  },
+
+  "waypointName": "Name",
+  "@waypointName": {
+    "description": "Waypoint name field label"
+  },
+
+  "enterWaypointName": "Enter waypoint name",
+  "@enterWaypointName": {
+    "description": "Waypoint name input placeholder"
+  },
+
+  "altitudeFtMsl": "Altitude (ft MSL)",
+  "@altitudeFtMsl": {
+    "description": "Altitude in feet MSL field label"
+  },
+
+  "altitudeMetersMsl": "Altitude (m MSL)",
+  "@altitudeMetersMsl": {
+    "description": "Altitude in meters MSL field label"
+  },
+
+  "enterAltitudeInFeet": "Enter altitude in feet",
+  "@enterAltitudeInFeet": {
+    "description": "Altitude input placeholder"
+  },
+
+  "pilotLicenses": "Pilot Licenses",
+  "@pilotLicenses": {
+    "description": "Pilot licenses screen title"
+  },
+
+  "addYourFirstLicense": "Add Your First License",
+  "@addYourFirstLicense": {
+    "description": "Button to add first license"
+  },
+
+  "deleteLicense": "Delete License",
+  "@deleteLicense": {
+    "description": "Delete license button label"
+  },
+
+  "areYouSureDeleteLicense": "Are you sure you want to delete \"{name}\"?",
+  "@areYouSureDeleteLicense": {
+    "description": "Delete license confirmation message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "License name"
+      }
+    }
+  },
+
+  "assignToPilot": "Assign to Pilot",
+  "@assignToPilot": {
+    "description": "Assign to pilot button label"
+  },
+
+  "licenseDeletedSuccessfully": "License deleted",
+  "@licenseDeletedSuccessfully": {
+    "description": "License deleted success message"
+  },
+
+  "errorSavingLicense": "Error saving license: {error}",
+  "@errorSavingLicense": {
+    "description": "Error saving license message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "issueDate": "Issue Date",
+  "@issueDate": {
+    "description": "Issue date field label"
+  },
+
+  "expirationDate": "Expiration Date",
+  "@expirationDate": {
+    "description": "Expiration date field label"
+  },
+
+  "validFrom": "Valid From",
+  "@validFrom": {
+    "description": "Valid from date field label"
+  },
+
+  "validTo": "Valid To",
+  "@validTo": {
+    "description": "Valid to date field label"
+  },
+
+  "hasExpiration": "Has Expiration",
+  "@hasExpiration": {
+    "description": "Has expiration checkbox label"
+  },
+
+  "licenseImages": "License Images",
+  "@licenseImages": {
+    "description": "License images section title"
+  },
+
+  "noImagesYet": "No images yet",
+  "@noImagesYet": {
+    "description": "No images message"
+  },
+
+  "addPhotosOfLicense": "Add photos of your license",
+  "@addPhotosOfLicense": {
+    "description": "Add license photos instruction"
+  },
+
+  "deleteFlight": "Delete Flight",
+  "@deleteFlight": {
+    "description": "Delete flight button label"
+  },
+
+  "flightDeletedSuccessfully": "Flight deleted successfully",
+  "@flightDeletedSuccessfully": {
+    "description": "Flight deleted success message"
+  },
+
+  "errorDeletingFlight": "Error deleting flight: {error}",
+  "@errorDeletingFlight": {
+    "description": "Error deleting flight message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "logbookEntryCreatedSuccessfully": "Logbook entry created successfully",
+  "@logbookEntryCreatedSuccessfully": {
+    "description": "Logbook entry created success message"
+  },
+
+  "errorCreatingLogbookEntry": "Error creating logbook entry: {error}",
+  "@errorCreatingLogbookEntry": {
+    "description": "Error creating logbook entry message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "departureAirport": "Departure Airport",
+  "@departureAirport": {
+    "description": "Departure airport field label"
+  },
+
+  "arrivalAirport": "Arrival Airport",
+  "@arrivalAirport": {
+    "description": "Arrival airport field label"
+  },
+
+  "pilotInCommand": "Pilot in Command",
+  "@pilotInCommand": {
+    "description": "Pilot in command field label"
+  },
+
+  "secondInCommand": "Second in Command",
+  "@secondInCommand": {
+    "description": "Second in command field label"
+  },
+
+  "flightSummary": "Flight Summary",
+  "@flightSummary": {
+    "description": "Flight summary section title"
+  },
+
+  "flightDetails": "Flight Details",
+  "@flightDetails": {
+    "description": "Flight details section title"
+  },
+
+  "timeTracking": "Time Tracking",
+  "@timeTracking": {
+    "description": "Time tracking section title"
+  },
+
+  "maxSpeed": "Max Speed",
+  "@maxSpeed": {
+    "description": "Maximum speed label"
+  },
+
+  "maxAltitude": "Max Altitude",
+  "@maxAltitude": {
+    "description": "Maximum altitude label"
+  },
+
+  "distance": "Distance",
+  "@distance": {
+    "description": "Distance label"
+  },
+
+  "avgSpeed": "Avg Speed",
+  "@avgSpeed": {
+    "description": "Average speed label"
+  },
+
+  "startAlt": "Start Alt",
+  "@startAlt": {
+    "description": "Starting altitude label"
+  },
+
+  "endAlt": "End Alt",
+  "@endAlt": {
+    "description": "Ending altitude label"
+  },
+
+  "flightSegments": "Flight Segments",
+  "@flightSegments": {
+    "description": "Flight segments section title"
+  },
+
+  "noSegmentsDataAvailable": "No segments data available",
+  "@noSegmentsDataAvailable": {
+    "description": "No segments data message"
+  },
+
+  "noFlightPathDataAvailable": "No flight path data available",
+  "@noFlightPathDataAvailable": {
+    "description": "No flight path data message"
+  },
+
+  "noSpeedDataAvailable": "No speed data available\nStart tracking to see speed changes",
+  "@noSpeedDataAvailable": {
+    "description": "No speed data message"
+  },
+
+  "noTurbulenceDataAvailable": "No turbulence data available\nStart tracking to see turbulence data",
+  "@noTurbulenceDataAvailable": {
+    "description": "No turbulence data message"
+  },
+
+  "densityAltitude": "Density Altitude",
+  "@densityAltitude": {
+    "description": "Density altitude calculator title"
+  },
+
+  "weightBalance": "Weight & Balance",
+  "@weightBalance": {
+    "description": "Weight and balance calculator title"
+  },
+
+  "takeoffLanding": "Takeoff & Landing",
+  "@takeoffLanding": {
+    "description": "Takeoff and landing calculator title"
+  },
+
+  "fuelBurnCalc": "Fuel Burn",
+  "@fuelBurnCalc": {
+    "description": "Fuel burn calculator title"
+  },
+
+  "climbPerformance": "Climb Performance",
+  "@climbPerformance": {
+    "description": "Climb performance calculator title"
+  },
+
+  "cruisePerformance": "Cruise Performance",
+  "@cruisePerformance": {
+    "description": "Cruise performance calculator title"
+  },
+
+  "descentPerformance": "Descent Performance",
+  "@descentPerformance": {
+    "description": "Descent performance calculator title"
+  },
+
+  "crosswind": "Crosswind",
+  "@crosswind": {
+    "description": "Crosswind calculator title"
+  },
+
+  "windCorrection": "Wind Correction",
+  "@windCorrection": {
+    "description": "Wind correction calculator title"
+  },
+
+  "unitConversion": "Unit Conversion",
+  "@unitConversion": {
+    "description": "Unit conversion calculator title"
+  },
+
+  "fieldElevation": "Field Elevation",
+  "@fieldElevation": {
+    "description": "Field elevation field label"
+  },
+
+  "altimeterSetting": "Altimeter Setting",
+  "@altimeterSetting": {
+    "description": "Altimeter setting field label"
+  },
+
+  "pressureAltitude": "Pressure Altitude",
+  "@pressureAltitude": {
+    "description": "Pressure altitude field label"
+  },
+
+  "temperature": "Temperature",
+  "@temperature": {
+    "description": "Temperature field label"
+  },
+
+  "currentAltitude": "Current Altitude",
+  "@currentAltitude": {
+    "description": "Current altitude field label"
+  },
+
+  "targetAltitude": "Target Altitude",
+  "@targetAltitude": {
+    "description": "Target altitude field label"
+  },
+
+  "currentWeight": "Current Weight",
+  "@currentWeight": {
+    "description": "Current weight field label"
+  },
+
+  "headwindComponent": "Headwind Component",
+  "@headwindComponent": {
+    "description": "Headwind component field label"
+  },
+
+  "fuelFlowRate": "Fuel Flow Rate",
+  "@fuelFlowRate": {
+    "description": "Fuel flow rate field label"
+  },
+
+  "flightTimeHours": "Flight Time (Hours)",
+  "@flightTimeHours": {
+    "description": "Flight time in hours field label"
+  },
+
+  "minutes": "Minutes",
+  "@minutes": {
+    "description": "Minutes unit label"
+  },
+
+  "reserveTimeMinutes": "Reserve Time (Minutes)",
+  "@reserveTimeMinutes": {
+    "description": "Reserve time in minutes field label"
+  },
+
+  "availableFuel": "Available Fuel",
+  "@availableFuel": {
+    "description": "Available fuel field label"
+  },
+
+  "runwayHeading": "Runway Heading (°)",
+  "@runwayHeading": {
+    "description": "Runway heading field label"
+  },
+
+  "windDirection": "Wind Direction (°)",
+  "@windDirection": {
+    "description": "Wind direction field label"
+  },
+
+  "windSpeed": "Wind Speed",
+  "@windSpeed": {
+    "description": "Wind speed field label"
+  },
+
+  "desiredCourse": "Desired Course (°)",
+  "@desiredCourse": {
+    "description": "Desired course field label"
+  },
+
+  "trueAirspeed": "True Airspeed",
+  "@trueAirspeed": {
+    "description": "True airspeed field label"
+  },
+
+  "environmentalConditions": "Environmental Conditions",
+  "@environmentalConditions": {
+    "description": "Environmental conditions section title"
+  },
+
+  "runwayContamination": "Runway Contamination (%)",
+  "@runwayContamination": {
+    "description": "Runway contamination field label"
+  },
+
+  "aircraftWeight": "Aircraft Weight",
+  "@aircraftWeight": {
+    "description": "Aircraft weight field label"
+  },
+
+  "missingMapTiles": "Missing Map Tiles",
+  "@missingMapTiles": {
+    "description": "Missing map tiles dialog title"
+  },
+
+  "downloadNow": "Download Now",
+  "@downloadNow": {
+    "description": "Download now button label"
+  },
+
+  "later": "Later",
+  "@later": {
+    "description": "Later button label"
+  },
+
+  "couldNotGetCurrentLocation": "Could not get current location",
+  "@couldNotGetCurrentLocation": {
+    "description": "Location error message"
+  },
+
+  "errorShowingAirportDetails": "Error showing airport details",
+  "@errorShowingAirportDetails": {
+    "description": "Error showing airport details message"
+  },
+
+  "errorShowingNavaidDetails": "Error showing navaid details",
+  "@errorShowingNavaidDetails": {
+    "description": "Error showing navaid details message"
+  },
+
+  "errorShowingAirspaceDetails": "Error showing airspace details",
+  "@errorShowingAirspaceDetails": {
+    "description": "Error showing airspace details message"
+  },
+
+  "errorShowingReportingPointDetails": "Error showing reporting point details",
+  "@errorShowingReportingPointDetails": {
+    "description": "Error showing reporting point details message"
+  },
+
+  "errorShowingObstacleDetails": "Error showing obstacle details",
+  "@errorShowingObstacleDetails": {
+    "description": "Error showing obstacle details message"
+  },
+
+  "errorShowingHotspotDetails": "Error showing hotspot details",
+  "@errorShowingHotspotDetails": {
+    "description": "Error showing hotspot details message"
+  },
+
+  "heliports": "Heliports",
+  "@heliports": {
+    "description": "Heliports layer label"
+  },
+
+  "navaids": "Navaids",
+  "@navaids": {
+    "description": "Navaids layer label"
+  },
+
+  "metar": "METAR",
+  "@metar": {
+    "description": "METAR layer label"
+  },
+
+  "obstacles": "Obstacles",
+  "@obstacles": {
+    "description": "Obstacles layer label"
+  },
+
+  "hotspots": "Hotspots",
+  "@hotspots": {
+    "description": "Hotspots layer label"
+  },
+
+  "heatmap": "Heatmap",
+  "@heatmap": {
+    "description": "Heatmap layer label"
+  },
+
+  "currentAirspace": "Current Airspace",
+  "@currentAirspace": {
+    "description": "Current airspace panel title"
+  },
+
+  "planning": "Planning",
+  "@planning": {
+    "description": "Planning mode label"
+  },
+
+  "noAirspaceAtCurrentPosition": "No airspace at current position",
+  "@noAirspaceAtCurrentPosition": {
+    "description": "No airspace message"
+  },
+
+  "currentAirspaceLabel": "CURRENT AIRSPACE",
+  "@currentAirspaceLabel": {
+    "description": "Current airspace section label"
+  },
+
+  "nextAirspace": "NEXT AIRSPACE",
+  "@nextAirspace": {
+    "description": "Next airspace section label"
+  },
+
+  "airspaceExit": "AIRSPACE EXIT",
+  "@airspaceExit": {
+    "description": "Airspace exit section label"
+  },
+
+  "exitingAirspace": "Exiting {name}",
+  "@exitingAirspace": {
+    "description": "Exiting airspace message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "Airspace name"
+      }
+    }
+  },
+
+  "licenseAttentionRequired": "License Attention Required",
+  "@licenseAttentionRequired": {
+    "description": "License attention required dialog title"
+  },
+
+  "immediateAttentionRequired": "Immediate attention required",
+  "@immediateAttentionRequired": {
+    "description": "Immediate attention required message"
+  },
+
+  "mapSettings": "Map Settings",
+  "@mapSettings": {
+    "description": "Map settings section title"
+  },
+
+  "mapRotationMode": "Map Rotation Mode",
+  "@mapRotationMode": {
+    "description": "Map rotation mode setting label"
+  },
+
+  "howMapRotates": "How map and aircraft marker should rotate",
+  "@howMapRotates": {
+    "description": "Map rotation mode description"
+  },
+
+  "highPrecisionMode": "High Precision Mode",
+  "@highPrecisionMode": {
+    "description": "High precision mode setting label"
+  },
+
+  "useHighAccuracyGps": "Use high accuracy GPS (uses more battery)",
+  "@useHighAccuracyGps": {
+    "description": "High precision GPS description"
+  },
+
+  "autoCreateLogbookEntry": "Auto-create Logbook Entry",
+  "@autoCreateLogbookEntry": {
+    "description": "Auto-create logbook entry setting label"
+  },
+
+  "automaticallyCreateLogbook": "Automatically create logbook entry after flight",
+  "@automaticallyCreateLogbook": {
+    "description": "Auto-create logbook entry description"
+  },
+
+  "europeanAviation": "European Aviation",
+  "@europeanAviation": {
+    "description": "European aviation units preset"
+  },
+
+  "usGeneralAviation": "US General Aviation",
+  "@usGeneralAviation": {
+    "description": "US general aviation units preset"
+  },
+
+  "metricPreference": "Metric Preference",
+  "@metricPreference": {
+    "description": "Metric preference units preset"
+  },
+
+  "mixedInternational": "Mixed International",
+  "@mixedInternational": {
+    "description": "Mixed international units preset"
+  },
+
+  "legacyMetric": "Legacy Metric",
+  "@legacyMetric": {
+    "description": "Legacy metric units preset"
+  },
+
+  "legacyImperial": "Legacy Imperial",
+  "@legacyImperial": {
+    "description": "Legacy imperial units preset"
+  },
+
+  "resetToDefaults": "Reset to Defaults",
+  "@resetToDefaults": {
+    "description": "Reset to defaults button label"
+  },
+
+  "resetSettings": "Reset Settings",
+  "@resetSettings": {
+    "description": "Reset settings dialog title"
+  },
+
+  "settingsResetToDefaults": "Settings reset to defaults",
+  "@settingsResetToDefaults": {
+    "description": "Settings reset success message"
+  },
+
+  "refreshingAllAviationData": "Refreshing all aviation data...",
+  "@refreshingAllAviationData": {
+    "description": "Refreshing all aviation data message"
+  },
+
+  "allDataRefreshedSuccessfully": "All data refreshed successfully",
+  "@allDataRefreshedSuccessfully": {
+    "description": "All data refreshed success message"
+  },
+
+  "errorRefreshingData": "Error refreshing data: {error}",
+  "@errorRefreshingData": {
+    "description": "Error refreshing data message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "refreshingWeatherData": "Refreshing weather data...",
+  "@refreshingWeatherData": {
+    "description": "Refreshing weather data message"
+  },
+
+  "weatherDataRefreshedSuccessfully": "Weather data refreshed successfully",
+  "@weatherDataRefreshedSuccessfully": {
+    "description": "Weather data refreshed success message"
+  },
+
+  "errorRefreshingWeatherData": "Error refreshing weather data: {error}",
+  "@errorRefreshingWeatherData": {
+    "description": "Error refreshing weather data message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorLoadingCacheStats": "Error loading cache stats: {error}",
+  "@errorLoadingCacheStats": {
+    "description": "Error loading cache stats message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "clearCache": "Clear Cache",
+  "@clearCache": {
+    "description": "Clear cache button label"
+  },
+
+  "cacheCleared": "Cache cleared successfully",
+  "@cacheCleared": {
+    "description": "Cache cleared success message"
+  },
+
+  "allCachesCleared": "All caches cleared successfully",
+  "@allCachesCleared": {
+    "description": "All caches cleared success message"
+  },
+
+  "errorClearingCache": "Error clearing cache: {error}",
+  "@errorClearingCache": {
+    "description": "Error clearing cache message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "airportInformation": "Airport information and details",
+  "@airportInformation": {
+    "description": "Airport information description"
+  },
+
+  "vorNdbNavigation": "VOR, NDB, and other navigation aids",
+  "@vorNdbNavigation": {
+    "description": "VOR/NDB navigation description"
+  },
+
+  "runwayInformation": "Runway information for airports",
+  "@runwayInformation": {
+    "description": "Runway information description"
+  },
+
+  "radioFrequencies": "Radio frequencies for airports",
+  "@radioFrequencies": {
+    "description": "Radio frequencies description"
+  },
+
+  "additionalRunwayData": "Additional runway data",
+  "@additionalRunwayData": {
+    "description": "Additional runway data description"
+  },
+
+  "additionalFrequencyData": "Additional frequency data",
+  "@additionalFrequencyData": {
+    "description": "Additional frequency data description"
+  },
+
+  "controlledAirspaces": "Controlled airspaces and restricted areas",
+  "@controlledAirspaces": {
+    "description": "Controlled airspaces description"
+  },
+
+  "vfrReportingPoints": "VFR reporting points for navigation",
+  "@vfrReportingPoints": {
+    "description": "VFR reporting points description"
+  },
+
+  "towersObstacles": "Towers, buildings, and other obstacles",
+  "@towersObstacles": {
+    "description": "Towers and obstacles description"
+  },
+
+  "thermalActivity": "Thermal activity and gliding hotspots",
+  "@thermalActivity": {
+    "description": "Thermal activity description"
+  },
+
+  "navigationAids": "Navigation Aids",
+  "@navigationAids": {
+    "description": "Navigation aids section title"
+  },
+
+  "additionalRunways": "Additional Runways",
+  "@additionalRunways": {
+    "description": "Additional runways section title"
+  },
+
+  "additionalFrequencies": "Additional Frequencies",
+  "@additionalFrequencies": {
+    "description": "Additional frequencies section title"
+  },
+
+  "reportingPoints": "Reporting Points",
+  "@reportingPoints": {
+    "description": "Reporting points section title"
+  },
+
+  "photos": "Photos",
+  "@photos": {
+    "description": "Photos section title"
+  },
+
+  "documents": "Documents",
+  "@documents": {
+    "description": "Documents section title"
+  },
+
+  "noPhotosYet": "No photos yet",
+  "@noPhotosYet": {
+    "description": "No photos message"
+  },
+
+  "addPhotosFromGallery": "Add photos from gallery or take new ones",
+  "@addPhotosFromGallery": {
+    "description": "Add photos instruction"
+  },
+
+  "addDocument": "Add Document",
+  "@addDocument": {
+    "description": "Add document button label"
+  },
+
+  "addDocumentImage": "Add Document Image",
+  "@addDocumentImage": {
+    "description": "Add document image button label"
+  },
+
+  "deleteDocument": "Delete Document",
+  "@deleteDocument": {
+    "description": "Delete document button label"
+  },
+
+  "deletePhoto": "Delete Photo",
+  "@deletePhoto": {
+    "description": "Delete photo button label"
+  },
+
+  "areYouSureDeletePhoto": "Are you sure you want to delete this photo?",
+  "@areYouSureDeletePhoto": {
+    "description": "Delete photo confirmation message"
+  },
+
+  "takePhoto": "Take Photo",
+  "@takePhoto": {
+    "description": "Take photo button label"
+  },
+
+  "chooseFromGallery": "Choose from Gallery",
+  "@chooseFromGallery": {
+    "description": "Choose from gallery button label"
+  },
+
+  "addFromGallery": "Add from gallery",
+  "@addFromGallery": {
+    "description": "Add from gallery button label"
+  },
+
+  "addPicture": "Add Picture",
+  "@addPicture": {
+    "description": "Add picture button label"
+  },
+
+  "errorAddingDocument": "Error adding document: {error}",
+  "@errorAddingDocument": {
+    "description": "Error adding document message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorDeletingDocument": "Error deleting document: {error}",
+  "@errorDeletingDocument": {
+    "description": "Error deleting document message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorOpeningDocument": "Error opening document: {error}",
+  "@errorOpeningDocument": {
+    "description": "Error opening document message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorDeletingPhoto": "Error deleting photo: {error}",
+  "@errorDeletingPhoto": {
+    "description": "Error deleting photo message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorPickingImage": "Error picking image: {error}",
+  "@errorPickingImage": {
+    "description": "Error picking image message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorTakingPhoto": "Error taking photo: {error}",
+  "@errorTakingPhoto": {
+    "description": "Error taking photo message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "documentAddedSuccessfully": "Document added successfully",
+  "@documentAddedSuccessfully": {
+    "description": "Document added success message"
+  },
+
+  "documentDeleted": "Document deleted",
+  "@documentDeleted": {
+    "description": "Document deleted success message"
+  },
+
+  "photoAddedSuccessfully": "Photo added successfully",
+  "@photoAddedSuccessfully": {
+    "description": "Photo added success message"
+  },
+
+  "photoDeleted": "Photo deleted",
+  "@photoDeleted": {
+    "description": "Photo deleted success message"
+  },
+
+  "tapToOpen": "Tap to open",
+  "@tapToOpen": {
+    "description": "Tap to open instruction"
+  },
+
+  "fileNotFound": "File not found",
+  "@fileNotFound": {
+    "description": "File not found error message"
+  },
+
+  "confirm": "Confirm",
+  "@confirm": {
+    "description": "Confirm button label"
+  },
+
+  "update": "Update",
+  "@update": {
+    "description": "Update button label"
+  },
+
+  "remove": "Remove",
+  "@remove": {
+    "description": "Remove button label"
+  },
+
+  "create": "Create",
+  "@create": {
+    "description": "Create button label"
+  },
+
+  "clear": "Clear",
+  "@clear": {
+    "description": "Clear button label"
+  },
+
+  "reset": "Reset",
+  "@reset": {
+    "description": "Reset button label"
+  },
+
+  "open": "Open",
+  "@open": {
+    "description": "Open button label"
+  },
+
+  "view": "View",
+  "@view": {
+    "description": "View button label"
+  },
+
+  "manage": "Manage",
+  "@manage": {
+    "description": "Manage button label"
+  },
+
+  "loadToMap": "Load to Map",
+  "@loadToMap": {
+    "description": "Load to map button label"
+  },
+
+  "editName": "Edit Name",
+  "@editName": {
+    "description": "Edit name button label"
+  },
+
+  "duplicate": "Duplicate",
+  "@duplicate": {
+    "description": "Duplicate button label"
+  },
+
+  "setAsCurrent": "Set as Current",
+  "@setAsCurrent": {
+    "description": "Set as current button label"
+  },
+
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button label"
+  },
+
+  "stopDownload": "Stop Download",
+  "@stopDownload": {
+    "description": "Stop download button label"
+  },
+
+  "manageLicenses": "Manage Licenses",
+  "@manageLicenses": {
+    "description": "Manage licenses button label"
+  },
+
+  "setQnh": "Set QNH",
+  "@setQnh": {
+    "description": "Set QNH button label"
+  },
+
+  "close": "Close",
+  "@close": {
+    "description": "Close button label"
+  },
+
+  "zoomIn": "Zoom in",
+  "@zoomIn": {
+    "description": "Zoom in button label"
+  },
+
+  "zoomOut": "Zoom out",
+  "@zoomOut": {
+    "description": "Zoom out button label"
+  },
+
+  "maximumZoomReached": "Maximum zoom reached",
+  "@maximumZoomReached": {
+    "description": "Maximum zoom reached message"
+  },
+
+  "minimumZoomReached": "Minimum zoom reached",
+  "@minimumZoomReached": {
+    "description": "Minimum zoom reached message"
+  },
+
+  "refreshAllData": "Refresh all data",
+  "@refreshAllData": {
+    "description": "Refresh all data button label"
+  },
+
+  "clearAllCaches": "Clear all caches",
+  "@clearAllCaches": {
+    "description": "Clear all caches button label"
+  },
+
+  "clearMapCache": "Clear map cache",
+  "@clearMapCache": {
+    "description": "Clear map cache button label"
+  },
+
+  "refreshWeatherData": "Refresh weather data",
+  "@refreshWeatherData": {
+    "description": "Refresh weather data button label"
+  },
+
+  "startTracking": "Start",
+  "@startTracking": {
+    "description": "Start tracking button label"
+  },
+
+  "stopTracking": "Stop",
+  "@stopTracking": {
+    "description": "Stop tracking button label"
+  },
+
+  "errorSavingManufacturer": "Error saving manufacturer: {error}",
+  "@errorSavingManufacturer": {
+    "description": "Error saving manufacturer message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorSavingModel": "Error saving model: {error}",
+  "@errorSavingModel": {
+    "description": "Error saving model message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "errorSavingAircraft": "Error saving aircraft: {error}",
+  "@errorSavingAircraft": {
+    "description": "Error saving aircraft message",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error message"
+      }
+    }
+  },
+
+  "couldNotLaunchUrl": "Could not launch {url}",
+  "@couldNotLaunchUrl": {
+    "description": "Could not launch URL message",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "description": "URL that could not be launched"
+      }
+    }
+  },
+
+  "invalidUrlFormat": "Invalid URL format",
+  "@invalidUrlFormat": {
+    "description": "Invalid URL format error message"
+  },
+
+  "alt": "ALT",
+  "@alt": {
+    "description": "Altitude abbreviation for flight dashboard"
+  },
+
+  "speed": "SPEED",
+  "@speed": {
+    "description": "Speed label for flight dashboard"
+  },
+
+  "time": "TIME",
+  "@time": {
+    "description": "Time label for flight dashboard"
+  },
+
+  "dist": "DIST",
+  "@dist": {
+    "description": "Distance abbreviation for flight dashboard"
+  },
+
+  "verticalSpeed": "V/S",
+  "@verticalSpeed": {
+    "description": "Vertical speed abbreviation for flight dashboard"
+  },
+
+  "gForce": "G",
+  "@gForce": {
+    "description": "G-force abbreviation for flight dashboard"
+  },
+
+  "next": "NEXT",
+  "@next": {
+    "description": "Next waypoint label for flight dashboard"
+  },
+
+  "eta": "ETA",
+  "@eta": {
+    "description": "Estimated time of arrival abbreviation"
+  },
+
+  "press": "PRESS",
+  "@press": {
+    "description": "Pressure abbreviation for flight dashboard"
+  },
+
+  "qnh": "QNH",
+  "@qnh": {
+    "description": "QNH pressure setting abbreviation"
+  },
+
+  "fuel": "FUEL",
+  "@fuel": {
+    "description": "Fuel label for flight dashboard"
+  },
+
+  "current": "Current",
+  "@current": {
+    "description": "Current label"
+  },
+
+  "recordingStarted": "Recording Started",
+  "@recordingStarted": {
+    "description": "Recording started message"
+  },
+
+  "recordingStopped": "Recording Stopped",
+  "@recordingStopped": {
+    "description": "Recording stopped message"
+  },
+
+  "firstMovement": "First Movement",
+  "@firstMovement": {
+    "description": "First movement label"
+  },
+
+  "lastMovement": "Last Movement",
+  "@lastMovement": {
+    "description": "Last movement label"
+  },
+
+  "totalRecording": "Total Recording",
+  "@totalRecording": {
+    "description": "Total recording time label"
+  },
+
+  "totalMoving": "Total Moving",
+  "@totalMoving": {
+    "description": "Total moving time label"
+  },
+
+  "departure": "Departure",
+  "@departure": {
+    "description": "Departure label"
+  },
+
+  "arrival": "Arrival",
+  "@arrival": {
+    "description": "Arrival label"
+  },
+
+  "stopFlightTracking": "Stop Flight Tracking?",
+  "@stopFlightTracking": {
+    "description": "Stop flight tracking dialog title"
+  },
+
+  "areYouSureStopTracking": "Are you sure you want to stop flight tracking?",
+  "@areYouSureStopTracking": {
+    "description": "Stop flight tracking confirmation message"
+  },
+
+  "initializingFlightSystems": "Initializing flight systems...",
+  "@initializingFlightSystems": {
+    "description": "Initializing flight systems loading message"
+  },
+
+  "yourDigitalCopilot": "Your digital co-pilot for VFR flights",
+  "@yourDigitalCopilot": {
+    "description": "App tagline"
+  },
+
+  "loadData": "Load Data",
+  "@loadData": {
+    "description": "Load data button label"
+  },
+
+  "loadingAirspaces": "Loading airspaces",
+  "@loadingAirspaces": {
+    "description": "Loading airspaces message"
+  },
+
+  "someDataStillLoading": "Some data may still be loading...",
+  "@someDataStillLoading": {
+    "description": "Some data still loading message"
+  },
+
+  "noHeatmapDataYet": "No heatmap data yet",
+  "@noHeatmapDataYet": {
+    "description": "No heatmap data message"
+  },
+
+  "pleaseOpenFromMap": "Please open this screen from the map to download the current area",
+  "@pleaseOpenFromMap": {
+    "description": "Please open from map instruction"
+  },
+
+  "totalHours": "Total Hours",
+  "@totalHours": {
+    "description": "Total hours label for logbook"
+  },
+
+  "singleEngine": "Single Engine",
+  "@singleEngine": {
+    "description": "Single engine label for logbook"
+  },
+
+  "multiEngine": "Multi Engine",
+  "@multiEngine": {
+    "description": "Multi engine label for logbook"
+  },
+
+  "asPic": "As PIC",
+  "@asPic": {
+    "description": "As pilot in command label for logbook"
+  },
+
+  "asSic": "As SIC",
+  "@asSic": {
+    "description": "As second in command label for logbook"
+  },
+
+  "solo": "Solo",
+  "@solo": {
+    "description": "Solo flight label for logbook"
+  },
+
+  "vfr": "VFR",
+  "@vfr": {
+    "description": "VFR (Visual Flight Rules) label"
+  },
+
+  "ifr": "IFR",
+  "@ifr": {
+    "description": "IFR (Instrument Flight Rules) label"
+  },
+
+  "day": "Day",
+  "@day": {
+    "description": "Day flight label"
+  },
+
+  "night": "Night",
+  "@night": {
+    "description": "Night flight label"
+  },
+
+  "simulatorVfr": "Simulator VFR",
+  "@simulatorVfr": {
+    "description": "Simulator VFR label for logbook"
+  },
+
+  "simulatorIfr": "Simulator IFR",
+  "@simulatorIfr": {
+    "description": "Simulator IFR label for logbook"
+  },
+
+  "total": "Total",
+  "@total": {
+    "description": "Total label"
+  },
+
+  "hours": "Hours",
+  "@hours": {
+    "description": "Hours unit label"
+  },
+
+  "takeoffsLandings": "Takeoffs/Landings",
+  "@takeoffsLandings": {
+    "description": "Takeoffs and landings section title"
+  },
+
+  "dayNight": "Day/Night",
+  "@dayNight": {
+    "description": "Day/Night section title"
+  },
+
+  "vfrIfr": "VFR/IFR",
+  "@vfrIfr": {
+    "description": "VFR/IFR section title"
+  },
+
+  "dayTakeoffs": "Day Takeoffs",
+  "@dayTakeoffs": {
+    "description": "Day takeoffs label"
+  },
+
+  "nightTakeoffs": "Night Takeoffs",
+  "@nightTakeoffs": {
+    "description": "Night takeoffs label"
+  },
+
+  "dayLandings": "Day Landings",
+  "@dayLandings": {
+    "description": "Day landings label"
+  },
+
+  "nightLandings": "Night Landings",
+  "@nightLandings": {
+    "description": "Night landings label"
+  },
+
+  "engineType": "Engine Type",
+  "@engineType": {
+    "description": "Engine type label"
+  },
+
+  "flightTraining": "Flight Training",
+  "@flightTraining": {
+    "description": "Flight training label"
+  },
+
+  "groundTraining": "Ground Training",
+  "@groundTraining": {
+    "description": "Ground training label"
+  },
+
+  "simulator": "Simulator",
+  "@simulator": {
+    "description": "Simulator label"
+  },
+
+  "flightNotes": "Flight Notes",
+  "@flightNotes": {
+    "description": "Flight notes label"
+  },
+
+  "viewOriginalFlightLog": "View Original Flight Log",
+  "@viewOriginalFlightLog": {
+    "description": "View original flight log button label"
+  },
+
+  "flightId": "Flight ID: {id}",
+  "@flightId": {
+    "description": "Flight ID label",
+    "placeholders": {
+      "id": {
+        "type": "String",
+        "description": "Flight ID"
+      }
+    }
+  },
+
+  "deleteEntry": "Delete Entry",
+  "@deleteEntry": {
+    "description": "Delete entry button label"
+  },
+
+  "deletePilot": "Delete Pilot",
+  "@deletePilot": {
+    "description": "Delete pilot button label"
+  },
+
+  "addNewPilot": "Add New Pilot",
+  "@addNewPilot": {
+    "description": "Add new pilot button label"
+  },
+
+  "addEndorsement": "Add Endorsement",
+  "@addEndorsement": {
+    "description": "Add endorsement button label"
+  },
+
+  "editEndorsement": "Edit Endorsement",
+  "@editEndorsement": {
+    "description": "Edit endorsement button label"
+  },
+
+  "deleteEndorsement": "Delete Endorsement",
+  "@deleteEndorsement": {
+    "description": "Delete endorsement button label"
+  },
+
+  "pilotName": "Name",
+  "@pilotName": {
+    "description": "Pilot name field label"
+  },
+
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+
+  "phone": "Phone",
+  "@phone": {
+    "description": "Phone field label"
+  },
+
+  "certificateNumber": "Certificate Number",
+  "@certificateNumber": {
+    "description": "Certificate number field label"
+  },
+
+  "aircraftType": "Aircraft Type",
+  "@aircraftType": {
+    "description": "Aircraft type field label"
+  },
+
+  "aircraftId": "Aircraft ID",
+  "@aircraftId": {
+    "description": "Aircraft ID field label"
+  },
+
+  "selectCategory": "Select Category",
+  "@selectCategory": {
+    "description": "Select category dropdown label"
+  },
+
+  "flightReview": "Flight Review",
+  "@flightReview": {
+    "description": "Flight review endorsement category"
+  },
+
+  "ipc": "IPC",
+  "@ipc": {
+    "description": "IPC (Instrument Proficiency Check) endorsement category"
+  },
+
+  "checkRide": "Check Ride",
+  "@checkRide": {
+    "description": "Check ride endorsement category"
+  },
+
+  "faa6158": "FAA 61.58",
+  "@faa6158": {
+    "description": "FAA 61.58 endorsement category"
+  },
+
+  "nvgProficiency": "NVG Proficiency",
+  "@nvgProficiency": {
+    "description": "Night Vision Goggle proficiency endorsement category"
+  },
+
+  "simulatedConditions": "Simulated Conditions",
+  "@simulatedConditions": {
+    "description": "Simulated conditions endorsement category"
+  },
+
+  "endorsementTitle": "Title",
+  "@endorsementTitle": {
+    "description": "Endorsement title field label"
+  },
+
+  "additionalDetails": "Additional details",
+  "@additionalDetails": {
+    "description": "Additional details field label"
+  },
+
+  "info": "Info",
+  "@info": {
+    "description": "Info tab label"
+  },
+
+  "runways": "Runways",
+  "@runways": {
+    "description": "Runways tab label"
+  },
+
+  "frequencies": "Frequencies",
+  "@frequencies": {
+    "description": "Frequencies tab label"
+  },
+
+  "notams": "NOTAMs",
+  "@notams": {
+    "description": "NOTAMs tab label"
+  },
+
+  "visitWebsite": "Visit Website",
+  "@visitWebsite": {
+    "description": "Visit website button label"
+  },
+
+  "callAirport": "Call {number}",
+  "@callAirport": {
+    "description": "Call airport button label",
+    "placeholders": {
+      "number": {
+        "type": "String",
+        "description": "Phone number"
+      }
+    }
+  },
+
+  "navigateToAirport": "Navigate to Airport",
+  "@navigateToAirport": {
+    "description": "Navigate to airport button label"
+  },
+
+  "icao": "ICAO",
+  "@icao": {
+    "description": "ICAO code label"
+  },
+
+  "iata": "IATA",
+  "@iata": {
+    "description": "IATA code label"
+  },
+
+  "name": "Name",
+  "@name": {
+    "description": "Name field label"
+  },
+
+  "city": "City",
+  "@city": {
+    "description": "City field label"
+  },
+
+  "lighted": "Lighted",
+  "@lighted": {
+    "description": "Lighted field label"
+  },
+
+  "closed": "Closed",
+  "@closed": {
+    "description": "Closed status label"
+  },
+
+  "type": "Type",
+  "@type": {
+    "description": "Type field label"
+  },
+
+  "frequency": "Frequency",
+  "@frequency": {
+    "description": "Frequency field label"
+  },
+
+  "dmeFrequency": "DME Frequency",
+  "@dmeFrequency": {
+    "description": "DME frequency field label"
+  },
+
+  "dmeChannel": "DME Channel",
+  "@dmeChannel": {
+    "description": "DME channel field label"
+  },
+
+  "elevation": "Elevation",
+  "@elevation": {
+    "description": "Elevation field label"
+  },
+
+  "country": "Country",
+  "@country": {
+    "description": "Country field label"
+  },
+
+  "usage": "Usage",
+  "@usage": {
+    "description": "Usage field label"
+  },
+
+  "power": "Power",
+  "@power": {
+    "description": "Power field label"
+  },
+
+  "associatedAirport": "Associated Airport",
+  "@associatedAirport": {
+    "description": "Associated airport field label"
+  },
+
+  "coordinates": "Coordinates",
+  "@coordinates": {
+    "description": "Coordinates field label"
+  },
+
+  "date": "Date",
+  "@date": {
+    "description": "Date field label"
+  },
+
+  "cruiseSpeedKts": "Cruise Speed (kts)",
+  "@cruiseSpeedKts": {
+    "description": "Cruise speed in knots field label"
+  },
+
+  "fuelConsumptionGph": "Fuel Consumption (GPH)",
+  "@fuelConsumptionGph": {
+    "description": "Fuel consumption in gallons per hour field label"
+  },
+
+  "maxAltitudeFt": "Max Altitude (ft)",
+  "@maxAltitudeFt": {
+    "description": "Maximum altitude in feet field label"
+  },
+
+  "fuelCapacityGal": "Fuel Capacity (gal)",
+  "@fuelCapacityGal": {
+    "description": "Fuel capacity in gallons field label"
+  },
+
+  "maxClimbRateFpm": "Max Climb Rate (fpm)",
+  "@maxClimbRateFpm": {
+    "description": "Maximum climb rate in feet per minute field label"
+  },
+
+  "maxDescentRateFpm": "Max Descent Rate (fpm)",
+  "@maxDescentRateFpm": {
+    "description": "Maximum descent rate in feet per minute field label"
+  },
+
+  "maxTakeoffWeightLbs": "Max Takeoff Weight (lbs)",
+  "@maxTakeoffWeightLbs": {
+    "description": "Maximum takeoff weight in pounds field label"
+  },
+
+  "maxLandingWeightLbs": "Max Landing Weight (lbs)",
+  "@maxLandingWeightLbs": {
+    "description": "Maximum landing weight in pounds field label"
+  },
+
+  "takeoffGroundRollFt": "Takeoff Ground Roll (ft)",
+  "@takeoffGroundRollFt": {
+    "description": "Takeoff ground roll in feet field label"
+  },
+
+  "takeoffOver50ftFt": "Takeoff Over 50ft (ft)",
+  "@takeoffOver50ftFt": {
+    "description": "Takeoff over 50 feet in feet field label"
+  },
+
+  "landingGroundRollFt": "Landing Ground Roll (ft)",
+  "@landingGroundRollFt": {
+    "description": "Landing ground roll in feet field label"
+  },
+
+  "landingOver50ftFt": "Landing Over 50ft (ft)",
+  "@landingOver50ftFt": {
+    "description": "Landing over 50 feet in feet field label"
+  },
+
+  "vs1CleanKts": "Vs1 (Clean) (kts)",
+  "@vs1CleanKts": {
+    "description": "Vs1 clean configuration speed in knots field label"
+  },
+
+  "vs0LandingKts": "Vs0 (Landing) (kts)",
+  "@vs0LandingKts": {
+    "description": "Vs0 landing configuration speed in knots field label"
+  },
+
+  "vxBestAngleKts": "Vx (Best Angle) (kts)",
+  "@vxBestAngleKts": {
+    "description": "Vx best angle of climb speed in knots field label"
+  },
+
+  "vyBestRateKts": "Vy (Best Rate) (kts)",
+  "@vyBestRateKts": {
+    "description": "Vy best rate of climb speed in knots field label"
+  },
+
+  "vaManeuveringKts": "Va (Maneuvering) (kts)",
+  "@vaManeuveringKts": {
+    "description": "Va maneuvering speed in knots field label"
+  },
+
+  "vnoMaxStructuralKts": "Vno (Max Structural) (kts)",
+  "@vnoMaxStructuralKts": {
+    "description": "Vno maximum structural cruising speed in knots field label"
+  },
+
+  "vneNeverExceedKts": "Vne (Never Exceed) (kts)",
+  "@vneNeverExceedKts": {
+    "description": "Vne never exceed speed in knots field label"
+  },
+
+  "serviceCeilingFt": "Service Ceiling (ft)",
+  "@serviceCeilingFt": {
+    "description": "Service ceiling in feet field label"
+  },
+
+  "bestGlideSpeedKts": "Best Glide Speed (kts)",
+  "@bestGlideSpeedKts": {
+    "description": "Best glide speed in knots field label"
+  },
+
+  "bestGlideRatio": "Best Glide Ratio",
+  "@bestGlideRatio": {
+    "description": "Best glide ratio field label"
+  },
+
+  "emptyWeightLbs": "Empty Weight (lbs)",
+  "@emptyWeightLbs": {
+    "description": "Empty weight in pounds field label"
+  },
+
+  "emptyWeightCg": "Empty Weight CG (inches from datum)",
+  "@emptyWeightCg": {
+    "description": "Empty weight center of gravity field label"
+  },
+
+  "climbParameters": "Climb Parameters",
+  "@climbParameters": {
+    "description": "Climb parameters section title"
+  },
+
+  "flightParameters": "Flight Parameters",
+  "@flightParameters": {
+    "description": "Flight parameters section title"
+  },
+
+  "windInformation": "Wind Information",
+  "@windInformation": {
+    "description": "Wind information section title"
+  },
+
+  "inputMethod": "Input Method",
+  "@inputMethod": {
+    "description": "Input method section title"
+  },
+
+  "category": "Category",
+  "@category": {
+    "description": "Category field label"
+  },
+
+  "convert": "Convert",
+  "@convert": {
+    "description": "Convert button label"
+  },
+
+  "results": "Results",
+  "@results": {
+    "description": "Results section title"
+  },
+
+  "quickReference": "Quick Reference",
+  "@quickReference": {
+    "description": "Quick reference section title"
+  },
+
+  "weightArmInputs": "Weight & Arm Inputs",
+  "@weightArmInputs": {
+    "description": "Weight and arm inputs section title"
+  },
+
+  "descentParameters": "Descent Parameters",
+  "@descentParameters": {
+    "description": "Descent parameters section title"
+  },
+
+  "egCessnaAircraft": "e.g., Cessna Aircraft Company",
+  "@egCessnaAircraft": {
+    "description": "Example manufacturer name"
+  },
+
+  "egCessnaWebsite": "e.g., https://www.cessna.com",
+  "@egCessnaWebsite": {
+    "description": "Example manufacturer website"
+  },
+
+  "egModelC172": "e.g., C172, PA-28",
+  "@egModelC172": {
+    "description": "Example model name"
+  },
+
+  "egMyCessna172": "e.g., My Cessna 172",
+  "@egMyCessna172": {
+    "description": "Example aircraft name"
+  },
+
+  "egN123AB": "e.g., N123AB",
+  "@egN123AB": {
+    "description": "Example aircraft registration"
+  },
+
+  "egPplCplIr": "e.g., PPL, CPL, IR, Medical Class 1",
+  "@egPplCplIr": {
+    "description": "Example license types"
+  },
+
+  "egPrivatePilot": "e.g., Private Pilot License - SEP(land)",
+  "@egPrivatePilot": {
+    "description": "Example license name"
+  },
+
+  "egUkFclPpl": "e.g., UK.FCL.PPL.12345",
+  "@egUkFclPpl": {
+    "description": "Example license number"
+  },
+
+  "johnDoe": "John Doe",
+  "@johnDoe": {
+    "description": "Example pilot name"
+  },
+
+  "pilotEmail": "pilot@example.com",
+  "@pilotEmail": {
+    "description": "Example pilot email"
+  },
+
+  "phoneNumber": "+1 234 567 8900",
+  "@phoneNumber": {
+    "description": "Example phone number"
+  },
+
+  "pilotIdNumber": "123456789",
+  "@pilotIdNumber": {
+    "description": "Example pilot ID number"
+  },
+
+  "icaoCode": "ICAO",
+  "@icaoCode": {
+    "description": "ICAO code placeholder"
+  },
+
+  "icaoCodeOrName": "ICAO code or name",
+  "@icaoCodeOrName": {
+    "description": "ICAO code or name placeholder"
+  },
+
+  "egCessna172": "e.g., Cessna 172",
+  "@egCessna172": {
+    "description": "Example aircraft type"
+  },
+
+  "egN12345": "e.g., N12345",
+  "@egN12345": {
+    "description": "Example aircraft ID"
+  },
+
+  "trainingActivities": "Training activities performed",
+  "@trainingActivities": {
+    "description": "Training activities placeholder"
+  },
+
+  "groundTrainingReceived": "Ground training received",
+  "@groundTrainingReceived": {
+    "description": "Ground training placeholder"
+  },
+
+  "simulatorTrainingDetails": "Simulator training details",
+  "@simulatorTrainingDetails": {
+    "description": "Simulator training placeholder"
+  },
+
+  "additionalFlightNotes": "Additional notes about the flight",
+  "@additionalFlightNotes": {
+    "description": "Flight notes placeholder"
+  },
+
+  "enterPilotName": "Enter pilot name",
+  "@enterPilotName": {
+    "description": "Enter pilot name placeholder"
+  },
+
+  "egComplexAircraft": "e.g., Complex Aircraft",
+  "@egComplexAircraft": {
+    "description": "Example endorsement title"
+  },
+
+  "target": "Target: {value}°",
+  "@target": {
+    "description": "Target value with degree symbol",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "description": "Target value"
+      }
+    }
+  },
+
+  "northShort": "N",
+  "@northShort": {
+    "description": "North direction abbreviation"
+  },
+
+  "eastShort": "E",
+  "@eastShort": {
+    "description": "East direction abbreviation"
+  },
+
+  "southShort": "S",
+  "@southShort": {
+    "description": "South direction abbreviation"
+  },
+
+  "westShort": "W",
+  "@westShort": {
+    "description": "West direction abbreviation"
+  },
+
+  "kts": "kts",
+  "@kts": {
+    "description": "Knots unit abbreviation"
+  },
+
+  "ft": "ft",
+  "@ft": {
+    "description": "Feet unit abbreviation"
+  },
+
+  "lbs": "lbs",
+  "@lbs": {
+    "description": "Pounds unit abbreviation"
+  },
+
+  "gal": "gal",
+  "@gal": {
+    "description": "Gallons unit abbreviation"
+  },
+
+  "gph": "gph",
+  "@gph": {
+    "description": "Gallons per hour unit abbreviation"
+  },
+
+  "fpm": "fpm",
+  "@fpm": {
+    "description": "Feet per minute unit abbreviation"
+  },
+
+  "captainVfrWebsite": "www.captainvfr.com",
+  "@captainVfrWebsite": {
+    "description": "CaptainVFR website URL"
+  },
+
+  "required": "Required",
+  "@required": {
+    "description": "Required field validation message"
+  },
+
+  "invalidSpeed": "Invalid speed",
+  "@invalidSpeed": {
+    "description": "Invalid speed validation message"
+  },
+
+  "invalidConsumption": "Invalid consumption",
+  "@invalidConsumption": {
+    "description": "Invalid fuel consumption validation message"
+  },
+
+  "invalidAltitude": "Invalid altitude",
+  "@invalidAltitude": {
+    "description": "Invalid altitude validation message"
+  },
+
+  "invalidCapacity": "Invalid capacity",
+  "@invalidCapacity": {
+    "description": "Invalid fuel capacity validation message"
+  },
+
+  "invalidRate": "Invalid rate",
+  "@invalidRate": {
+    "description": "Invalid rate validation message"
+  },
+
+  "invalidWeight": "Invalid weight",
+  "@invalidWeight": {
+    "description": "Invalid weight validation message"
+  },
+
+  "saveChecklist": "Save Checklist",
+  "@saveChecklist": {
+    "description": "Save checklist button label"
+  },
+
+  "aircraftAddedSuccessfully": "Aircraft \"{name}\" added successfully",
+  "@aircraftAddedSuccessfully": {
+    "description": "Aircraft added success message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "Aircraft name"
+      }
+    }
+  },
+
+  "aircraftUpdatedSuccessfully": "Aircraft \"{name}\" updated successfully",
+  "@aircraftUpdatedSuccessfully": {
+    "description": "Aircraft updated success message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "Aircraft name"
+      }
+    }
+  },
+
+  "manufacturerSavedSuccessfully": "Manufacturer \"{name}\" saved successfully",
+  "@manufacturerSavedSuccessfully": {
+    "description": "Manufacturer saved success message",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "Manufacturer name"
+      }
+    }
   }
 }

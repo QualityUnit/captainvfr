@@ -7,6 +7,7 @@ import '../services/aircraft_settings_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 import 'checklist_item_form_dialog.dart';
 
 /// Dialog to add or edit a Checklist with its items.
@@ -48,9 +49,10 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FormThemeHelper.buildDialog(
       context: context,
-      title: widget.checklist == null ? 'Add Checklist' : 'Edit Checklist',
+      title: widget.checklist == null ? l10n.addChecklist : l10n.editChecklist,
       width: MediaQuery.of(context).size.width * 0.9,
       height: MediaQuery.of(context).size.height * 0.8,
       content: SingleChildScrollView(
@@ -62,15 +64,15 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
             children: [
               FormThemeHelper.buildFormField(
                 controller: _nameController,
-                labelText: 'Name',
+                labelText: l10n.checklistName,
                 validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Please enter a name'
+                    ? l10n.pleaseEnterName
                     : null,
               ),
               const SizedBox(height: 16),
               FormThemeHelper.buildFormField(
                 controller: _descriptionController,
-                labelText: 'Description',
+                labelText: l10n.checklistDescription,
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
@@ -78,7 +80,7 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
                 builder: (context, svc, child) {
                   return FormThemeHelper.buildDropdownField<String>(
                     value: _selectedManufacturerId,
-                    labelText: 'Manufacturer',
+                    labelText: l10n.manufacturer,
                     items: svc.manufacturers
                         .map((m) => DropdownMenuItem(
                               value: m.id,
@@ -92,7 +94,7 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
                       });
                     },
                     validator: (v) => v == null
-                        ? 'Please select manufacturer'
+                        ? l10n.pleaseSelectManufacturer
                         : null,
                   );
                 },
@@ -108,7 +110,7 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
                   );
                   return FormThemeHelper.buildDropdownField<String>(
                     value: _selectedModelId,
-                    labelText: 'Model',
+                    labelText: l10n.model,
                     items: models
                         .map((m) => DropdownMenuItem(
                               value: m.id,
@@ -118,13 +120,13 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
                     onChanged: (v) =>
                         setState(() => _selectedModelId = v),
                     validator: (v) =>
-                        v == null ? 'Please select model' : null,
+                        v == null ? l10n.pleaseSelectModel : null,
                   );
                 },
               ),
               const SizedBox(height: 24),
               Text(
-                'Items',
+                l10n.items,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryTextColor),
               ),
               const SizedBox(height: 8),
@@ -205,7 +207,7 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
                 },
                 style: FormThemeHelper.getOutlinedButtonStyle(),
                 icon: const Icon(Icons.add),
-                label: const Text('Add Item'),
+                label: Text(l10n.addItem),
               ),
             ],
           ),
@@ -215,12 +217,12 @@ class _ChecklistFormDialogState extends State<ChecklistFormDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: FormThemeHelper.getSecondaryButtonStyle(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _saveChecklist,
           style: FormThemeHelper.getPrimaryButtonStyle(),
-          child: const Text('Save Checklist'),
+          child: Text(l10n.saveChecklist),
         ),
       ],
     );

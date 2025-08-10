@@ -5,6 +5,7 @@ import '../models/model.dart';
 import '../models/manufacturer.dart';
 import '../constants/app_colors.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class ModelFormDialog extends StatefulWidget {
   final Model? model;
@@ -84,9 +85,10 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FormThemeHelper.buildDialog(
       context: context,
-      title: widget.model == null ? 'Add Model' : 'Edit Model',
+      title: widget.model == null ? l10n.addModel : l10n.editModel,
       width: MediaQuery.of(context).size.width * 0.9,
       height: MediaQuery.of(context).size.height * 0.8,
       content: SingleChildScrollView(
@@ -97,15 +99,15 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FormThemeHelper.buildSection(
-                title: 'Basic Information',
+                title: l10n.basicInformation,
                 children: [
                 FormThemeHelper.buildFormField(
                   controller: _nameController,
-                  labelText: 'Model Name *',
-                  hintText: 'e.g., C172, PA-28',
+                  labelText: '${l10n.modelName} *',
+                  hintText: l10n.egModelC172,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a model name';
+                      return l10n.pleaseEnterModelName;
                     }
                     return null;
                   },
@@ -115,7 +117,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                   builder: (context, service, child) {
                     return FormThemeHelper.buildDropdownField<String>(
                       value: _selectedManufacturerId,
-                      labelText: 'Manufacturer *',
+                      labelText: '${l10n.manufacturer} *',
                       items: service.manufacturers.map((manufacturer) {
                         return DropdownMenuItem(
                           value: manufacturer.id,
@@ -129,7 +131,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please select a manufacturer';
+                          return l10n.pleaseSelectManufacturer;
                         }
                         return null;
                       },
@@ -139,7 +141,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                 const SizedBox(height: 16),
                 FormThemeHelper.buildDropdownField<AircraftCategory>(
                   value: _selectedCategory,
-                  labelText: 'Aircraft Category *',
+                  labelText: '${l10n.aircraftCategory} *',
                   items: AircraftCategory.values.map((category) {
                     return DropdownMenuItem(
                       value: category,
@@ -160,15 +162,15 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                     Expanded(
                       child: FormThemeHelper.buildFormField(
                         controller: _engineCountController,
-                        labelText: 'Engine Count *',
+                        labelText: '${l10n.engineCount} *',
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter engine count';
+                            return l10n.pleaseEnterEngineCount;
                           }
                           final count = int.tryParse(value);
                           if (count == null || count < 1) {
-                            return 'Please enter a valid engine count';
+                            return l10n.pleaseEnterValidEngineCount;
                           }
                           return null;
                         },
@@ -178,15 +180,15 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                     Expanded(
                       child: FormThemeHelper.buildFormField(
                         controller: _maxSeatsController,
-                        labelText: 'Maximum Seats *',
+                        labelText: '${l10n.maximumSeats} *',
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter maximum seats';
+                            return l10n.pleaseEnterMaximumSeats;
                           }
                           final seats = int.tryParse(value);
                           if (seats == null || seats < 1) {
-                            return 'Please enter a valid seat count';
+                            return l10n.pleaseEnterValidSeatCount;
                           }
                           return null;
                         },
@@ -200,15 +202,15 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                     Expanded(
                       child: FormThemeHelper.buildFormField(
                         controller: _typicalCruiseSpeedController,
-                        labelText: 'Typical Cruise Speed (kts) *',
+                        labelText: '${l10n.typicalCruiseSpeed} *',
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter cruise speed';
+                            return l10n.pleaseEnterCruiseSpeed;
                           }
                           final speed = int.tryParse(value);
                           if (speed == null || speed < 1) {
-                            return 'Please enter a valid speed';
+                            return l10n.pleaseEnterValidSpeed;
                           }
                           return null;
                         },
@@ -218,15 +220,15 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                     Expanded(
                       child: FormThemeHelper.buildFormField(
                         controller: _typicalServiceCeilingController,
-                        labelText: 'Service Ceiling (ft) *',
+                        labelText: '${l10n.serviceCeiling} *',
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter service ceiling';
+                            return l10n.pleaseEnterServiceCeiling;
                           }
                           final ceiling = int.tryParse(value);
                           if (ceiling == null || ceiling < 1) {
-                            return 'Please enter a valid ceiling';
+                            return l10n.pleaseEnterValidCeiling;
                           }
                           return null;
                         },
@@ -236,18 +238,18 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                 ),
                 FormThemeHelper.buildFormField(
                   controller: _descriptionController,
-                  labelText: 'Description',
+                  labelText: l10n.description,
                   maxLines: 3,
                 ),
               ],
               ),
               const SizedBox(height: 16),
               FormThemeHelper.buildSection(
-                title: 'Optional Performance Data',
+                title: l10n.optionalPerformanceData,
                 children: [
                   FormThemeHelper.buildFormField(
                     controller: _fuelConsumptionController,
-                    labelText: 'Fuel Consumption (gph)',
+                    labelText: l10n.fuelConsumption,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 16),
@@ -256,7 +258,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                       Expanded(
                         child: FormThemeHelper.buildFormField(
                           controller: _maximumClimbRateController,
-                          labelText: 'Max Climb Rate (fpm)',
+                          labelText: l10n.maxClimbRate,
                           keyboardType: TextInputType.number,
                         ),
                       ),
@@ -264,7 +266,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                       Expanded(
                         child: FormThemeHelper.buildFormField(
                           controller: _maximumDescentRateController,
-                          labelText: 'Max Descent Rate (fpm)',
+                          labelText: l10n.maxDescentRate,
                           keyboardType: TextInputType.number,
                         ),
                       ),
@@ -276,7 +278,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                       Expanded(
                         child: FormThemeHelper.buildFormField(
                           controller: _maxTakeoffWeightController,
-                          labelText: 'Max Takeoff Weight (lbs)',
+                          labelText: l10n.maxTakeoffWeight,
                           keyboardType: TextInputType.number,
                         ),
                       ),
@@ -284,7 +286,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                       Expanded(
                         child: FormThemeHelper.buildFormField(
                           controller: _maxLandingWeightController,
-                          labelText: 'Max Landing Weight (lbs)',
+                          labelText: l10n.maxLandingWeight,
                           keyboardType: TextInputType.number,
                         ),
                       ),
@@ -293,7 +295,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                   const SizedBox(height: 16),
                   FormThemeHelper.buildFormField(
                     controller: _fuelCapacityController,
-                    labelText: 'Fuel Capacity (gallons)',
+                    labelText: l10n.fuelCapacity,
                     keyboardType: TextInputType.number,
                   ),
                 ],
@@ -306,7 +308,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           style: FormThemeHelper.getSecondaryButtonStyle(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _saveModel,
@@ -317,7 +319,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(widget.model == null ? 'Add' : 'Save'),
+              : Text(widget.model == null ? l10n.add : l10n.save),
         ),
       ],
     );
@@ -329,6 +331,8 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
     setState(() {
       _isLoading = true;
     });
+
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final service = Provider.of<AircraftSettingsService>(
@@ -417,8 +421,8 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
           SnackBar(
             content: Text(
               widget.model == null
-                  ? 'Model added successfully'
-                  : 'Model updated successfully',
+                  ? l10n.modelAddedSuccessfully
+                  : l10n.modelUpdatedSuccessfully,
             ),
           ),
         );
@@ -427,7 +431,7 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving model: $e'),
+            content: Text(l10n.errorSavingModel(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -442,11 +446,12 @@ class _ModelFormDialogState extends State<ModelFormDialog> {
   }
 
   String _getCategoryDisplayName(AircraftCategory category) {
+    final l10n = AppLocalizations.of(context)!;
     switch (category) {
       case AircraftCategory.singleEngine:
-        return 'Single Engine';
+        return l10n.singleEngine;
       case AircraftCategory.multiEngine:
-        return 'Multi Engine';
+        return l10n.multiEngine;
       case AircraftCategory.jet:
         return 'Jet';
       case AircraftCategory.helicopter:

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/aircraft_settings_service.dart';
 import '../models/manufacturer.dart';
 import '../utils/form_theme_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class ManufacturerFormDialog extends StatefulWidget {
   final Manufacturer? manufacturer;
@@ -46,9 +47,10 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FormThemeHelper.buildDialog(
       context: context,
-      title: widget.manufacturer == null ? 'Add Manufacturer' : 'Edit Manufacturer',
+      title: widget.manufacturer == null ? l10n.addManufacturer : l10n.editManufacturer,
       width: MediaQuery.of(context).size.width * 0.8,
       content: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -59,11 +61,11 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
             children: [
               FormThemeHelper.buildFormField(
                 controller: _nameController,
-                labelText: 'Manufacturer Name *',
-                hintText: 'e.g., Cessna Aircraft Company',
+                labelText: '${l10n.manufacturerName} *',
+                hintText: l10n.egCessnaAircraft,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a manufacturer name';
+                    return l10n.pleaseEnterManufacturerName;
                   }
                   return null;
                 },
@@ -71,13 +73,13 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
               const SizedBox(height: 16),
               FormThemeHelper.buildFormField(
                 controller: _websiteController,
-                labelText: 'Website',
-                hintText: 'e.g., https://www.cessna.com',
+                labelText: l10n.website,
+                hintText: l10n.egCessnaWebsite,
                 validator: (value) {
                   if (value != null && value.isNotEmpty) {
                     final uri = Uri.tryParse(value);
                     if (uri == null || (!uri.scheme.startsWith('http'))) {
-                      return 'Please enter a valid URL';
+                      return l10n.pleaseEnterValidUrl;
                     }
                   }
                   return null;
@@ -86,8 +88,8 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
               const SizedBox(height: 16),
               FormThemeHelper.buildFormField(
                 controller: _descriptionController,
-                labelText: 'Description',
-                hintText: 'Brief description of the manufacturer',
+                labelText: l10n.description,
+                hintText: l10n.briefDescriptionOfManufacturer,
                 maxLines: 3,
               ),
             ],
@@ -98,7 +100,7 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
           style: FormThemeHelper.getSecondaryButtonStyle(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _saveManufacturer,
@@ -109,7 +111,7 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(widget.manufacturer == null ? 'Add' : 'Save'),
+              : Text(widget.manufacturer == null ? l10n.add : l10n.save),
         ),
       ],
     );
@@ -121,6 +123,8 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
     setState(() {
       _isLoading = true;
     });
+
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final service = Provider.of<AircraftSettingsService>(
@@ -161,8 +165,8 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
           SnackBar(
             content: Text(
               widget.manufacturer == null
-                  ? 'Manufacturer "${manufacturer.name}" added successfully'
-                  : 'Manufacturer "${manufacturer.name}" updated successfully',
+                  ? l10n.manufacturerAddedSuccessfully
+                  : l10n.manufacturerUpdatedSuccessfully,
             ),
           ),
         );
@@ -171,7 +175,7 @@ class _ManufacturerFormDialogState extends State<ManufacturerFormDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving manufacturer: $e'),
+            content: Text(l10n.errorSavingManufacturer(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
