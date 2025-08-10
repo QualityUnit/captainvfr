@@ -152,7 +152,7 @@ class NavaidMarker extends StatelessWidget {
       case 'VOR':
       case 'VORDME':
       case 'VORTAC':
-        return Colors.blue;
+        return Colors.green;
       case 'NDB':
       case 'LOCATOR':
         return Colors.orange;
@@ -170,7 +170,7 @@ class NavaidMarker extends StatelessWidget {
       case 'IM':
         return Colors.brown;
       default:
-        return Colors.white;
+        return Colors.green;
     }
   }
 }
