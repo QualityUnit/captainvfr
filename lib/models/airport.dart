@@ -353,6 +353,10 @@ class Airport implements SpatialIndexable {
         return 'Heliport';
       case 'seaplane_base':
         return 'Seaplane Base';
+      case 'closed':
+        return 'Closed Airport';
+      case 'balloonport':
+        return 'Balloon Port';
       default:
         return 'Airport';
     }
