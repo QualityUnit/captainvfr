@@ -1957,7 +1957,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editLogBookEntry => 'Flugbucheintrag bearbeiten';
 
   @override
-  String get newLogBookEntry => 'New LogBook Entry';
+  String get newLogBookEntry => 'Neuer Bordbucheintrag';
 
   @override
   String get accelerometerNotAvailable =>
@@ -2058,58 +2058,58 @@ class AppLocalizationsDe extends AppLocalizations {
   String get conditions => 'Bedingungen';
 
   @override
-  String get timing => 'Timing';
+  String get timing => 'Zeiten';
 
   @override
   String get start => 'Start';
 
   @override
-  String get end => 'End';
+  String get end => 'Ende';
 
   @override
-  String get startMoving => 'Start Moving';
+  String get startMoving => 'Rollbeginn';
 
   @override
-  String get endMoving => 'End Moving';
+  String get endMoving => 'Rollende';
 
   @override
-  String get dayTO => 'Day T/O';
+  String get dayTO => 'Tag-Start';
 
   @override
-  String get nightTO => 'Night T/O';
+  String get nightTO => 'Nacht-Start';
 
   @override
-  String get dayLdg => 'Day Ldg';
+  String get dayLdg => 'Tag-Landung';
 
   @override
-  String get nightLdg => 'Night Ldg';
+  String get nightLdg => 'Nacht-Landung';
 
   @override
   String get optional => 'Optional';
 
   @override
-  String get currentPilot => 'Current Pilot';
+  String get currentPilot => 'Aktueller Pilot';
 
   @override
-  String get takeoffs => 'Takeoffs';
+  String get takeoffs => 'Starts';
 
   @override
-  String get landings => 'Landings';
+  String get landings => 'Landungen';
 
   @override
-  String get title => 'Title';
+  String get title => 'Titel';
 
   @override
-  String get complexAircraftExample => 'e.g., Complex Aircraft';
+  String get complexAircraftExample => 'z.B. komplexes Flugzeug';
 
   @override
-  String get pleaseEnterTitle => 'Please enter a title';
+  String get pleaseEnterTitle => 'Bitte Titel eingeben';
 
   @override
-  String get pleaseEnterDescription => 'Please enter a description';
+  String get pleaseEnterDescription => 'Bitte Beschreibung eingeben';
 
   @override
-  String get pleaseEnterPilotName => 'Please enter pilot name';
+  String get pleaseEnterPilotName => 'Bitte Pilotenname eingeben';
 
   @override
   String get tags => 'Tags';
@@ -2136,56 +2136,56 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dismiss => 'Schließen';
 
   @override
-  String get loadingRunwayData => 'Loading runway data...';
+  String get loadingRunwayData => 'Lade Pistendaten...';
 
   @override
-  String get loadingWindData => 'Loading wind data...';
+  String get loadingWindData => 'Lade Winddaten...';
 
   @override
-  String get loadingFrequencyData => 'Loading frequency data...';
+  String get loadingFrequencyData => 'Lade Frequenzdaten...';
 
   @override
-  String get pleaseSelectAircraft => 'Please select an aircraft';
+  String get pleaseSelectAircraft => 'Bitte Flugzeug auswählen';
 
   @override
   String get aircraftLacksPerformanceData =>
-      'Selected aircraft lacks performance data';
+      'Ausgewähltes Flugzeug hat keine Leistungsdaten';
 
   @override
-  String get calculateClimbPerformance => 'Calculate Climb Performance';
+  String get calculateClimbPerformance => 'Steigflugleistung berechnen';
 
   @override
-  String get calculateDescentPerformance => 'Calculate Descent Performance';
+  String get calculateDescentPerformance => 'Sinkflugleistung berechnen';
 
   @override
-  String get calculateCruisePerformance => 'Calculate Cruise Performance';
+  String get calculateCruisePerformance => 'Reiseflug-Leistung berechnen';
 
   @override
-  String get loadingWeatherData => 'Loading weather data...';
+  String get loadingWeatherData => 'Lade Wetterdaten...';
 
   @override
-  String get refreshWeather => 'Refresh Weather';
+  String get refreshWeather => 'Wetter aktualisieren';
 
   @override
   String noWeatherDataAvailable(String icao) {
-    return 'No weather data available for $icao';
+    return 'Keine Wetterdaten für $icao verfügbar';
   }
 
   @override
-  String get gettingLocation => 'Getting location...';
+  String get gettingLocation => 'Position ermitteln...';
 
   @override
-  String get acquiringGpsPosition => 'Acquiring GPS position';
+  String get acquiringGpsPosition => 'GPS-Position erfassen';
 
   @override
-  String get appTagline => 'Your digital co-pilot for VFR flights';
+  String get appTagline => 'Ihr digitaler Copilot für VFR-Flüge';
 
   @override
-  String get initializing => 'Initializing...';
+  String get initializing => 'Initialisierung...';
 
   @override
   String get noInternetConnection =>
-      'No internet connection. Some features may be limited.';
+      'Keine Internetverbindung. Einige Funktionen sind eventuell eingeschränkt.';
 
   @override
   String segmentNumber(int number) {
@@ -2197,18 +2197,18 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count waypoints',
-      one: '1 waypoint',
-      zero: 'No waypoints',
+      other: '$count Wegpunkte',
+      one: '1 Wegpunkt',
+      zero: 'Keine Wegpunkte',
     );
     return '$_temp0';
   }
 
   @override
-  String get removeLastWaypoint => 'Remove last waypoint';
+  String get removeLastWaypoint => 'Letzten Wegpunkt entfernen';
 
   @override
-  String get noWaypointsAdded => 'No waypoints added yet';
+  String get noWaypointsAdded => 'Noch keine Wegpunkte hinzugefügt';
 
   @override
   String defaultWaypointName(int number) {
@@ -2217,30 +2217,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get noRunwayDataAvailable =>
-      'No runway data available for this airport';
+      'Keine Pistendaten für diesen Flugplatz verfügbar';
 
   @override
   String runwaysCount(int count) {
-    return 'Runways ($count)';
+    return 'Pisten ($count)';
   }
 
   @override
-  String get best => 'BEST';
+  String get best => 'BESTE';
 
   @override
-  String get width => 'Width';
+  String get width => 'Breite';
 
   @override
-  String get surface => 'Surface';
+  String get surface => 'Belag';
 
   @override
-  String get notAvailable => 'N/A';
+  String get notAvailable => 'N/V';
 
   @override
   String get north => 'N';
 
   @override
-  String get east => 'E';
+  String get east => 'O';
 
   @override
   String get south => 'S';
@@ -2250,396 +2250,403 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String targetHeading(String degrees) {
-    return 'Target: $degrees°';
+    return 'Ziel: $degrees°';
   }
 
   @override
   String get nameRequired => 'Name *';
 
   @override
-  String get length => 'Length';
+  String get length => 'Länge';
 
   @override
-  String get heading => 'Heading';
+  String get heading => 'Kurs';
 
   @override
-  String get gpsSignalLost => 'GPS signal lost';
+  String get gpsSignalLost => 'GPS-Signal verloren';
 
   @override
-  String get trackingGpsPosition => 'Tracking GPS position';
+  String get trackingGpsPosition => 'GPS-Position verfolgen';
 
   @override
-  String get calibratingCompass => 'Calibrating compass...';
+  String get calibratingCompass => 'Kompass kalibrieren...';
 
   @override
-  String get moveDeviceFigureEight => 'Move device in figure 8';
+  String get moveDeviceFigureEight => 'Gerät in Achterform bewegen';
 
   @override
-  String get checkDeviceCompatibility => 'Check device compatibility';
+  String get checkDeviceCompatibility => 'Gerätekompatibilität prüfen';
 
   @override
   String speedUnit(String unit) {
-    return 'Speed ($unit)';
+    return 'Geschwindigkeit ($unit)';
   }
 
   @override
-  String get turbulenceG => 'Turbulence (g)';
+  String get turbulenceG => 'Turbulenzen (g)';
 
   @override
   String errorDeletingLicense(String error) {
-    return 'Error deleting license: $error';
+    return 'Fehler beim Löschen der Lizenz: $error';
   }
 
   @override
-  String get compassCalibrationRequested => 'Compass calibration requested';
+  String get compassCalibrationRequested => 'Kompasskalibrierung angefordert';
 
   @override
-  String get allCachesClearedSuccessfully => 'All caches cleared successfully';
+  String get allCachesClearedSuccessfully => 'Alle Caches erfolgreich geleert';
 
   @override
   String errorClearingCaches(String error) {
-    return 'Error clearing caches: $error';
+    return 'Fehler beim Leeren der Caches: $error';
   }
 
   @override
   String get pleaseOpenFromMapToDownload =>
-      'Please open this screen from the map to download the current area';
+      'Bitte öffnen Sie diese Ansicht von der Karte aus, um den aktuellen Bereich herunterzuladen';
 
   @override
   String failedToAddPicture(String error) {
-    return 'Failed to add picture: $error';
+    return 'Bild hinzufügen fehlgeschlagen: $error';
   }
 
   @override
   String failedToAddDocument(String error) {
-    return 'Failed to add document: $error';
+    return 'Dokument hinzufügen fehlgeschlagen: $error';
   }
 
   @override
   String addedPilot(String name) {
-    return 'Added pilot: $name';
+    return 'Pilot hinzugefügt: $name';
   }
 
   @override
-  String get largeDownloadWarning => 'Large Download Warning';
+  String get largeDownloadWarning => 'Warnung großer Download';
 
   @override
   String downloadingMapTiles(int count) {
-    return 'Downloading $count map tiles for flight plan...';
+    return 'Lade $count Kartenkacheln für Flugplan herunter...';
   }
 
   @override
   String get areYouSureDeleteChecklist =>
-      'Are you sure you want to delete this checklist?';
+      'Sind Sie sicher, dass Sie diese Checkliste löschen möchten?';
 
   @override
-  String get addPilotFirst => 'Add a pilot first';
+  String get addPilotFirst => 'Zuerst einen Piloten hinzufügen';
 
   @override
   String get pilotExampleEmail => 'pilot@example.com';
 
   @override
-  String get phoneExample => '+1 234 567 8900';
+  String get phoneExample => '+49 123 456 7890';
 
   @override
   String get certificateNumberExample => '123456789';
 
   @override
-  String get aircraftTypeExample => 'e.g., Cessna 172';
+  String get aircraftTypeExample => 'z.B. Cessna 172';
 
   @override
-  String get registrationExample => 'e.g., N12345';
+  String get registrationExample => 'z.B. D-ABCD';
 
   @override
-  String get trainingActivitiesPerformed => 'Training activities performed';
+  String get trainingActivitiesPerformed =>
+      'Durchgeführte Ausbildungsaktivitäten';
 
   @override
-  String get additionalNotesAboutFlight => 'Additional notes about the flight';
+  String get additionalNotesAboutFlight => 'Zusätzliche Bemerkungen zum Flug';
 
   @override
   String get aircraftShortExample => 'C172';
 
   @override
-  String get registrationShortExample => 'N12345';
+  String get registrationShortExample => 'D-ABCD';
 
   @override
-  String get useNegativeForTailwind => 'Use negative value for tailwind';
+  String get useNegativeForTailwind =>
+      'Negative Werte für Rückenwind verwenden';
 
   @override
   String get positiveTailwindNegativeHeadwind =>
-      'Positive = tailwind, Negative = headwind';
+      'Positiv = Rückenwind, Negativ = Gegenwind';
 
   @override
-  String get trueCourseToDestination => 'True course to destination';
+  String get trueCourseToDestination => 'Rechtweisender Kurs zum Ziel';
 
   @override
-  String get averageCruiseFuelConsumption => 'Average cruise fuel consumption';
+  String get averageCruiseFuelConsumption =>
+      'Durchschnittlicher Reiseflug-Kraftstoffverbrauch';
 
   @override
-  String get faaMinimumReserve => 'FAA minimum: 30 min VFR, 45 min IFR';
+  String get faaMinimumReserve => 'FAA-Minimum: 30 min VFR, 45 min IFR';
 
   @override
-  String get totalUsableFuelOnBoard => 'Total usable fuel on board';
+  String get totalUsableFuelOnBoard =>
+      'Gesamter verwendbarer Kraftstoff an Bord';
 
   @override
-  String get runwayConditionHelper => '0 = Dry, 100 = Standing water/slush';
+  String get runwayConditionHelper =>
+      '0 = Trocken, 100 = Stehendes Wasser/Schneematsch';
 
   @override
-  String get downloadCurrentArea => 'Download Current Area';
+  String get downloadCurrentArea => 'Aktuellen Bereich herunterladen';
 
   @override
-  String get addLicense => 'Add License';
+  String get addLicense => 'Lizenz hinzufügen';
 
   @override
   String refreshData(String title) {
-    return 'Refresh $title';
+    return '$title aktualisieren';
   }
 
   @override
-  String get aircraftSelection => 'Aircraft Selection';
+  String get aircraftSelection => 'Flugzeugauswahl';
 
   @override
-  String get weightAndArmInputs => 'Weight & Arm Inputs';
+  String get weightAndArmInputs => 'Gewichts- und Schwerpunkteingaben';
 
   @override
-  String get editFlightPlanName => 'Edit Flight Plan Name';
+  String get editFlightPlanName => 'Flugplanname bearbeiten';
 
   @override
-  String get downloadMapTiles => 'Download Map Tiles';
+  String get downloadMapTiles => 'Kartenkacheln herunterladen';
 
   @override
-  String get rightCrosswind => 'Right Crosswind';
+  String get rightCrosswind => 'Seitenwind von rechts';
 
   @override
-  String get leftCrosswind => 'Left Crosswind';
+  String get leftCrosswind => 'Seitenwind von links';
 
   @override
-  String get lightVariable => 'Light Variable';
+  String get lightVariable => 'Schwach und veränderlich';
 
   @override
-  String get issued => 'Issued:';
+  String get issued => 'Ausgestellt:';
 
   @override
-  String get pleaseSelectEngineType => 'Please select engine type';
+  String get pleaseSelectEngineType => 'Bitte Triebwerkstyp auswählen';
 
   @override
-  String get pilotExperience => 'Pilot Experience';
+  String get pilotExperience => 'Pilotenausbildung';
 
   @override
-  String get pleaseSelectPilotInCommand => 'Please select pilot in command';
+  String get pleaseSelectPilotInCommand =>
+      'Bitte verantwortlichen Piloten auswählen';
 
   @override
-  String get conditionsOfFlight => 'Conditions of Flight';
+  String get conditionsOfFlight => 'Flugbedingungen';
 
   @override
-  String get departuresAndLandings => 'Departures and Landings';
+  String get departuresAndLandings => 'Starts und Landungen';
 
   @override
-  String get picturesAndDocuments => 'Pictures and Documents';
+  String get picturesAndDocuments => 'Bilder und Dokumente';
 
   @override
   String picturesCount(int count) {
-    return 'Pictures ($count)';
+    return 'Bilder ($count)';
   }
 
   @override
   String documentsCount(int count) {
-    return 'Documents ($count)';
+    return 'Dokumente ($count)';
   }
 
   @override
-  String get editPilot => 'Edit Pilot';
+  String get editPilot => 'Pilot bearbeiten';
 
   @override
-  String get addPilot => 'Add Pilot';
+  String get addPilot => 'Pilot hinzufügen';
 
   @override
-  String get dateOfBirth => 'Date of Birth';
+  String get dateOfBirth => 'Geburtsdatum';
 
   @override
-  String get notSet => 'Not set';
+  String get notSet => 'Nicht festgelegt';
 
   @override
-  String get contactInformation => 'Contact Information';
+  String get contactInformation => 'Kontaktinformationen';
 
   @override
-  String get pleaseEnterValidEmail => 'Please enter a valid email';
+  String get pleaseEnterValidEmail => 'Bitte gültige E-Mail eingeben';
 
   @override
-  String get certificateInformation => 'Certificate Information';
+  String get certificateInformation => 'Lizenzinformationen';
 
   @override
-  String get setAsCurrentPilot => 'Set as current pilot';
+  String get setAsCurrentPilot => 'Als aktuellen Piloten festlegen';
 
   @override
   String get defaultPilotDescription =>
-      'This pilot will be selected by default in new entries';
+      'Dieser Pilot wird standardmäßig in neuen Einträgen ausgewählt';
 
   @override
-  String get updatePilot => 'Update Pilot';
+  String get updatePilot => 'Pilot aktualisieren';
 
   @override
-  String get certificate => 'Certificate:';
+  String get certificate => 'Lizenz:';
 
   @override
   String age(int age) {
-    return 'Age: $age years';
+    return 'Alter: $age Jahre';
   }
 
   @override
-  String get years => 'years';
+  String get years => 'Jahre';
 
   @override
   String licensesCount(int count) {
-    return '$count Licenses';
+    return '$count Lizenzen';
   }
 
   @override
   String endorsementsCount(int count) {
-    return '$count Endorsements';
+    return '$count Berechtigungen';
   }
 
   @override
   String confirmDeletePilot(String name) {
-    return 'Are you sure you want to delete $name?';
+    return 'Sind Sie sicher, dass Sie $name löschen möchten?';
   }
 
   @override
-  String get noLicensesAdded => 'No licenses added';
+  String get noLicensesAdded => 'Keine Lizenzen hinzugefügt';
 
   @override
-  String get endorsements => 'Endorsements';
+  String get endorsements => 'Berechtigungen';
 
   @override
-  String get noEndorsementsAdded => 'No endorsements added';
+  String get noEndorsementsAdded => 'Keine Berechtigungen hinzugefügt';
 
   @override
   String get confirmDeleteLicense =>
-      'Are you sure you want to delete this license?';
+      'Sind Sie sicher, dass Sie diese Lizenz löschen möchten?';
 
   @override
   String get confirmDeleteEndorsement =>
-      'Are you sure you want to delete this endorsement?';
+      'Sind Sie sicher, dass Sie diese Berechtigung löschen möchten?';
 
   @override
   String get downloadMapTilesDescription =>
-      'Download map tiles for offline use';
+      'Kartenkacheln für Offline-Nutzung herunterladen';
 
   @override
-  String get flightPlanDownloadMapTiles => 'Flight Plan Download Map Tiles';
+  String get flightPlanDownloadMapTiles =>
+      'Flugplan-Kartenkacheln herunterladen';
 
   @override
   String get automaticallyDownloadFlightPlanTiles =>
-      'Automatically download map tiles for flight plans';
+      'Kartenkacheln für Flugpläne automatisch herunterladen';
 
   @override
-  String get validateTilesOnStartup => 'Validate Tiles on Startup';
+  String get validateTilesOnStartup => 'Kacheln beim Start validieren';
 
   @override
   String get checkMissingTilesOnStartup =>
-      'Check for missing tiles when app starts';
+      'Beim App-Start nach fehlenden Kacheln suchen';
 
   @override
-  String get minZoom => 'Min Zoom Level';
+  String get minZoom => 'Minimaler Zoom-Level';
 
   @override
-  String get maxZoom => 'Max Zoom Level';
+  String get maxZoom => 'Maximaler Zoom-Level';
 
   @override
   String progressTiles(int current, int total) {
-    return '$current/$total tiles';
+    return '$current/$total Kacheln';
   }
 
   @override
   String downloadedTiles(int count) {
-    return 'Downloaded: $count tiles';
+    return 'Heruntergeladen: $count Kacheln';
   }
 
   @override
   String skippedTiles(int count) {
-    return 'Skipped: $count tiles';
+    return 'Übersprungen: $count Kacheln';
   }
 
   @override
   String downloadedTilesWithSkipped(int downloaded, int skipped) {
-    return 'Downloaded $downloaded tiles, skipped $skipped';
+    return '$downloaded Kacheln heruntergeladen, $skipped übersprungen';
   }
 
   @override
   String downloadedTilesSuccessfully(int count) {
-    return 'Downloaded $count tiles successfully';
+    return '$count Kacheln erfolgreich heruntergeladen';
   }
 
   @override
-  String get downloadCancelled => 'Download cancelled';
+  String get downloadCancelled => 'Download abgebrochen';
 
   @override
   String downloadFailed(String error) {
-    return 'Download failed: $error';
+    return 'Download fehlgeschlagen: $error';
   }
 
   @override
-  String get supplementalData => 'Supplemental data';
+  String get supplementalData => 'Ergänzende Daten';
 
   @override
   String largeDownloadDescription(int count) {
-    return 'This will download approximately $count map tiles. This may take a while and use significant data. Continue?';
+    return 'Hierdurch werden etwa $count Kartenkacheln heruntergeladen. Das kann eine Weile dauern und erhebliche Datenmengen verbrauchen. Fortfahren?';
   }
 
   @override
-  String get continueText => 'Continue';
+  String get continueText => 'Fortfahren';
 
   @override
-  String get mapLayers => 'Map Layers';
+  String get mapLayers => 'Kartenebenen';
 
   @override
-  String get loadingAirports => 'Loading airports...';
+  String get loadingAirports => 'Lade Flugplätze...';
 
   @override
-  String get loadingRunways => 'Loading runways...';
+  String get loadingRunways => 'Lade Pisten...';
 
   @override
-  String get loadingNavaids => 'Loading navaids...';
+  String get loadingNavaids => 'Lade Navigationshilfen...';
 
   @override
-  String get loadingFrequencies => 'Loading frequencies...';
+  String get loadingFrequencies => 'Lade Frequenzen...';
 
   @override
-  String get dataLoadingComplete => 'Data loading complete';
+  String get dataLoadingComplete => 'Datenladevorgang abgeschlossen';
 
   @override
   String confirmDeleteModel(String name) {
-    return 'Are you sure you want to delete \"$name\"?';
+    return 'Sind Sie sicher, dass Sie \"$name\" löschen möchten?';
   }
 
   @override
   String deletedModel(String name) {
-    return 'Deleted \"$name\"';
+    return '\"$name\" gelöscht';
   }
 
   @override
   String confirmDeleteAircraft(String name) {
-    return 'Are you sure you want to delete \"$name\"?';
+    return 'Sind Sie sicher, dass Sie \"$name\" löschen möchten?';
   }
 
   @override
   String deletedAircraft(String name) {
-    return 'Deleted \"$name\"';
+    return '\"$name\" gelöscht';
   }
 
   @override
   String deletedManufacturer(String name) {
-    return 'Deleted \"$name\"';
+    return '\"$name\" gelöscht';
   }
 
   @override
   String confirmDeleteManufacturer(String name) {
-    return 'Are you sure you want to delete \"$name\"? This will also delete all associated models.';
+    return 'Sind Sie sicher, dass Sie \"$name\" löschen möchten? Dadurch werden auch alle zugehörigen Modelle gelöscht.';
   }
 
   @override
   String clearedCache(String name) {
-    return '$name cache cleared successfully';
+    return '$name-Cache erfolgreich geleert';
   }
 
   @override
@@ -2647,7 +2654,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get confirmDeleteEntry =>
-      'Are you sure you want to delete this logbook entry?';
+      'Sind Sie sicher, dass Sie diesen Bordbucheintrag löschen möchten?';
 
   @override
   String get navigation => 'Navigation';

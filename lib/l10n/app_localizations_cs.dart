@@ -1937,7 +1937,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get editLogBookEntry => 'Upravit záznam letové knihy';
 
   @override
-  String get newLogBookEntry => 'New LogBook Entry';
+  String get newLogBookEntry => 'Nový záznam v deníku';
 
   @override
   String get accelerometerNotAvailable => 'Akcelerometr nedostupný';
@@ -2036,58 +2036,58 @@ class AppLocalizationsCs extends AppLocalizations {
   String get conditions => 'Podmínky';
 
   @override
-  String get timing => 'Timing';
+  String get timing => 'Načasování';
 
   @override
   String get start => 'Start';
 
   @override
-  String get end => 'End';
+  String get end => 'Konec';
 
   @override
-  String get startMoving => 'Start Moving';
+  String get startMoving => 'Začátek pohybu';
 
   @override
-  String get endMoving => 'End Moving';
+  String get endMoving => 'Konec pohybu';
 
   @override
-  String get dayTO => 'Day T/O';
+  String get dayTO => 'Denní vzlet';
 
   @override
-  String get nightTO => 'Night T/O';
+  String get nightTO => 'Noční vzlet';
 
   @override
-  String get dayLdg => 'Day Ldg';
+  String get dayLdg => 'Denní přistání';
 
   @override
-  String get nightLdg => 'Night Ldg';
+  String get nightLdg => 'Noční přistání';
 
   @override
-  String get optional => 'Optional';
+  String get optional => 'Volitelné';
 
   @override
-  String get currentPilot => 'Current Pilot';
+  String get currentPilot => 'Současný pilot';
 
   @override
-  String get takeoffs => 'Takeoffs';
+  String get takeoffs => 'Vzlety';
 
   @override
-  String get landings => 'Landings';
+  String get landings => 'Přistání';
 
   @override
-  String get title => 'Title';
+  String get title => 'Název';
 
   @override
-  String get complexAircraftExample => 'e.g., Complex Aircraft';
+  String get complexAircraftExample => 'např. složité letadlo';
 
   @override
-  String get pleaseEnterTitle => 'Please enter a title';
+  String get pleaseEnterTitle => 'Zadejte prosím název';
 
   @override
-  String get pleaseEnterDescription => 'Please enter a description';
+  String get pleaseEnterDescription => 'Zadejte prosím popis';
 
   @override
-  String get pleaseEnterPilotName => 'Please enter pilot name';
+  String get pleaseEnterPilotName => 'Zadejte prosím jméno pilota';
 
   @override
   String get tags => 'Značky';
@@ -2114,56 +2114,56 @@ class AppLocalizationsCs extends AppLocalizations {
   String get dismiss => 'Zavřít';
 
   @override
-  String get loadingRunwayData => 'Loading runway data...';
+  String get loadingRunwayData => 'Načítání dat drah...';
 
   @override
-  String get loadingWindData => 'Loading wind data...';
+  String get loadingWindData => 'Načítání údajů o větru...';
 
   @override
-  String get loadingFrequencyData => 'Loading frequency data...';
+  String get loadingFrequencyData => 'Načítání frekvencí...';
 
   @override
-  String get pleaseSelectAircraft => 'Please select an aircraft';
+  String get pleaseSelectAircraft => 'Prosím vyberte letadlo';
 
   @override
   String get aircraftLacksPerformanceData =>
-      'Selected aircraft lacks performance data';
+      'Vybrané letadlo nemá výkonnostní data';
 
   @override
-  String get calculateClimbPerformance => 'Calculate Climb Performance';
+  String get calculateClimbPerformance => 'Vypočítat výkonnost stoupání';
 
   @override
-  String get calculateDescentPerformance => 'Calculate Descent Performance';
+  String get calculateDescentPerformance => 'Vypočítat výkonnost klesání';
 
   @override
-  String get calculateCruisePerformance => 'Calculate Cruise Performance';
+  String get calculateCruisePerformance => 'Vypočítat cestovní výkonnost';
 
   @override
-  String get loadingWeatherData => 'Loading weather data...';
+  String get loadingWeatherData => 'Načítání meteorologických dat...';
 
   @override
-  String get refreshWeather => 'Refresh Weather';
+  String get refreshWeather => 'Obnovit počasí';
 
   @override
   String noWeatherDataAvailable(String icao) {
-    return 'No weather data available for $icao';
+    return 'Pro $icao nejsou dostupná meteorologická data';
   }
 
   @override
-  String get gettingLocation => 'Getting location...';
+  String get gettingLocation => 'Získávání polohy...';
 
   @override
-  String get acquiringGpsPosition => 'Acquiring GPS position';
+  String get acquiringGpsPosition => 'Získávání GPS pozice';
 
   @override
-  String get appTagline => 'Your digital co-pilot for VFR flights';
+  String get appTagline => 'Váš digitální druhý pilot pro VFR lety';
 
   @override
-  String get initializing => 'Initializing...';
+  String get initializing => 'Inicializace...';
 
   @override
   String get noInternetConnection =>
-      'No internet connection. Some features may be limited.';
+      'Žádné internetové připojení. Některé funkce mohou být omezené.';
 
   @override
   String segmentNumber(int number) {
@@ -2175,18 +2175,19 @@ class AppLocalizationsCs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count waypoints',
-      one: '1 waypoint',
-      zero: 'No waypoints',
+      other: '$count bodů',
+      few: '$count body',
+      one: '1 bod',
+      zero: 'Žádné body',
     );
     return '$_temp0';
   }
 
   @override
-  String get removeLastWaypoint => 'Remove last waypoint';
+  String get removeLastWaypoint => 'Odstranit poslední bod';
 
   @override
-  String get noWaypointsAdded => 'No waypoints added yet';
+  String get noWaypointsAdded => 'Zatím nebyly přidány žádné body';
 
   @override
   String defaultWaypointName(int number) {
@@ -2195,69 +2196,69 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noRunwayDataAvailable =>
-      'No runway data available for this airport';
+      'Pro toto letiště nejsou dostupná data drah';
 
   @override
   String runwaysCount(int count) {
-    return 'Runways ($count)';
+    return 'Dráhy ($count)';
   }
 
   @override
-  String get best => 'BEST';
+  String get best => 'NEJLEPŠÍ';
 
   @override
-  String get width => 'Width';
+  String get width => 'Šířka';
 
   @override
-  String get surface => 'Surface';
+  String get surface => 'Povrch';
 
   @override
   String get notAvailable => 'N/A';
 
   @override
-  String get north => 'N';
+  String get north => 'S';
 
   @override
-  String get east => 'E';
+  String get east => 'V';
 
   @override
-  String get south => 'S';
+  String get south => 'J';
 
   @override
-  String get west => 'W';
+  String get west => 'Z';
 
   @override
   String targetHeading(String degrees) {
-    return 'Target: $degrees°';
+    return 'Cíl: $degrees°';
   }
 
   @override
-  String get nameRequired => 'Name *';
+  String get nameRequired => 'Název *';
 
   @override
-  String get length => 'Length';
+  String get length => 'Délka';
 
   @override
-  String get heading => 'Heading';
+  String get heading => 'Kurz';
 
   @override
-  String get gpsSignalLost => 'GPS signal lost';
+  String get gpsSignalLost => 'Ztráta GPS signálu';
 
   @override
-  String get trackingGpsPosition => 'Tracking GPS position';
+  String get trackingGpsPosition => 'Sledování GPS pozice';
 
   @override
-  String get calibratingCompass => 'Calibrating compass...';
+  String get calibratingCompass => 'Kalibrace kompasu...';
 
   @override
-  String get moveDeviceFigureEight => 'Move device in figure 8';
+  String get moveDeviceFigureEight => 'Pohybujte zařízením ve tvaru osmičky';
 
   @override
-  String get checkDeviceCompatibility => 'Check device compatibility';
+  String get checkDeviceCompatibility => 'Zkontrolovat kompatibilitu zařízení';
 
   @override
   String speedUnit(String unit) {
-    return 'Speed ($unit)';
+    return 'Rychlost ($unit)';
   }
 
   @override
@@ -2265,359 +2266,361 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String errorDeletingLicense(String error) {
-    return 'Error deleting license: $error';
+    return 'Chyba při mazání licence: $error';
   }
 
   @override
-  String get compassCalibrationRequested => 'Compass calibration requested';
+  String get compassCalibrationRequested => 'Požadována kalibrace kompasu';
 
   @override
-  String get allCachesClearedSuccessfully => 'All caches cleared successfully';
+  String get allCachesClearedSuccessfully => 'Všechny cache úspěšně vymazány';
 
   @override
   String errorClearingCaches(String error) {
-    return 'Error clearing caches: $error';
+    return 'Chyba při mazání cache: $error';
   }
 
   @override
   String get pleaseOpenFromMapToDownload =>
-      'Please open this screen from the map to download the current area';
+      'Pro stažení aktuální oblasti otevřete tuto obrazovku z mapy';
 
   @override
   String failedToAddPicture(String error) {
-    return 'Failed to add picture: $error';
+    return 'Nepodařilo se přidat obrázek: $error';
   }
 
   @override
   String failedToAddDocument(String error) {
-    return 'Failed to add document: $error';
+    return 'Nepodařilo se přidat dokument: $error';
   }
 
   @override
   String addedPilot(String name) {
-    return 'Added pilot: $name';
+    return 'Přidán pilot: $name';
   }
 
   @override
-  String get largeDownloadWarning => 'Large Download Warning';
+  String get largeDownloadWarning => 'Varování velkého stahování';
 
   @override
   String downloadingMapTiles(int count) {
-    return 'Downloading $count map tiles for flight plan...';
+    return 'Stahování $count mapových dlaždic pro letový plán...';
   }
 
   @override
   String get areYouSureDeleteChecklist =>
-      'Are you sure you want to delete this checklist?';
+      'Opravdu chcete smazat tento kontrolní seznam?';
 
   @override
-  String get addPilotFirst => 'Add a pilot first';
+  String get addPilotFirst => 'Nejprve přidejte pilota';
 
   @override
   String get pilotExampleEmail => 'pilot@example.com';
 
   @override
-  String get phoneExample => '+1 234 567 8900';
+  String get phoneExample => '+420 123 456 789';
 
   @override
   String get certificateNumberExample => '123456789';
 
   @override
-  String get aircraftTypeExample => 'e.g., Cessna 172';
+  String get aircraftTypeExample => 'např. Cessna 172';
 
   @override
-  String get registrationExample => 'e.g., N12345';
+  String get registrationExample => 'např. OK-ABC';
 
   @override
-  String get trainingActivitiesPerformed => 'Training activities performed';
+  String get trainingActivitiesPerformed => 'Provedené výcvikové aktivity';
 
   @override
-  String get additionalNotesAboutFlight => 'Additional notes about the flight';
+  String get additionalNotesAboutFlight => 'Dodatečné poznámky k letu';
 
   @override
   String get aircraftShortExample => 'C172';
 
   @override
-  String get registrationShortExample => 'N12345';
+  String get registrationShortExample => 'OK-ABC';
 
   @override
-  String get useNegativeForTailwind => 'Use negative value for tailwind';
+  String get useNegativeForTailwind =>
+      'Pro zadní vítr použijte zápornou hodnotu';
 
   @override
   String get positiveTailwindNegativeHeadwind =>
-      'Positive = tailwind, Negative = headwind';
+      'Kladné = zadní vítr, Záporné = protivítr';
 
   @override
-  String get trueCourseToDestination => 'True course to destination';
+  String get trueCourseToDestination => 'Skutečný kurz k cíli';
 
   @override
-  String get averageCruiseFuelConsumption => 'Average cruise fuel consumption';
+  String get averageCruiseFuelConsumption =>
+      'Průměrná cestovní spotřeba paliva';
 
   @override
   String get faaMinimumReserve => 'FAA minimum: 30 min VFR, 45 min IFR';
 
   @override
-  String get totalUsableFuelOnBoard => 'Total usable fuel on board';
+  String get totalUsableFuelOnBoard => 'Celkové použitelné palivo na palubě';
 
   @override
-  String get runwayConditionHelper => '0 = Dry, 100 = Standing water/slush';
+  String get runwayConditionHelper => '0 = Suchá, 100 = Stojící voda/břečka';
 
   @override
-  String get downloadCurrentArea => 'Download Current Area';
+  String get downloadCurrentArea => 'Stáhnout aktuální oblast';
 
   @override
-  String get addLicense => 'Add License';
+  String get addLicense => 'Přidat licenci';
 
   @override
   String refreshData(String title) {
-    return 'Refresh $title';
+    return 'Obnovit $title';
   }
 
   @override
-  String get aircraftSelection => 'Aircraft Selection';
+  String get aircraftSelection => 'Výběr letadla';
 
   @override
-  String get weightAndArmInputs => 'Weight & Arm Inputs';
+  String get weightAndArmInputs => 'Hmotnost a vyvažení';
 
   @override
-  String get editFlightPlanName => 'Edit Flight Plan Name';
+  String get editFlightPlanName => 'Upravit název letového plánu';
 
   @override
-  String get downloadMapTiles => 'Download Map Tiles';
+  String get downloadMapTiles => 'Stáhnout mapové dlaždice';
 
   @override
-  String get rightCrosswind => 'Right Crosswind';
+  String get rightCrosswind => 'Pravý boční vítr';
 
   @override
-  String get leftCrosswind => 'Left Crosswind';
+  String get leftCrosswind => 'Levý boční vítr';
 
   @override
-  String get lightVariable => 'Light Variable';
+  String get lightVariable => 'Slabý proměnný';
 
   @override
-  String get issued => 'Issued:';
+  String get issued => 'Vydáno:';
 
   @override
-  String get pleaseSelectEngineType => 'Please select engine type';
+  String get pleaseSelectEngineType => 'Prosím vyberte typ motoru';
 
   @override
-  String get pilotExperience => 'Pilot Experience';
+  String get pilotExperience => 'Zkušenosti pilota';
 
   @override
-  String get pleaseSelectPilotInCommand => 'Please select pilot in command';
+  String get pleaseSelectPilotInCommand => 'Prosím vyberte velícího pilota';
 
   @override
-  String get conditionsOfFlight => 'Conditions of Flight';
+  String get conditionsOfFlight => 'Podmínky letu';
 
   @override
-  String get departuresAndLandings => 'Departures and Landings';
+  String get departuresAndLandings => 'Vzlety a přistání';
 
   @override
-  String get picturesAndDocuments => 'Pictures and Documents';
+  String get picturesAndDocuments => 'Obrázky a dokumenty';
 
   @override
   String picturesCount(int count) {
-    return 'Pictures ($count)';
+    return 'Obrázky ($count)';
   }
 
   @override
   String documentsCount(int count) {
-    return 'Documents ($count)';
+    return 'Dokumenty ($count)';
   }
 
   @override
-  String get editPilot => 'Edit Pilot';
+  String get editPilot => 'Upravit pilota';
 
   @override
-  String get addPilot => 'Add Pilot';
+  String get addPilot => 'Přidat pilota';
 
   @override
-  String get dateOfBirth => 'Date of Birth';
+  String get dateOfBirth => 'Datum narození';
 
   @override
-  String get notSet => 'Not set';
+  String get notSet => 'Nenastaveno';
 
   @override
-  String get contactInformation => 'Contact Information';
+  String get contactInformation => 'Kontaktní informace';
 
   @override
-  String get pleaseEnterValidEmail => 'Please enter a valid email';
+  String get pleaseEnterValidEmail => 'Zadejte prosím platný email';
 
   @override
-  String get certificateInformation => 'Certificate Information';
+  String get certificateInformation => 'Informace o certifikátu';
 
   @override
-  String get setAsCurrentPilot => 'Set as current pilot';
+  String get setAsCurrentPilot => 'Nastavit jako současného pilota';
 
   @override
   String get defaultPilotDescription =>
-      'This pilot will be selected by default in new entries';
+      'Tento pilot bude vybrán jako výchozí v nových záznamech';
 
   @override
-  String get updatePilot => 'Update Pilot';
+  String get updatePilot => 'Aktualizovat pilota';
 
   @override
-  String get certificate => 'Certificate:';
+  String get certificate => 'Certifikát:';
 
   @override
   String age(int age) {
-    return 'Age: $age years';
+    return 'Věk: $age let';
   }
 
   @override
-  String get years => 'years';
+  String get years => 'let';
 
   @override
   String licensesCount(int count) {
-    return '$count Licenses';
+    return '$count Licencí';
   }
 
   @override
   String endorsementsCount(int count) {
-    return '$count Endorsements';
+    return '$count Oprávnění';
   }
 
   @override
   String confirmDeletePilot(String name) {
-    return 'Are you sure you want to delete $name?';
+    return 'Opravdu chcete smazat $name?';
   }
 
   @override
-  String get noLicensesAdded => 'No licenses added';
+  String get noLicensesAdded => 'Žádné licence nebyly přidány';
 
   @override
-  String get endorsements => 'Endorsements';
+  String get endorsements => 'Oprávnění';
 
   @override
-  String get noEndorsementsAdded => 'No endorsements added';
+  String get noEndorsementsAdded => 'Žádná oprávnění nebyla přidána';
 
   @override
-  String get confirmDeleteLicense =>
-      'Are you sure you want to delete this license?';
+  String get confirmDeleteLicense => 'Opravdu chcete smazat tuto licenci?';
 
   @override
   String get confirmDeleteEndorsement =>
-      'Are you sure you want to delete this endorsement?';
+      'Opravdu chcete smazat toto oprávnění?';
 
   @override
   String get downloadMapTilesDescription =>
-      'Download map tiles for offline use';
+      'Stáhnout mapové dlaždice pro offline použití';
 
   @override
-  String get flightPlanDownloadMapTiles => 'Flight Plan Download Map Tiles';
+  String get flightPlanDownloadMapTiles =>
+      'Stažení mapových dlaždic letového plánu';
 
   @override
   String get automaticallyDownloadFlightPlanTiles =>
-      'Automatically download map tiles for flight plans';
+      'Automaticky stahovat mapové dlaždice pro letové plány';
 
   @override
-  String get validateTilesOnStartup => 'Validate Tiles on Startup';
+  String get validateTilesOnStartup => 'Ověřit dlaždice při spuštění';
 
   @override
   String get checkMissingTilesOnStartup =>
-      'Check for missing tiles when app starts';
+      'Zkontrolovat chybějící dlaždice při spuštění aplikace';
 
   @override
-  String get minZoom => 'Min Zoom Level';
+  String get minZoom => 'Minimální úroveň přiblížení';
 
   @override
-  String get maxZoom => 'Max Zoom Level';
+  String get maxZoom => 'Maximální úroveň přiblížení';
 
   @override
   String progressTiles(int current, int total) {
-    return '$current/$total tiles';
+    return '$current/$total dlaždic';
   }
 
   @override
   String downloadedTiles(int count) {
-    return 'Downloaded: $count tiles';
+    return 'Staženo: $count dlaždic';
   }
 
   @override
   String skippedTiles(int count) {
-    return 'Skipped: $count tiles';
+    return 'Přeskočeno: $count dlaždic';
   }
 
   @override
   String downloadedTilesWithSkipped(int downloaded, int skipped) {
-    return 'Downloaded $downloaded tiles, skipped $skipped';
+    return 'Staženo $downloaded dlaždic, přeskočeno $skipped';
   }
 
   @override
   String downloadedTilesSuccessfully(int count) {
-    return 'Downloaded $count tiles successfully';
+    return 'Úspěšně staženo $count dlaždic';
   }
 
   @override
-  String get downloadCancelled => 'Download cancelled';
+  String get downloadCancelled => 'Stahování zrušeno';
 
   @override
   String downloadFailed(String error) {
-    return 'Download failed: $error';
+    return 'Stahování selhalo: $error';
   }
 
   @override
-  String get supplementalData => 'Supplemental data';
+  String get supplementalData => 'Doplňková data';
 
   @override
   String largeDownloadDescription(int count) {
-    return 'This will download approximately $count map tiles. This may take a while and use significant data. Continue?';
+    return 'Tímto se stáhne přibližně $count mapových dlaždic. Může to chvíli trvat a spotřebovat značné množství dat. Pokračovat?';
   }
 
   @override
-  String get continueText => 'Continue';
+  String get continueText => 'Pokračovat';
 
   @override
-  String get mapLayers => 'Map Layers';
+  String get mapLayers => 'Mapové vrstvy';
 
   @override
-  String get loadingAirports => 'Loading airports...';
+  String get loadingAirports => 'Načítání letišť...';
 
   @override
-  String get loadingRunways => 'Loading runways...';
+  String get loadingRunways => 'Načítání drah...';
 
   @override
-  String get loadingNavaids => 'Loading navaids...';
+  String get loadingNavaids => 'Načítání navigačních pomůcek...';
 
   @override
-  String get loadingFrequencies => 'Loading frequencies...';
+  String get loadingFrequencies => 'Načítání frekvencí...';
 
   @override
-  String get dataLoadingComplete => 'Data loading complete';
+  String get dataLoadingComplete => 'Načítání dat dokončeno';
 
   @override
   String confirmDeleteModel(String name) {
-    return 'Are you sure you want to delete \"$name\"?';
+    return 'Opravdu chcete smazat \"$name\"?';
   }
 
   @override
   String deletedModel(String name) {
-    return 'Deleted \"$name\"';
+    return 'Smazáno \"$name\"';
   }
 
   @override
   String confirmDeleteAircraft(String name) {
-    return 'Are you sure you want to delete \"$name\"?';
+    return 'Opravdu chcete smazat \"$name\"?';
   }
 
   @override
   String deletedAircraft(String name) {
-    return 'Deleted \"$name\"';
+    return 'Smazáno \"$name\"';
   }
 
   @override
   String deletedManufacturer(String name) {
-    return 'Deleted \"$name\"';
+    return 'Smazáno \"$name\"';
   }
 
   @override
   String confirmDeleteManufacturer(String name) {
-    return 'Are you sure you want to delete \"$name\"? This will also delete all associated models.';
+    return 'Opravdu chcete smazat \"$name\"? Tímto se také smažou všechny přidružené modely.';
   }
 
   @override
   String clearedCache(String name) {
-    return '$name cache cleared successfully';
+    return '$name cache úspěšně vymazána';
   }
 
   @override
@@ -2625,7 +2628,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get confirmDeleteEntry =>
-      'Are you sure you want to delete this logbook entry?';
+      'Opravdu chcete smazat tento záznam z deníku?';
 
   @override
   String get navigation => 'Navigace';
