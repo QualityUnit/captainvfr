@@ -514,44 +514,42 @@ class TiledDataLoader {
   
   /// Convert OpenAIP numeric type codes to string types
   String _convertOpenAIPTypeToString(String numericType) {
-    // Based on OpenAIP documentation and data analysis:
-    // 0 - AF_CIVIL (Civil airports) - check size for classification
+    // Based on OpenAIP data analysis from actual airports:
+    // 0 - AF_CIVIL (Civil airports) - usually medium to large
     // 1 - AF_MIL_CIVIL (Military/Civil) - usually medium to large
     // 2 - AF_LIGHT_AIRCRAFT (Light aircraft/GA fields) - small airports
-    // 3 - AF_HELIPORT (Heliports)
+    // 3 - AF_INTERNATIONAL (International airports) - large (e.g., Frankfurt EDDF)
     // 4 - AF_MILITARY (Military only)
-    // 5 - AF_WATER (Water/seaplane bases)
-    // 6 - AF_CLOSED (Closed/abandoned)
-    // 7 - AF_ULTRALIGHT (Ultralight fields)
-    // 8 - AF_GLIDER_SITE (Glider sites)
-    // 9 - AF_INTERNATIONAL (International airports)
-    // 10+ - Various sport aviation (hang gliding, paragliding, ballooning, etc)
+    // 5 - AF_ULTRALIGHT (Ultralight fields) - small
+    // 6 - AF_GLIDER_SITE (Glider sites) - small/sport
+    // 7 - AF_HELIPORT (Heliports)
+    // 8 - AF_WATER (Water/seaplane bases) - but VAJNORY is misclassified here
+    // 9 - AF_CLOSED (Closed/abandoned)
+    // 10+ - Various sport aviation (hang gliding, paragliding, etc)
     switch (numericType) {
-      case '0':  // Civil airports - most common type
-        return 'small_airport';  // Default to small, can be overridden by size checks
+      case '0':  // Civil airports - check by name/size for better classification
+        return 'medium_airport';  // Most civil airports are at least medium
       case '1':  // Military/Civil
         return 'medium_airport';
-      case '2':  // Light aircraft/GA fields
-        return 'small_airport';
-      case '3':  // Heliport
-        return 'heliport';
+      case '2':  // Light aircraft/GA fields (like RUSOVCE)
+        return 'small_airport';  // These are definitely small airports
+      case '3':  // International (e.g., Frankfurt EDDF)
+        return 'large_airport';
       case '4':  // Military only
         return 'medium_airport';
-      case '5':  // Water/seaplane bases
+      case '5':  // Ultralight
+      case '6':  // Glider sites
+        return 'small_airport';
+      case '7':
+        return 'heliport';
+      case '8':
         return 'seaplane_base';
-      case '6':  // Closed/abandoned
+      case '9':
         return 'closed';
-      case '7':  // Ultralight
-        return 'small_airport';
-      case '8':  // Glider sites
-        return 'small_airport';
-      case '9':  // International
-        return 'large_airport';
-      case '10':  // Hang gliding site
-      case '11':  // Paragliding site
-        return 'small_airport';  // Sport aviation sites
-      case '12':  // Balloon site
-        return 'balloonport';
+      case '10':
+      case '11':
+      case '12':
+        return 'balloonport';  // Sport aviation sites, ballooning
       default:
         return 'small_airport'; // Default fallback
     }
