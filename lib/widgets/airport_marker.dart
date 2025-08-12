@@ -215,16 +215,19 @@ class AirportMarker extends StatelessWidget {
       case 'heliport':
         return Icons.circle; // Circle represents helipad landing area
       case 'balloonport':
-        return Icons.air; // Hot air balloon icon for balloonports
+        return Icons.air_outlined; // Hot air balloon icon for balloonports
       case 'seaplane_base':
-        return Icons.airplanemode_active;
+        return Icons.water; // Water icon for seaplane bases
+      case 'closed':
+        return Icons.block; // Block icon for closed airports
       case 'large_airport':
-        return Icons.flight;
+        return Icons.flight; // Large plane icon for major airports
       case 'medium_airport':
-        return Icons.flight_takeoff;
+        return Icons.flight_takeoff; // Taking off plane for medium airports
       case 'small_airport':
+        return Icons.flight_land; // Landing plane for small airports
       default:
-        return Icons.flight_land;
+        return Icons.local_airport; // Generic airport icon
     }
   }
 
@@ -261,7 +264,7 @@ class AirportMarker extends StatelessWidget {
       case 'small_airport':
         return Colors.orange[600]!;
       case 'closed':
-        return Colors.grey[600]!;
+        return Colors.red[800]!;  // Dark red for closed airports
       case 'balloonport':
         return Colors.pink[400]!;
       default:
