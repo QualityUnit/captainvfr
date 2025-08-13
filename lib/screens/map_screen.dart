@@ -1087,13 +1087,15 @@ class MapScreenState extends State<MapScreen>
           for (final airport in airports) {
             // Always pass OpenAIP runway data to properly handle embedded runways
             final runways = _runwayService.getRunwaysForAirport(
-              airport.icao,
+              airport.icao.isNotEmpty ? airport.icao : airport.name,
               openAIPRunways: airport.openAIPRunways,
               airportLat: airport.position.latitude,
               airportLon: airport.position.longitude,
             );
             if (runways.isNotEmpty) {
-              runwayDataMap[airport.icao] = runways;
+              // Use a unique key: ICAO if available, otherwise use name
+              final key = airport.icao.isNotEmpty ? airport.icao : airport.name;
+              runwayDataMap[key] = runways;
             }
           }
         }

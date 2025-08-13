@@ -524,7 +524,7 @@ class TiledDataLoader {
     // 6 - AF_GLIDER_SITE (Glider sites) - small/sport
     // 7 - AF_HELIPORT (Heliports)
     // 8 - AF_WATER (Water/seaplane bases) - but VAJNORY is misclassified here
-    // 9 - AF_CLOSED (Closed/abandoned)
+    // 9 - Unknown type (was incorrectly mapped to closed) - treat as medium civil airport
     // 10+ - Various sport aviation (hang gliding, paragliding, etc)
     switch (numericType) {
       case '0':  // Civil airports - check by name/size for better classification
@@ -545,10 +545,11 @@ class TiledDataLoader {
       case '8':
         return 'seaplane_base';
       case '9':
-        return 'closed';
+        return 'medium_airport';
       case '10':
       case '11':
-      case '12':
+      return 'small_airport';
+       case '12':
         return 'balloonport';  // Sport aviation sites, ballooning
       default:
         return 'small_airport'; // Default fallback

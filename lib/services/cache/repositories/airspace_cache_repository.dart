@@ -39,20 +39,20 @@ class AirspaceCacheRepository extends BaseCacheRepository<Airspace> {
         () async {
 
           // Don't clear existing data - append mode
-          int added = 0;
-          int updated = 0;
+          // int added = 0;
+          // int updated = 0;
 
           // Cache airspaces as maps
           for (final airspace in airspaces) {
             try {
-              final exists = box.containsKey(airspace.id);
+              // final exists = box.containsKey(airspace.id);
               final json = airspace.toJson();
               await box.put(airspace.id, json);
-              if (exists) {
-                updated++;
-              } else {
-                added++;
-              }
+              // if (exists) {
+              //   updated++;
+              // } else {
+              //   added++;
+              // }
             } catch (e) {
               developer.log('⚠️ Error caching airspace ${airspace.id}: $e');
             }

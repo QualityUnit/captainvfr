@@ -348,56 +348,56 @@ class FlightInfoTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSegmentDataTile(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon, {
-    Color? iconColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: AppColors.sectionBackgroundColor,
-        borderRadius: AppTheme.defaultRadius,
-        border: Border.all(
-          color: AppColors.sectionBorderColor,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: iconColor ?? AppColors.secondaryTextColor,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.secondaryTextColor,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryTextColor,
-              ),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildSegmentDataTile(
+  //   BuildContext context,
+  //   String title,
+  //   String value,
+  //   IconData icon, {
+  //   Color? iconColor,
+  // }) {
+  //   return Container(
+  //     padding: const EdgeInsets.all(8.0),
+  //     decoration: BoxDecoration(
+  //       color: AppColors.sectionBackgroundColor,
+  //       borderRadius: AppTheme.defaultRadius,
+  //       border: Border.all(
+  //         color: AppColors.sectionBorderColor,
+  //       ),
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Icon(
+  //           icon,
+  //           size: 18,
+  //           color: iconColor ?? AppColors.secondaryTextColor,
+  //         ),
+  //         const SizedBox(width: 8),
+  //         Expanded(
+  //           child: Text(
+  //             title,
+  //             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+  //               color: AppColors.secondaryTextColor,
+  //             ),
+  //             overflow: TextOverflow.ellipsis,
+  //           ),
+  //         ),
+  //         Flexible(
+  //           child: Text(
+  //             value,
+  //             style: Theme.of(
+  //               context,
+  //             ).textTheme.bodyMedium?.copyWith(
+  //               fontWeight: FontWeight.bold,
+  //               color: AppColors.primaryTextColor,
+  //             ),
+  //             overflow: TextOverflow.ellipsis,
+  //             textAlign: TextAlign.end,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildInfoTile(
     BuildContext context, {
