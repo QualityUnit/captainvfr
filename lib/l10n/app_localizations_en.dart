@@ -343,6 +343,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search for airports and navaids by name or code\n(e.g., \"KJFK\", \"Kennedy\", \"VOR\", \"SFO\")';
 
   @override
+  String get searchHistoryEmpty => 'No recent searches';
+
+  @override
+  String get recentSearches => 'Recent searches';
+
+  @override
+  String get clearHistory => 'Clear';
+
+  @override
   String noResultsFound(String query) {
     return 'No results found for \"$query\"';
   }

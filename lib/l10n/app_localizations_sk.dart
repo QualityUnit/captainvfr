@@ -342,6 +342,15 @@ class AppLocalizationsSk extends AppLocalizations {
   String get searchForAirports => 'Hľadať letiská';
 
   @override
+  String get searchHistoryEmpty => 'Žiadne nedávne vyhľadávania';
+
+  @override
+  String get recentSearches => 'Nedávne vyhľadávania';
+
+  @override
+  String get clearHistory => 'Vymazať';
+
+  @override
   String noResultsFound(String query) {
     return 'Neboli nájdené žiadne výsledky';
   }

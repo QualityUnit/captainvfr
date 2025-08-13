@@ -343,6 +343,15 @@ class AppLocalizationsCs extends AppLocalizations {
       'Hledejte letiště a navigační pomůcky podle názvu nebo kódu\n(např. \"KJFK\", \"Kennedy\", \"VOR\", \"SFO\")';
 
   @override
+  String get searchHistoryEmpty => 'Žádné nedávné vyhledávání';
+
+  @override
+  String get recentSearches => 'Nedávné vyhledávání';
+
+  @override
+  String get clearHistory => 'Vymazat';
+
+  @override
   String noResultsFound(String query) {
     return 'Žádné výsledky nenalezeny pro \"$query\"';
   }

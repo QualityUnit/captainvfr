@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/airport.dart';
 import '../models/navaid.dart';
+import '../models/search_history_item.dart';
 import '../services/airport_service.dart';
 import '../services/navaid_service.dart';
+import '../services/search_history_service.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -10,6 +13,7 @@ import '../l10n/app_localizations.dart';
 class AirportSearchDialog extends StatefulWidget {
   final AirportService airportService;
   final NavaidService? navaidService;
+  final SearchHistoryService searchHistoryService;
   final Function(Airport) onAirportSelected;
   final Function(Navaid)? onNavaidSelected;
 
@@ -17,6 +21,7 @@ class AirportSearchDialog extends StatefulWidget {
     super.key,
     required this.airportService,
     this.navaidService,
+    required this.searchHistoryService,
     required this.onAirportSelected,
     this.onNavaidSelected,
   });
@@ -153,13 +158,7 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
     final l10n = AppLocalizations.of(context)!;
     
     if (_searchController.text.isEmpty) {
-      return Center(
-        child: Text(
-          l10n.searchForAirports,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: AppColors.secondaryTextColor),
-        ),
-      );
+      return _buildSearchHistorySection();
     }
 
     if (_isSearching) {
@@ -301,6 +300,8 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
           color: AppColors.secondaryTextColor,
         ),
         onTap: () {
+          // Add to search history
+          widget.searchHistoryService.addAirport(airport);
           widget.onAirportSelected(airport);
         },
       ),
@@ -407,10 +408,233 @@ class _AirportSearchDialogState extends State<AirportSearchDialog> {
         ),
         onTap: () {
           if (widget.onNavaidSelected != null) {
+            // Add to search history
+            widget.searchHistoryService.addNavaid(navaid);
             widget.onNavaidSelected!(navaid);
           }
         },
       ),
     );
+  }
+
+  /// Build the search history section when search field is empty
+  Widget _buildSearchHistorySection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    if (!widget.searchHistoryService.isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    final historyItems = widget.searchHistoryService.historyItems;
+    
+    if (historyItems.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history, size: 64, color: AppColors.secondaryTextColor),
+            const SizedBox(height: 16),
+            Text(
+              l10n.searchHistoryEmpty,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryTextColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.searchForAirports,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: AppColors.secondaryTextColor),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.recentSearches,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryTextColor,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                widget.searchHistoryService.clearHistory();
+              },
+              child: Text(
+                l10n.clearHistory,
+                style: TextStyle(
+                  color: AppColors.primaryAccent,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            itemCount: historyItems.length,
+            itemBuilder: (context, index) {
+              final item = historyItems[index];
+              return _buildHistoryItem(context, item);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build a history item tile
+  Widget _buildHistoryItem(BuildContext context, SearchHistoryItem item) {
+    IconData getIcon() {
+      if (item.type == SearchHistoryItemType.airport) {
+        return Icons.flight_takeoff;
+      } else {
+        // Navaid icon based on frequency for different types
+        if (item.frequencyKhz != null && item.frequencyKhz! < 1000) {
+          return Icons.wb_iridescent; // NDB
+        } else {
+          return Icons.radio_button_checked; // VOR/DME
+        }
+      }
+    }
+    
+    Color getIconColor() {
+      return item.type == SearchHistoryItemType.airport 
+          ? AppColors.primaryAccent 
+          : Colors.blue;
+    }
+    
+    String getSubtitle() {
+      if (item.type == SearchHistoryItemType.airport) {
+        final parts = <String>[item.code];
+        if (item.municipality != null && item.municipality!.isNotEmpty) {
+          parts.add('${item.municipality}, ${item.country ?? ''}');
+        }
+        return parts.join(' • ');
+      } else {
+        final parts = <String>[item.code];
+        if (item.frequencyKhz != null) {
+          if (item.frequencyKhz! < 1000) {
+            parts.add('${item.frequencyKhz!.toStringAsFixed(0)} kHz');
+          } else {
+            final freqMhz = item.frequencyKhz! / 1000;
+            parts.add('${freqMhz.toStringAsFixed(2)} MHz');
+          }
+        }
+        return parts.join(' • ');
+      }
+    }
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.sectionBackgroundColor,
+        borderRadius: AppTheme.defaultRadius,
+        border: Border.all(color: AppColors.sectionBorderColor),
+      ),
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: getIconColor().withValues(alpha: 0.1),
+            borderRadius: AppTheme.defaultRadius,
+          ),
+          child: Icon(
+            getIcon(),
+            color: getIconColor(),
+          ),
+        ),
+        title: Text(
+          item.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryTextColor,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          getSubtitle(),
+          style: TextStyle(
+            color: AppColors.secondaryTextColor,
+            fontSize: 12,
+          ),
+        ),
+        trailing: Icon(
+          Icons.history,
+          color: AppColors.secondaryTextColor,
+          size: 18,
+        ),
+        onTap: () => _onHistoryItemSelected(item),
+      ),
+    );
+  }
+
+  /// Handle selection of a history item
+  Future<void> _onHistoryItemSelected(SearchHistoryItem item) async {
+    if (item.type == SearchHistoryItemType.airport) {
+      // Try to find the full airport object
+      final airports = widget.airportService.searchAirports(item.code);
+      final airport = airports.firstWhere(
+        (a) => a.icao == item.id,
+        orElse: () => Airport(
+          icao: item.code,
+          name: item.name,
+          city: item.municipality ?? '',
+          country: item.country ?? '',
+          position: const LatLng(0.0, 0.0),
+          elevation: 0,
+        ),
+      );
+      
+      // Update history with new timestamp
+      await widget.searchHistoryService.addAirport(airport);
+      widget.onAirportSelected(airport);
+    } else if (item.type == SearchHistoryItemType.navaid && widget.onNavaidSelected != null) {
+      // Try to find the full navaid object
+      final navaids = widget.navaidService?.searchNavaids(item.code) ?? [];
+      final navaid = navaids.firstWhere(
+        (n) => n.ident == item.id,
+        orElse: () => Navaid(
+          id: 0,
+          filename: '',
+          ident: item.code,
+          name: item.name,
+          type: 'VOR', // Default type
+          frequencyKhz: item.frequencyKhz ?? 0.0,
+          position: const LatLng(0.0, 0.0),
+          elevationFt: 0,
+          isoCountry: '',
+          dmeFrequencyKhz: 0.0,
+          dmeChannel: '',
+          dmeLatitudeDeg: 0,
+          dmeLongitudeDeg: 0,
+          dmeElevationFt: 0,
+          slavedVariationDeg: 0.0,
+          magneticVariationDeg: 0.0,
+          usageType: '',
+          power: 0.0,
+          associatedAirport: '',
+        ),
+      );
+      
+      // Update history with new timestamp
+      await widget.searchHistoryService.addNavaid(navaid);
+      widget.onNavaidSelected!(navaid);
+    }
   }
 }

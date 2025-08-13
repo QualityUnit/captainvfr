@@ -57,6 +57,7 @@ import 'services/analytics_service.dart';
 import 'services/pilot_service.dart';
 import 'services/logbook_service.dart';
 import 'services/localization_service.dart';
+import 'services/search_history_service.dart';
 import 'constants/app_theme.dart';
 
 void main() {
@@ -284,6 +285,9 @@ Future<void> _initializeApp() async {
     // Initialize Localization service
     final localizationService = LocalizationService();
     await localizationService.initialize();
+
+    // Initialize Search History service
+    final searchHistoryService = SearchHistoryService();
     
     // Initialize sensor availability service
     final sensorAvailabilityService = SensorAvailabilityService();
@@ -362,6 +366,7 @@ Future<void> _initializeApp() async {
           ChangeNotifierProvider<LogBookService>.value(value: logBookService),
           ChangeNotifierProvider<SettingsService>.value(value: settingsService),
           ChangeNotifierProvider<LocalizationService>.value(value: localizationService),
+          ChangeNotifierProvider<SearchHistoryService>.value(value: searchHistoryService),
           ChangeNotifierProvider<HeadingService>.value(value: headingService),
           Provider<AirportService>.value(value: airportService),
           ChangeNotifierProvider<CacheService>.value(value: cacheService),

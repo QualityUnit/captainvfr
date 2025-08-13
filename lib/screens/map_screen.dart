@@ -32,6 +32,7 @@ import '../services/airport_service.dart';
 import '../services/tiled_data_loader.dart';
 import '../services/runway_service.dart';
 import '../services/navaid_service.dart';
+import '../services/search_history_service.dart';
 import '../services/flight_service.dart';
 import '../services/heading_service.dart';
 import '../services/location_service.dart';
@@ -2600,6 +2601,7 @@ class MapScreenState extends State<MapScreen>
       builder: (context) => AirportSearchDialog(
         airportService: _airportService,
         navaidService: _navaidService,
+        searchHistoryService: Provider.of<SearchHistoryService>(context, listen: false),
         onAirportSelected: _onAirportSelectedFromSearch,
         onNavaidSelected: _onNavaidSelectedFromSearch,
       ),
