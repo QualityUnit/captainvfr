@@ -65,7 +65,7 @@ Download CaptainVFR for your device or use it directly in your web browser.
     "description": "Full-featured Android app available on Google Play or direct APK download. Optimized for phones and tablets with offline navigation support.",
     "link": {
       "text": "Get on Google Play",
-      "url": "https://play.google.com/store/apps/details?id=com.captainvfr"
+      "url": "https://play.google.com/store/apps/details?id=com.captainvfr.captainvfr"
     }
   },
   {
@@ -139,7 +139,6 @@ hdiutil detach /Volumes/CaptainVFR
 |----------|---------|---------|-----|-------|
 | iOS | 13.0+ | 500MB | 2GB | GPS required for navigation |
 | Android | 6.0+ | 500MB | 2GB | Google Play Services recommended |
-| Windows | 10+ | 1GB | 4GB | 64-bit required |
 | macOS | 10.15+ | 1GB | 4GB | Apple Silicon or Intel |
 | Web | Modern Browser | N/A | 4GB | Chrome 90+, Safari 14+, Firefox 88+ |
 
