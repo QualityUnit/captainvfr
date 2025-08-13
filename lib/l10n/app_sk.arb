@@ -836,5 +836,18 @@
   "confirmDeleteManufacturer": "Ste si istí, že chcete odstrániť \"{name}\"? Toto tiež odstráni všetky pridružené modely.",
   "clearedCache": "{name} cache úspešne vymazané",
   "id": "ID",
-  "confirmDeleteEntry": "Ste si istí, že chcete odstrániť tento záznam z denníka?"
+  "confirmDeleteEntry": "Ste si istí, že chcete odstrániť tento záznam z denníka?",
+  "count": "{count}",
+  "degrees": "{degrees}",
+  "downloaded": "{downloaded}",
+  "error": "{error}",
+  "fileName": "{fileName}",
+  "index": "{index}",
+  "number": "{number}",
+  "platform": "{platform}",
+  "query": "{query}",
+  "skipped": "{skipped}",
+  "unit": "{unit}",
+  "url": "{url}",
+  "value": "{value}"
 }

@@ -858,5 +858,18 @@
   "confirmDeleteManufacturer": "Êtes-vous sûr de vouloir supprimer \"{name}\"? Ceci supprimera également tous les modèles associés.",
   "clearedCache": "Cache {name} effacé avec succès",
   "id": "ID",
-  "confirmDeleteEntry": "Êtes-vous sûr de vouloir supprimer cette entrée du carnet de vol?"
+  "confirmDeleteEntry": "Êtes-vous sûr de vouloir supprimer cette entrée du carnet de vol?",
+  "count": "{count}",
+  "degrees": "{degrees}",
+  "downloaded": "{downloaded}",
+  "error": "{error}",
+  "fileName": "{fileName}",
+  "index": "{index}",
+  "number": "{number}",
+  "platform": "{platform}",
+  "query": "{query}",
+  "skipped": "{skipped}",
+  "unit": "{unit}",
+  "url": "{url}",
+  "value": "{value}"
 }

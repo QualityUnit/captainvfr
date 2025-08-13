@@ -1085,10 +1085,10 @@ class MapScreenState extends State<MapScreen>
         final runwayDataMap = <String, List<Runway>>{};
         if (zoom >= 10) {
           for (final airport in airports) {
-            // Pass OpenAIP runway data if available
+            // Always pass OpenAIP runway data to properly handle embedded runways
             final runways = _runwayService.getRunwaysForAirport(
               airport.icao,
-              openAIPRunways: airport.openAIPRunways.isNotEmpty ? airport.openAIPRunways : null,
+              openAIPRunways: airport.openAIPRunways,
               airportLat: airport.position.latitude,
               airportLon: airport.position.longitude,
             );

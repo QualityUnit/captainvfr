@@ -858,5 +858,18 @@
   "confirmDeleteManufacturer": "Opravdu chcete smazat \"{name}\"? Tímto se také smažou všechny přidružené modely.",
   "clearedCache": "{name} cache úspěšně vymazána",
   "id": "ID",
-  "confirmDeleteEntry": "Opravdu chcete smazat tento záznam z deníku?"
+  "confirmDeleteEntry": "Opravdu chcete smazat tento záznam z deníku?",
+  "count": "{count}",
+  "degrees": "{degrees}",
+  "downloaded": "{downloaded}",
+  "error": "{error}",
+  "fileName": "{fileName}",
+  "index": "{index}",
+  "number": "{number}",
+  "platform": "{platform}",
+  "query": "{query}",
+  "skipped": "{skipped}",
+  "unit": "{unit}",
+  "url": "{url}",
+  "value": "{value}"
 }

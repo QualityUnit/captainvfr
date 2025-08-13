@@ -858,5 +858,18 @@
   "confirmDeleteManufacturer": "Sei sicuro di voler eliminare \"{name}\"? Questo eliminerà anche tutti i modelli associati.",
   "clearedCache": "Cache {name} cancellata con successo",
   "id": "ID",
-  "confirmDeleteEntry": "Sei sicuro di voler eliminare questa voce del diario di volo?"
+  "confirmDeleteEntry": "Sei sicuro di voler eliminare questa voce del diario di volo?",
+  "count": "{count}",
+  "degrees": "{degrees}",
+  "downloaded": "{downloaded}",
+  "error": "{error}",
+  "fileName": "{fileName}",
+  "index": "{index}",
+  "number": "{number}",
+  "platform": "{platform}",
+  "query": "{query}",
+  "skipped": "{skipped}",
+  "unit": "{unit}",
+  "url": "{url}",
+  "value": "{value}"
 }
