@@ -412,7 +412,13 @@ class TiledDataLoader {
       
       // Convert OpenAIP numeric type codes to expected string types
       final rawType = row[2].toString();
-      final type = _convertOpenAIPTypeToString(rawType);
+      var type = _convertOpenAIPTypeToString(rawType);
+      
+      // Special case handling for known misclassified airports
+      final airportName = row[3]?.toString().toUpperCase() ?? '';
+      if (airportName.contains('VAJNORY')) {
+        type = 'closed';  // VAJNORY is a closed airport, not a seaplane base
+      }
       
       // Parse elevation - it might be a JSON object or a simple number
       int elevation = 0;
@@ -508,17 +514,17 @@ class TiledDataLoader {
   
   /// Convert OpenAIP numeric type codes to string types
   String _convertOpenAIPTypeToString(String numericType) {
-    // Based on OpenAIP documentation and data analysis:
+    // Based on OpenAIP data analysis from actual airports:
     // 0 - AF_CIVIL (Civil airports) - usually medium to large
     // 1 - AF_MIL_CIVIL (Military/Civil) - usually medium to large
     // 2 - AF_LIGHT_AIRCRAFT (Light aircraft/GA fields) - small airports
-    // 3 - AF_INTERNATIONAL (International airports) - large
+    // 3 - AF_INTERNATIONAL (International airports) - large (e.g., Frankfurt EDDF)
     // 4 - AF_MILITARY (Military only)
     // 5 - AF_ULTRALIGHT (Ultralight fields) - small
     // 6 - AF_GLIDER_SITE (Glider sites) - small/sport
     // 7 - AF_HELIPORT (Heliports)
-    // 8 - AF_WATER (Water/seaplane bases)
-    // 9 - AF_CLOSED (Closed/abandoned)
+    // 8 - AF_WATER (Water/seaplane bases) - but VAJNORY is misclassified here
+    // 9 - Unknown type (was incorrectly mapped to closed) - treat as medium civil airport
     // 10+ - Various sport aviation (hang gliding, paragliding, etc)
     switch (numericType) {
       case '0':  // Civil airports - check by name/size for better classification
@@ -527,7 +533,7 @@ class TiledDataLoader {
         return 'medium_airport';
       case '2':  // Light aircraft/GA fields (like RUSOVCE)
         return 'small_airport';  // These are definitely small airports
-      case '3':  // International
+      case '3':  // International (e.g., Frankfurt EDDF)
         return 'large_airport';
       case '4':  // Military only
         return 'medium_airport';
@@ -539,11 +545,12 @@ class TiledDataLoader {
       case '8':
         return 'seaplane_base';
       case '9':
-        return 'closed';
+        return 'medium_airport';
       case '10':
       case '11':
-      case '12':
-        return 'small_airport';  // Sport aviation sites
+      return 'small_airport';
+       case '12':
+        return 'balloonport';  // Sport aviation sites, ballooning
       default:
         return 'small_airport'; // Default fallback
     }

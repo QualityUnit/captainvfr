@@ -1085,15 +1085,17 @@ class MapScreenState extends State<MapScreen>
         final runwayDataMap = <String, List<Runway>>{};
         if (zoom >= 10) {
           for (final airport in airports) {
-            // Pass OpenAIP runway data if available
+            // Always pass OpenAIP runway data to properly handle embedded runways
             final runways = _runwayService.getRunwaysForAirport(
-              airport.icao,
-              openAIPRunways: airport.openAIPRunways.isNotEmpty ? airport.openAIPRunways : null,
+              airport.icao.isNotEmpty ? airport.icao : airport.name,
+              openAIPRunways: airport.openAIPRunways,
               airportLat: airport.position.latitude,
               airportLon: airport.position.longitude,
             );
             if (runways.isNotEmpty) {
-              runwayDataMap[airport.icao] = runways;
+              // Use a unique key: ICAO if available, otherwise use name
+              final key = airport.icao.isNotEmpty ? airport.icao : airport.name;
+              runwayDataMap[key] = runways;
             }
           }
         }
@@ -1450,6 +1452,13 @@ class MapScreenState extends State<MapScreen>
         // debugPrint('❌ Error loading hotspots: $e');
       }
     });
+  }
+
+  // Format countdown time as MM:SS
+  String _formatCountdownTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
   // Start auto-centering countdown
@@ -4379,7 +4388,7 @@ class MapScreenState extends State<MapScreen>
               icon: _showFlightPlanning
                   ? Icons.route
                   : Icons.route_outlined,
-              label: 'Planning',
+              label: l10n.planning,
               isActive: _showFlightPlanning,
               onPressed: () {
                 setState(() {
@@ -4411,7 +4420,7 @@ class MapScreenState extends State<MapScreen>
         
         // Menu Items Section
         Text(
-          'Navigation',
+          l10n.navigation,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -4421,7 +4430,7 @@ class MapScreenState extends State<MapScreen>
         const SizedBox(height: 12),
         _buildMenuItem(
           icon: Icons.search,
-          label: 'Search',
+          label: l10n.search,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _showAirportSearch();
@@ -4429,9 +4438,9 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: _positionTrackingEnabled ? Icons.my_location : Icons.location_searching,
-          label: 'Center',
+          label: l10n.center,
           subtitle: _autoCenteringCountdown > 0 
-              ? 'Auto in: ${_formatCountdownTime(_autoCenteringCountdown)}' 
+              ? l10n.autoInTime(_formatCountdownTime(_autoCenteringCountdown))
               : null,
           onPressed: () {
             _mapStateController.closeMenuPanel();
@@ -4440,7 +4449,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: _mapStateController.showStats ? Icons.dashboard : Icons.dashboard_outlined,
-          label: 'Flight',
+          label: l10n.flight,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _toggleStats();
@@ -4449,7 +4458,7 @@ class MapScreenState extends State<MapScreen>
 
         _buildMenuItem(
           icon: Icons.flight_takeoff,
-          label: 'Flight Log',
+          label: l10n.flightLog,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4463,7 +4472,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: Icons.menu_book,
-          label: 'Logbook',
+          label: l10n.logBook,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4477,7 +4486,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: Icons.route,
-          label: 'Planning',
+          label: l10n.planning,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4491,7 +4500,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: Icons.checklist,
-          label: 'Checklists',
+          label: l10n.checklists,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4505,7 +4514,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: Icons.airplanemode_active,
-          label: 'Aircrafts',
+          label: l10n.aircrafts,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4519,7 +4528,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: Icons.calculate,
-          label: 'Calculators',
+          label: l10n.calculators,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4533,7 +4542,7 @@ class MapScreenState extends State<MapScreen>
         ),
         _buildMenuItem(
           icon: Icons.settings,
-          label: 'Settings',
+          label: l10n.settings,
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
@@ -4614,12 +4623,6 @@ class MapScreenState extends State<MapScreen>
     );
   }
 
-  String _formatCountdownTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
-
   Widget _buildMenuItem({
     required IconData icon,
     required String label,
@@ -4651,7 +4654,7 @@ class MapScreenState extends State<MapScreen>
                 children: [
                   Text(
                     label,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                     ),
@@ -4661,8 +4664,9 @@ class MapScreenState extends State<MapScreen>
                     Text(
                       subtitle,
                       style: TextStyle(
+                        color: Colors.orange.shade300,
                         fontSize: 11,
-                        color: Color(0xFFFFB74D),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

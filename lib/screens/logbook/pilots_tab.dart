@@ -18,7 +18,6 @@ class PilotsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final pilotService = context.watch<PilotService>();
     final pilots = pilotService.pilots;
 

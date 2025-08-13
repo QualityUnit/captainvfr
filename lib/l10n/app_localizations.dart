@@ -4907,6 +4907,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this logbook entry?'**
   String get confirmDeleteEntry;
+
+  /// Navigation menu section title
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get navigation;
+
+  /// Auto-centering countdown display
+  ///
+  /// In en, this message translates to:
+  /// **'Auto in: {time}'**
+  String autoInTime(String time);
+
+  /// Stats menu item label
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get stats;
+
+  /// Flight menu item label
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get flight;
+
+  /// Checklists menu item label
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get checklists;
+
+  /// Aircrafts menu item label
+  ///
+  /// In en, this message translates to:
+  /// **'Aircrafts'**
+  String get aircrafts;
 }
 
 class _AppLocalizationsDelegate

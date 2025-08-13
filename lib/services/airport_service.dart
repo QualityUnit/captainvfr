@@ -259,11 +259,12 @@ class AirportService {
 
         if (lines.length > 1) {
           // Skip header
-          final header = lines[0].split(',');
+          // final header = lines[0].split(',');
 
           final filteredAirports = <String>[];
-          int invalidCount = 0;
-          int closedCount = 0;
+          // These counts are tracked but not currently used
+          // int _invalidCount = 0;
+          // int _closedCount = 0;
 
           for (var i = 1; i < lines.length; i++) {
             final line = lines[i];
@@ -277,17 +278,17 @@ class AirportService {
 
               // Skip closed airports entirely
               if (type == 'closed') {
-                closedCount++;
+                // _closedCount++;
                 continue;
               }
 
               if (lat != 0.0 && lon != 0.0) {
                 filteredAirports.add(line);
               } else {
-                invalidCount++;
+                // _invalidCount++;
               }
             } else {
-              invalidCount++;
+              // _invalidCount++;
             }
           }
 

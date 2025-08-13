@@ -185,17 +185,21 @@ class MetarOverlay extends StatelessWidget {
   /// Calculate airport marker size based on type and zoom
   double _getAirportMarkerSize(Airport airport, double zoom) {
     // Match the actual airport marker sizes from AirportMarkersLayer
-    final baseSize = zoom >= 10 ? 16.0 : 30.0;
-    
-    // Adjust for airport type
-    if (airport.type == 'small_airport' || airport.type == 'balloonport') {
-      return baseSize * 0.75;
-    } else if (airport.type == 'heliport') {
-      return baseSize * 0.8;
-    } else if (airport.type == 'medium_airport') {
-      return baseSize * 0.85;
+    double baseSize;
+    if (zoom >= 14) {
+      baseSize = 16.0 + (zoom - 14) * 2.0; // Scale up at high zoom
+    } else if (zoom >= GeoConstants.minZoomForRunways) {
+      baseSize = 16.0; // Consistent size for zoom 11-13
+    } else if (zoom >= 8) {
+      baseSize = 20.0 - (zoom - 8) * 1.33; // Interpolate from zoom 8 to 11
+    } else if (zoom >= 5) {
+      baseSize = 14.0 + (zoom - 5) * 2.0; // Interpolate from zoom 5 to 8
+    } else {
+      baseSize = 14.0; // Minimum size
     }
-    return baseSize;
+    
+    // Use consistent size for all airport types
+    return baseSize.clamp(12.0, 40.0);
   }
   
   /// Calculate runway visualization size if applicable
@@ -204,10 +208,11 @@ class MetarOverlay extends StatelessWidget {
       return 0;
     }
     
-    // This is a simplified calculation - in reality it depends on runway length
-    // For now, return a reasonable estimate
+    // Use a reasonable estimate for runway visualization
+    // At lower zoom levels (11-12.x), use constrained size
+    // At higher zoom levels (13+), allow larger visualizations
     final baseSize = _getAirportMarkerSize(airport, zoom);
-    return baseSize * 3.5; // Default runway visualization multiplier
+    return baseSize;
   }
 
   // Parse wind data from METAR

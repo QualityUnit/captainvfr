@@ -34,12 +34,36 @@ class AirportMarker extends StatelessWidget {
     final color = _getAirportColor(airport.type);
     final borderColor = isSelected ? Colors.amber : color;
     // Adjust border width based on zoom level - thinner at lower zoom levels
-    final borderWidth = isSelected ? (mapZoom >= 10 ? 2.0 : 1.5) : (mapZoom >= 10 ? 1.5 : 1.0);
+    final borderWidth = isSelected ? 1.5 : 1.0;
 
 
     // The visual size of the marker based on zoom
-    // Ensure minimum size to prevent NaN errors
-    final visualSize = size > 0 ? size : 24.0;
+    // Size hierarchy: large_airport = 100%, medium_airport = 75%, small_airport = 50%
+    double sizeMultiplier = 1.0;
+    switch (airport.type) {
+      case 'large_airport':
+        sizeMultiplier = 1.0;
+        break;
+      case 'medium_airport':
+        sizeMultiplier = 0.75;
+        break;
+      case 'small_airport':
+      case 'heliport':
+      case 'seaplane_base':
+      case 'balloonport':
+        sizeMultiplier = 0.5;
+        break;
+      default:
+        sizeMultiplier = 0.6;
+    }
+    
+    // Slightly reduce size for airports without ICAO codes (they use abbreviated names)
+    if (airport.icao.isEmpty) {
+      sizeMultiplier *= 0.9;
+    }
+    
+    final double baseSize = size * sizeMultiplier;
+    final double visualSize = math.min(30.0, math.max(10.0, baseSize));
 
     // Calculate runway visualization size based on actual runway dimensions
     double runwayVisualizationSize = 0.0;
@@ -65,27 +89,31 @@ class AirportMarker extends StatelessWidget {
       // Set size based on longest runway
       if (maxLengthM > 0 && metersPerPixel > 0) {
         // Calculate pixel size for runway visualization
-        // Add small buffer (1.05) for visual clarity
-        final calculatedSize = (maxLengthM / metersPerPixel) * 1.05;
+        final calculatedSize = (maxLengthM / metersPerPixel);
         
         // Ensure the size is valid (not NaN or infinite)
         if (calculatedSize.isFinite && calculatedSize > 0) {
-          // Ensure minimum size for visibility
-          // At zoom 10+, use actual calculated size to show realistic runway proportions
-          // At lower zooms, use a reasonable size for visibility
-          runwayVisualizationSize = mapZoom >= 10 ? calculatedSize : visualSize * 2.0;
+          // Limit runway size at lower zoom levels to prevent oversized visualizations
+          runwayVisualizationSize = calculatedSize;
         } else {
-          runwayVisualizationSize = visualSize * 3.5; // Default size
+          runwayVisualizationSize = visualSize * 2.5; // Default size
         }
       } else {
-        runwayVisualizationSize = visualSize * 3.5; // Default size
+        runwayVisualizationSize = visualSize * 2.5; // Default size
       }
     }
 
     // Determine if label should be shown based on zoom
-    // Show labels only between zoom levels 4 and 10 AND only if airport has ICAO code
-    final shouldShowLabel = showLabel && mapZoom >= 4 && mapZoom <= 10 && airport.icao.isNotEmpty;
-    final fontSize = mapZoom >= 8 ? 11.0 : 9.0;
+    // Show labels for all airports
+    final shouldShowLabel = showLabel;
+    final fontSize = 9.0;
+    
+    // Get label text: ICAO if available, otherwise first 6 letters of name
+    final labelText = airport.icao.isNotEmpty 
+        ? airport.icao 
+        : (airport.name.length > 6 
+            ? airport.name.substring(0, 6).toUpperCase() 
+            : airport.name.toUpperCase());
 
     return GestureDetector(
       onTap: () {
@@ -110,7 +138,7 @@ class AirportMarker extends StatelessWidget {
                   if (runways != null && runways!.isNotEmpty)
                     UnifiedRunwayVisualization(
                       runways: runways!,
-                      airportIdent: airport.icao,
+                      airportIdent: airport.icao.isNotEmpty ? airport.icao : airport.name,
                       zoom: mapZoom,
                       size: runwayVisualizationSize,
                       runwayColor: isSelected ? Colors.amber : Colors.black87,
@@ -121,7 +149,7 @@ class AirportMarker extends StatelessWidget {
                   else if (airport.openAIPRunways.isNotEmpty)
                     UnifiedRunwayVisualization(
                       openAIPRunways: airport.openAIPRunways,
-                      airportIdent: airport.icao,
+                      airportIdent: airport.icao.isNotEmpty ? airport.icao : airport.name,
                       zoom: mapZoom,
                       size: runwayVisualizationSize,
                       runwayColor: isSelected ? Colors.amber : Colors.black87,
@@ -194,7 +222,7 @@ class AirportMarker extends StatelessWidget {
                   ],
                 ),
                 child: Text(
-                  airport.icao.isNotEmpty ? airport.icao : airport.name,
+                  labelText,
                   style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.bold,
@@ -218,16 +246,19 @@ class AirportMarker extends StatelessWidget {
       case 'heliport':
         return Icons.circle; // Circle represents helipad landing area
       case 'balloonport':
-        return Icons.air; // Hot air balloon icon for balloonports
+        return Icons.air_outlined; // Hot air balloon icon for balloonports
       case 'seaplane_base':
-        return Icons.airplanemode_active;
+        return Icons.water; // Water icon for seaplane bases
+      case 'closed':
+        return Icons.block; // Block icon for closed airports
       case 'large_airport':
-        return Icons.flight;
+        return Icons.flight; // Large plane icon for major airports
       case 'medium_airport':
-        return Icons.flight_takeoff;
+        return Icons.flight_takeoff; // Taking off plane for medium airports
       case 'small_airport':
+        return Icons.flight_land; // Landing plane for small airports
       default:
-        return Icons.flight_land;
+        return Icons.local_airport; // Generic airport icon
     }
   }
 
@@ -248,21 +279,27 @@ class AirportMarker extends StatelessWidget {
         default:
           break;
       }
+      return Colors.orange;
     }
 
     // Fall back to airport type if no weather data
     switch (type) {
       case 'large_airport':
-        return Colors.blue;
+        return Colors.blue[700]!;
       case 'medium_airport':
-        return Colors.green;
+        return Colors.green[600]!;
       case 'heliport':
-        return Colors.purple;
+        return Colors.purple[600]!;
       case 'seaplane_base':
-        return Colors.blue[300]!;
+        return Colors.cyan[600]!;
       case 'small_airport':
+        return Colors.orange[600]!;
+      case 'closed':
+        return Colors.red[800]!;  // Dark red for closed airports
+      case 'balloonport':
+        return Colors.pink[400]!;
       default:
-        return Colors.white;
+        return Colors.orange[600]!;  // Default to orange for better visibility
     }
   }
 }
@@ -290,51 +327,92 @@ class AirportMarkersLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Base marker size based on zoom
-    // At zoom 10+, use smaller markers (10px) to not overlap runway visualizations
-    // At lower zooms, use larger markers (24px) for better visibility
-    final baseMarkerSize = mapZoom >= 10 ? 16.0 : 30.0;
-
     final markers = airports.map((airport) {
-      // Small airports and balloonports get 25% smaller markers (75% of base size)
-      final airportMarkerSize = (airport.type == 'small_airport' || airport.type == 'balloonport')
-          ? baseMarkerSize * 0.75
-          : baseMarkerSize;
+      // Size hierarchy based on airport type
+      double sizeMultiplier = 1.0;
+      switch (airport.type) {
+        case 'large_airport':
+          sizeMultiplier = 1.0;
+          break;
+        case 'medium_airport':
+          sizeMultiplier = 0.75;
+          break;
+        case 'small_airport':
+        case 'heliport':
+        case 'seaplane_base':
+        case 'balloonport':
+          sizeMultiplier = 0.5;
+          break;
+        default:
+          sizeMultiplier = 0.6;
+      }
+      
+      // Slightly reduce size for airports without ICAO codes (they use abbreviated names)
+      if (airport.icao.isEmpty) {
+        sizeMultiplier *= 0.9;
+      }
+      
+      final double adjustedSize = markerSize * sizeMultiplier;
+      final double airportMarkerSize = math.min(30.0, math.max(10.0, adjustedSize));
 
-      // Get runway data for this airport
-      final runways = airportRunways?[airport.icao];
+      // Get runway data for this airport (use ICAO if available, otherwise name)
+      final key = airport.icao.isNotEmpty ? airport.icao : airport.name;
+      final runways = airportRunways?[key];
 
-      // Calculate actual runway bounds
-      double markerBounds = airportMarkerSize;
+      // Calculate runway visualization bounds separately from marker size
+      double runwayVisualizationBounds = 0;
       if (mapZoom >= GeoConstants.minZoomForRunways) {
         // Calculate meters per pixel at this zoom and latitude
         final double metersPerPixel = GeoConstants.metersPerPixel(airport.position.latitude, mapZoom);
         
         // Find the longest runway
         double maxLengthM = 0;
-        final airportRunwayData = airportRunways?[airport.icao];
-        if (airportRunwayData != null && airportRunwayData.isNotEmpty) {
-          for (final runway in airportRunwayData) {
+        
+        // Check OurAirports runway data
+        if (runways != null && runways.isNotEmpty) {
+          for (final runway in runways) {
             final lengthM = runway.lengthFt * GeoConstants.metersPerFoot;
             if (lengthM > maxLengthM) maxLengthM = lengthM;
           }
         }
         
-        if (maxLengthM > 0) {
-          // Use actual runway length with small buffer
-          markerBounds = math.max(airportMarkerSize, (maxLengthM / metersPerPixel) * 1.05);
+        // Check OpenAIP runway data
+        if (airport.openAIPRunways.isNotEmpty) {
+          for (final runway in airport.openAIPRunways) {
+            final lengthM = runway.lengthM?.toDouble() ?? 0;
+            if (lengthM > maxLengthM) maxLengthM = lengthM;
+          }
+        }
+        
+        if (maxLengthM > 0 && metersPerPixel > 0) {
+          // Calculate pixel size for runway visualization with small buffer (10%)
+          runwayVisualizationBounds = (maxLengthM / metersPerPixel) * 1.1;
         }
       }
 
+      // Determine the actual bounds for the Marker widget
+      // Always include space for the marker icon and label
+      double markerWidgetBounds = airportMarkerSize;
+      
+      // Add space for label if shown
+      if (showLabels) {
+        markerWidgetBounds += 20; // Add space for label below marker
+      }
+      
+      // If we have runway visualization, ensure bounds are large enough
+      if (runwayVisualizationBounds > 0) {
+        markerWidgetBounds = math.max(markerWidgetBounds, runwayVisualizationBounds);
+      }
+
       return Marker(
-        width: markerBounds,
-        height: markerBounds,
+        width: markerWidgetBounds,
+        height: markerWidgetBounds,
         point: airport.position,
         child: AirportMarker(
           airport: airport,
           runways: runways,
           onTap: onAirportTap != null ? () => onAirportTap!(airport) : null,
-          size: airportMarkerSize,
+          size: airportMarkerSize,  // This is the actual icon size, not the bounds
           showLabel: showLabels,
           isSelected:
               false, // Default to false, can be set based on selection state

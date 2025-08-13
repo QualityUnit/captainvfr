@@ -118,53 +118,22 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
     // This reduces clutter on the map when zoomed out
     List<Airport> visibleAirports = airportsInBounds;
     
-    if (currentZoom < 7) {
-      // Only show large airports when very zoomed out
-      visibleAirports = airportsInBounds
-          .where((a) => a.type == 'large_airport')
-          .toList();
-    } else if (currentZoom < 9) {
-      // Show large and medium airports
-      visibleAirports = airportsInBounds.where((a) {
-        if (a.type == 'large_airport' || a.type == 'medium_airport') return true;
-        // Show heliports if toggle is on, regardless of zoom
-        if ((a.type == 'heliport' || a.type == 'balloonport') && showHeliports) return true;
-        return false;
-      }).toList();
-    } else if (currentZoom < 11) {
-      // Show all airports based on toggles
-      visibleAirports = airportsInBounds.where((a) {
-        // Always show large and medium airports
-        if (a.type == 'large_airport' || a.type == 'medium_airport' || a.type == 'small_airport') return true;
-        // Show heliports based on toggle (override zoom restriction)
-        if ((a.type == 'heliport' || a.type == 'balloonport') && showHeliports) return true;
-        // Show other types
-        if (a.type == 'seaplane_base') return true;
-        return false;
-      }).toList();
-    } else {
-      // At zoom >= 11, use the pre-filtered airports from map_screen
-      visibleAirports = airportsInBounds;
-    }
-    
+
+    // Show all airports based on toggles
+    visibleAirports = airportsInBounds.where((a) {
+      // Always show large and medium airports
+      if (a.type == 'large_airport' || a.type == 'medium_airport' || a.type == 'small_airport') return true;
+      // Show heliports based on toggle (override zoom restriction)
+      if ((a.type == 'heliport' || a.type == 'balloonport') && showHeliports) return true;
+      // Show other types
+      if (a.type == 'seaplane_base') return true;
+      return false;
+    }).toList();
+
 
     // Performance optimization: Limit number of markers to prevent slow frames
     // Since we're now only showing airports in visible bounds, we can use higher limits
-    int maxMarkers;
-    if (currentZoom < 8) {
-      maxMarkers = 50;
-    } else if (currentZoom < 10) {
-      maxMarkers = 200;
-    } else if (currentZoom < 12) {
-      maxMarkers = 400;
-    } else {
-      maxMarkers = 800;
-    }
-    
-    // When heliports are shown, increase the limit slightly
-    if (showHeliports && currentZoom >= 10) {
-      maxMarkers = (maxMarkers * 1.5).round();
-    }
+    int maxMarkers = 800;
     
     // If we have too many airports, prioritize by type and distance from center
     if (visibleAirports.length > maxMarkers) {
@@ -219,49 +188,22 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
     
 
     // Calculate base marker size with smooth interpolation based on zoom level
-    // At zoom 10-13, use smaller markers to not overlap with runway visualizations
-    // At higher zoom levels, scale up for better visibility
-    double baseMarkerSize;
-    if (currentZoom >= 14) {
-      // Scale up at very high zoom for visibility
-      baseMarkerSize = 16.0 + (currentZoom - 14) * 2.0; // 16 at zoom 14, up to 24 at zoom 18
-    } else if (currentZoom >= 10) {
-      // Smaller size when runways are visible but not too zoomed in
-      baseMarkerSize = 14.0;
-    } else if (currentZoom >= 8) {
-      // Reduced base size at zoom 8 for better differentiation
-      baseMarkerSize = 18.0 - (currentZoom - 8) * 2.0; // 18 at zoom 8, down to 14 at zoom 10
-    } else if (currentZoom >= 5) {
-      // Linear interpolation from zoom 5 to 8
-      baseMarkerSize = 12.0 + (currentZoom - 5) * 2.0; // 12 at zoom 5, 18 at zoom 8
-    } else {
-      // Minimum size for very far zoom
-      baseMarkerSize = 12.0;
+    // At zoom 11+, use consistent marker size for all airports
+    double baseMarkerSize = 14.0;
+    if (currentZoom >= GeoConstants.minZoomForRunways) {
+      // Consistent size when runways are visible (zoom 11-13)
+      baseMarkerSize = 16.0;
     }
-    
-    // Clamp to reasonable bounds
-    baseMarkerSize = baseMarkerSize.clamp(12.0, 40.0);
 
-    // Find the maximum marker size to use for the layer
+    // Use the same maximum marker size for all airport types
     double maxMarkerSize = baseMarkerSize;
-    // Check if we have any large airports
-    if (visibleAirports.any((a) => a.type == 'large_airport')) {
-      maxMarkerSize = baseMarkerSize;
-    } else if (visibleAirports.any((a) => a.type == 'medium_airport')) {
-      maxMarkerSize = baseMarkerSize * 0.85;
-    } else if (visibleAirports.any((a) => a.type == 'small_airport')) {
-      maxMarkerSize = baseMarkerSize * 0.7;
-    } else {
-      // Only heliports
-      maxMarkerSize = baseMarkerSize * 0.6;
-    }
     
     // Don't increase marker bounds for runway visualization
     // Keep markers small when runways are visible to avoid overlap
     
     // Calculate marker dimensions with label space
     // Labels are shown only between zoom levels 4 and 10
-    final showLabelNow = showLabels && currentZoom >= 4 && currentZoom <= 10;
+    final showLabelNow = showLabels && currentZoom >= 9;
     // Need to account for runway visualization size which can be larger than marker
     double maxWidth = maxMarkerSize;
     double maxHeight = maxMarkerSize;
@@ -289,7 +231,9 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
           }
           
           if (maxLengthM > 0) {
-            final runwaySize = (maxLengthM / metersPerPixel) * 1.05;
+            final calculatedSize = (maxLengthM / metersPerPixel);
+            // Limit runway size at lower zoom levels to prevent oversized visualizations
+            final runwaySize = calculatedSize;
             if (runwaySize > maxRunwaySize) maxRunwaySize = runwaySize;
           }
         }
@@ -314,22 +258,8 @@ class OptimizedAirportMarkersLayer extends StatelessWidget {
       markerBuilder: (index, position) {
         final airport = visibleAirports[index];
         
-        // Adjust marker size based on airport type with more aggressive differentiation
-        double airportMarkerSize;
-        if (airport.type == 'small_airport') {
-          // Much smaller for small airports, especially at lower zoom levels
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.4 : baseMarkerSize * 0.5;
-        } else if (airport.type == 'heliport' || airport.type == 'balloonport') {
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.45 : baseMarkerSize * 0.55;
-          // Ensure minimum size for heliports and balloonports
-          airportMarkerSize = airportMarkerSize.clamp(8.0, 40.0);
-        } else if (airport.type == 'seaplane_base') {
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.5 : baseMarkerSize * 0.6;
-        } else if (airport.type == 'medium_airport') {
-          airportMarkerSize = currentZoom <= 8 ? baseMarkerSize * 0.7 : baseMarkerSize * 0.75;
-        } else {
-          airportMarkerSize = baseMarkerSize; // Full size for large airports
-        }
+        // Use same marker size for all airport types for consistent visibility
+        double airportMarkerSize = baseMarkerSize; // All airports use full size
         
 
         return AirportMarker(
@@ -592,7 +522,7 @@ class OptimizedObstaclesLayer extends StatelessWidget {
     final positions = visibleObstacles.map((o) => o.position).toList();
 
     // Calculate dynamic marker size based on zoom level - same as navaid/reporting points
-    final markerSize = currentZoom >= 12 ? 20.0 : 14.0;
+    final markerSize = 20.0;
     final showLabel = currentZoom >= 11;
     // Add extra height for label if shown
     final totalHeight = showLabel ? markerSize + 25.0 : markerSize;
@@ -653,7 +583,7 @@ class OptimizedHotspotsLayer extends StatelessWidget {
     }
 
     // Limit number of markers based on zoom
-    final maxMarkers = currentZoom >= 12 ? 150 : 75;
+    final maxMarkers = 250;
     
     if (visibleHotspots.length > maxMarkers) {
       // Prioritize by reliability
@@ -669,12 +599,12 @@ class OptimizedHotspotsLayer extends StatelessWidget {
     final positions = visibleHotspots.map((h) => h.position).toList();
 
     // Calculate dynamic marker size based on zoom level - same as navaid/obstacle/reporting points
-    final markerSize = currentZoom >= 12 ? 20.0 : 14.0;
+    final markerSize = 20.0;
 
     return OptimizedMarkerLayer(
       markerPositions: positions,
       markerWidth: markerSize * 3, // Extra width for label
-      markerHeight: markerSize + (currentZoom >= 11 ? 20 : 0), // Extra height for label
+      markerHeight: markerSize, // Extra height for label
       boundsPadding: 0.2,
       markerBuilder: (index, position) {
         final hotspot = visibleHotspots[index];

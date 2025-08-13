@@ -78,18 +78,16 @@ class OpenAIPDataTileGenerator {
         // Skip header
         for (int i = 1; i < lines.length && i < 1000; i++) { // Limit for testing
           final parts = lines[i].split(',');
-          if (parts.length > 13) {
-            final ident = parts[1].replaceAll('"', '').trim();
-            final lat = double.tryParse(parts[4]) ?? 0.0;
-            final lon = double.tryParse(parts[5]) ?? 0.0;
-            
-            if (ident.isNotEmpty && lat != 0 && lon != 0) {
-              airports.add({
-                'ident': ident,
-                'latitude': lat,
-                'longitude': lon,
-              });
-            }
+          final ident = parts[1].replaceAll('"', '').trim();
+          final lat = double.tryParse(parts[4]) ?? 0.0;
+          final lon = double.tryParse(parts[5]) ?? 0.0;
+
+          if (ident.isNotEmpty && lat != 0 && lon != 0) {
+            airports.add({
+              'ident': ident,
+              'latitude': lat,
+              'longitude': lon,
+            });
           }
         }
         
