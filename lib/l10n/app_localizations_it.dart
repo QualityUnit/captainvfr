@@ -345,6 +345,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cerca aeroporti e aiuti navigazione per nome o codice\n(es. \"KJFK\", \"Kennedy\", \"VOR\", \"SFO\")';
 
   @override
+  String get searchHistoryEmpty => 'Nessuna ricerca recente';
+
+  @override
+  String get recentSearches => 'Ricerche recenti';
+
+  @override
+  String get clearHistory => 'Cancella';
+
+  @override
   String noResultsFound(String query) {
     return 'Nessun risultato trovato per \"$query\"';
   }

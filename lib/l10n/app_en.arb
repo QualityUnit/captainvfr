@@ -551,6 +551,21 @@
     "description": "Search instructions"
   },
 
+  "searchHistoryEmpty": "No recent searches",
+  "@searchHistoryEmpty": {
+    "description": "Message when search history is empty"
+  },
+
+  "recentSearches": "Recent searches",
+  "@recentSearches": {
+    "description": "Recent searches section title"
+  },
+
+  "clearHistory": "Clear",
+  "@clearHistory": {
+    "description": "Button to clear search history"
+  },
+
   "noResultsFound": "No results found for \"{query}\"",
   "@noResultsFound": {
     "description": "No search results message",

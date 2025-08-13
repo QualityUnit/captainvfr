@@ -768,6 +768,24 @@ abstract class AppLocalizations {
   /// **'Search for airports and navaids by name or code\n(e.g., \"KJFK\", \"Kennedy\", \"VOR\", \"SFO\")'**
   String get searchForAirports;
 
+  /// Message when search history is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No recent searches'**
+  String get searchHistoryEmpty;
+
+  /// Recent searches section title
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get recentSearches;
+
+  /// Button to clear search history
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearHistory;
+
   /// No search results message
   ///
   /// In en, this message translates to:
