@@ -1,7 +1,7 @@
 +++
 title = "Download CaptainVFR"
 description = "Download CaptainVFR for your preferred platform. Available for iOS, Android, macOS, and as a web application. Get the most comprehensive VFR flight planning tool for pilots."
-keywords = ["download CaptainVFR", "aviation app download", "flight planner download", "iOS flight app", "Android pilot app", "macOS aviation software", "VFR planning app"]
+keywords = [ "download CaptainVFR", "aviation app download", "flight planner download", "iOS flight app", "Android pilot app", "macOS aviation software", "VFR planning app",]
 image = "/images/screenshots/macos/flight-plan.jpg"
 shortDescription = "Get CaptainVFR on your preferred device. Available for iOS, Android, macOS, and web browsers."
 showCTA = true
@@ -9,7 +9,7 @@ ctaHeading = "Questions about CaptainVFR?"
 ctaDescription = "Our support team is here to help you get started with your flight planning journey."
 ctaPrimaryText = "Contact Support"
 ctaPrimaryURL = "/contact/"
-
+date = "2025-08-13 23:50:56"
 [[faq]]
 question = "What platforms is CaptainVFR available on?"
 answer = "CaptainVFR is available on iOS (iPhone and iPad), Android devices, macOS desktop, and as a web application that works in any modern browser."
@@ -29,8 +29,8 @@ answer = "iOS 13.0+, Android 6.0+, macOS 10.15+, or any modern web browser (Chro
 [[faq]]
 question = "Do I need an internet connection to use CaptainVFR?"
 answer = "While an internet connection is required for real-time weather and initial setup, you can download maps and data for offline use during flights."
-+++
 
++++
 ### Recent Updates
 
 **Latest improvements (January 2025):**

@@ -3,8 +3,8 @@ title = "Viktor Zeman"
 description = "Viktor Zeman - Co-founder of CaptainVFR, software engineer, and recreational pilot. Combining 20+ years of software development expertise with passion for aviation to create better tools for VFR pilots."
 role = "Co-founder & Lead Developer"
 email = "viktor@captainvfr.com"
+date = "2025-08-13 23:50:56"
 +++
-
 Viktor Zeman is the co-founder and lead developer of CaptainVFR. With over 20 years of experience in software engineering, Viktor combines his technical expertise with his passion for aviation to create innovative flight planning tools for the VFR community.
 
 As a recreational pilot who flies for the pure joy of aviation, Viktor understands the needs and challenges faced by VFR pilots. This firsthand experience drives the development of CaptainVFR, ensuring that every feature is designed with real-world flying in mind.

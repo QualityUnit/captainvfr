@@ -1,13 +1,13 @@
----
-title: "Enhanced Heading & Navigation Features"
-date: 2025-08-03T12:00:00Z
-author: "Viktor Zeman"
-tags: ["updates", "features", "navigation", "compass"]
-categories: ["App Updates"]
-description: "Major improvements to heading display, compass functionality, and map rotation modes for better situational awareness during flight"
-image: "/images/blog/compass-update.jpg"
-draft: false
----
++++
+title = "Enhanced Heading & Navigation Features"
+date = 2025-08-03T12:00:00Z
+author = "Viktor Zeman"
+tags = ["updates", "features", "navigation", "compass"]
+categories = ["App Updates"]
+description = "Major improvements to heading display, compass functionality, and map rotation modes for better situational awareness during flight"
+image = "/images/blog/compass-update.jpg"
+draft = false
++++
 
 We're excited to announce significant enhancements to CaptainVFR's navigation and heading features, making your flight experience more intuitive and reliable than ever before.
 

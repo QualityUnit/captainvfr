@@ -1,0 +1,120 @@
+blog:
+  august-2025-multilingual-update:
+  - file: about
+  - file: _index
+  - file: blog/enhanced-heading-features
+  blog:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+  enhanced-heading-features:
+  - file: blog/release-2025-07-24
+  - file: download
+  - file: _index
+  introducing-digital-logbook:
+  - file: features/pilot-logbook
+  - file: features/flight-tracking
+  - file: about
+  release-2025-07-24:
+  - file: blog/enhanced-heading-features
+  - file: features/flight-planning
+  - file: _index
+  release-2025-07-25:
+  - file: features/offline-capabilities
+  - file: privacy-policy
+  - file: pricing
+categories:
+  categories:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+features:
+  aircraft-management:
+  - file: features/map-navigation
+  - file: features/document-management
+  - file: features/flight-planning
+  checklists:
+  - file: features/pilot-calculators
+  - file: features/flight-planning
+  - file: features/pilot-logbook
+  cross-platform:
+  - file: download
+  - file: blog/enhanced-heading-features
+  - file: _index
+  document-management:
+  - file: features/safety-features
+  - file: features/aircraft-management
+  - file: features/pilot-logbook
+  features:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+  flight-planning:
+  - file: blog/release-2025-07-24
+  - file: features/pilot-logbook
+  - file: features/map-navigation
+  flight-tracking:
+  - file: features/map-navigation
+  - file: features/pilot-logbook
+  - file: features/pilot-calculators
+  map-navigation:
+  - file: features/flight-tracking
+  - file: features/offline-capabilities
+  - file: features/flight-planning
+  notams:
+  - file: features/map-navigation
+  - file: features/weather-services
+  - file: features/safety-features
+  offline-capabilities:
+  - file: features/map-navigation
+  - file: blog/release-2025-07-25
+  - file: features/pilot-logbook
+  pilot-calculators:
+  - file: features/pilot-logbook
+  - file: features/map-navigation
+  - file: features/flight-tracking
+  pilot-logbook:
+  - file: features/flight-tracking
+  - file: blog/introducing-digital-logbook
+  - file: features/flight-planning
+  safety-features:
+  - file: features/document-management
+  - file: features/pilot-logbook
+  - file: features/map-navigation
+  weather-services:
+  - file: features/pilot-calculators
+  - file: features/map-navigation
+  - file: features/notams
+tags:
+  features:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/update
+  flight-planning:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+  ios:
+  - file: tags/release
+  - file: tags/features
+  - file: tags/update
+  offline:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+  openaip:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+  release:
+  - file: tags/ios
+  - file: tags/features
+  - file: tags/update
+  tags:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
+  update:
+  - file: tags/ios
+  - file: tags/release
+  - file: tags/features
