@@ -596,7 +596,7 @@ class _CreateTripDialogState extends State<_CreateTripDialog> {
 
   void _createTrip(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    // final flightPlanService = Provider.of<FlightPlanService>(context, listen: false);
+    final flightPlanService = Provider.of<FlightPlanService>(context, listen: false);
     
     if (_selectedPlanIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -609,28 +609,38 @@ class _CreateTripDialogState extends State<_CreateTripDialog> {
     }
 
     // Get selected flight plans in order
-    // final selectedPlans = widget.flightPlans
-    //     .where((fp) => _selectedPlanIds.contains(fp.id))
-    //     .toList();
+    final selectedPlans = widget.flightPlans
+        .where((fp) => _selectedPlanIds.contains(fp.id))
+        .toList();
     
-    // TODO: Implement createTripFromFlightPlans in FlightPlanService
-    // This feature will combine multiple flight plans into a single trip
-    // await flightPlanService.createTripFromFlightPlans(
-    //   selectedPlans,
-    //   _tripNameController.text.trim(),
-    // );
-    
-    // For now, show a message that this feature is being implemented
-    if (!context.mounted) return;
-    Navigator.of(context).pop(); // Close the dialog
-    
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Multi-leg trip feature is coming soon'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    try {
+      await flightPlanService.createTripFromFlightPlans(
+        selectedPlans,
+        _tripNameController.text.trim(),
+      );
+      
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close the dialog
+      
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Go back to map screen
+      
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.tripCreated),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating trip: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   String _getFlightPlanSummary(FlightPlan flightPlan) {

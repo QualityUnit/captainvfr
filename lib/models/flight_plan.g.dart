@@ -26,13 +26,16 @@ class FlightPlanAdapter extends TypeAdapter<FlightPlan> {
       cruiseSpeed: fields[6] as double?,
       flightRules: fields[7] as FlightRules?,
       fuelConsumptionRate: fields[8] as double?,
+      tripId: fields[9] as String?,
+      legNumber: fields[10] as int?,
+      legColor: fields[11] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FlightPlan obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +53,13 @@ class FlightPlanAdapter extends TypeAdapter<FlightPlan> {
       ..writeByte(7)
       ..write(obj.flightRules)
       ..writeByte(8)
-      ..write(obj.fuelConsumptionRate);
+      ..write(obj.fuelConsumptionRate)
+      ..writeByte(9)
+      ..write(obj.tripId)
+      ..writeByte(10)
+      ..write(obj.legNumber)
+      ..writeByte(11)
+      ..write(obj.legColor);
   }
 
   @override

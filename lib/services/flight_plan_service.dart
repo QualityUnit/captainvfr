@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hive/hive.dart';
 import '../models/flight_plan.dart';
+import '../models/trip.dart';
 import '../models/airport.dart';
 import '../models/navaid.dart';
 import '../models/aircraft.dart';
 import '../models/reporting_point.dart';
+import '../constants/trip_colors.dart';
 import '../services/aircraft_service.dart';
 import '../services/flight_plan_tile_download_service.dart';
 
@@ -16,6 +18,9 @@ class FlightPlanService extends ChangeNotifier {
   int _waypointCounter = 1;
   List<FlightPlan> _savedFlightPlans = [];
   Box<FlightPlan>? _flightPlanBox;
+  List<Trip> _savedTrips = [];
+  Box<Trip>? _tripBox;
+  Trip? _currentTrip;
   final AircraftService? _aircraftService;
   FlightPlanTileDownloadService? _tileDownloadService;
   BuildContext? _context;
@@ -28,6 +33,8 @@ class FlightPlanService extends ChangeNotifier {
   bool get isFlightPlanVisible => _isFlightPlanVisible;
   List<Waypoint> get waypoints => _currentFlightPlan?.waypoints ?? [];
   List<FlightPlan> get savedFlightPlans => _savedFlightPlans;
+  List<Trip> get savedTrips => _savedTrips;
+  Trip? get currentTrip => _currentTrip;
 
   FlightPlanService({AircraftService? aircraftService})
     : _aircraftService = aircraftService;
@@ -42,11 +49,13 @@ class FlightPlanService extends ChangeNotifier {
     _context = context;
   }
 
-  // Initialize Hive box for flight plans
+  // Initialize Hive boxes for flight plans and trips
   Future<void> initialize() async {
     try {
       _flightPlanBox = await Hive.openBox<FlightPlan>('flight_plans');
+      _tripBox = await Hive.openBox<Trip>('trips');
       _loadSavedFlightPlans();
+      _loadSavedTrips();
     } catch (e) {
       // debugPrint('Error initializing flight plan service: $e');
     }
@@ -57,6 +66,15 @@ class FlightPlanService extends ChangeNotifier {
     if (_flightPlanBox != null) {
       _savedFlightPlans = _flightPlanBox!.values.toList();
       _savedFlightPlans.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      notifyListeners();
+    }
+  }
+
+  // Load saved trips from storage
+  void _loadSavedTrips() {
+    if (_tripBox != null) {
+      _savedTrips = _tripBox!.values.toList();
+      _savedTrips.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       notifyListeners();
     }
   }
@@ -164,6 +182,84 @@ class FlightPlanService extends ChangeNotifier {
         // debugPrint('Flight plan duplicated: ${duplicatedPlan.name}');
       } catch (e) {
         // debugPrint('Error duplicating flight plan: $e');
+      }
+    }
+  }
+
+  // Create trip from multiple flight plans
+  Future<Trip> createTripFromFlightPlans(
+    List<FlightPlan> flightPlans, 
+    String tripName,
+  ) async {
+    if (flightPlans.isEmpty) {
+      throw Exception('Cannot create trip from empty flight plans');
+    }
+
+    final trip = Trip(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: tripName,
+      createdAt: DateTime.now(),
+      flightPlanIds: [],
+      aircraftId: flightPlans.first.aircraftId,
+    );
+
+    // Update flight plans to be part of the trip and assign colors
+    for (int i = 0; i < flightPlans.length; i++) {
+      final plan = flightPlans[i];
+      plan.tripId = trip.id;
+      plan.legNumber = i;
+      plan.legColor = TripColors.getColorValueForLeg(i);
+      plan.modifiedAt = DateTime.now();
+      
+      trip.flightPlanIds.add(plan.id);
+      
+      // Save updated flight plan
+      if (_flightPlanBox != null) {
+        await _flightPlanBox!.put(plan.id, plan);
+      }
+    }
+
+    // Save trip
+    if (_tripBox != null) {
+      await _tripBox!.put(trip.id, trip);
+      _loadSavedTrips();
+      _loadSavedFlightPlans();
+    }
+
+    // Load the newly created trip so it's displayed on the map
+    loadTrip(trip.id);
+
+    return trip;
+  }
+
+  // Load a trip and its associated flight plans
+  void loadTrip(String tripId) {
+    final trip = _savedTrips.firstWhere(
+      (t) => t.id == tripId,
+      orElse: () => throw Exception('Trip not found'),
+    );
+
+    _currentTrip = trip;
+    
+    // Load all flight plans associated with the trip
+    final tripPlans = <FlightPlan>[];
+    for (final planId in trip.flightPlanIds) {
+      final plan = _savedFlightPlans.firstWhere(
+        (fp) => fp.id == planId,
+        orElse: () => throw Exception('Flight plan $planId not found'),
+      );
+      tripPlans.add(plan);
+    }
+
+    // For now, load the first flight plan of the trip as the current one
+    if (tripPlans.isNotEmpty) {
+      _currentFlightPlan = tripPlans.first;
+      _isPlanning = false;
+      notifyListeners();
+      
+      // Call the callback if set
+      if (onFlightPlanLoaded != null) {
+        onFlightPlanLoaded!(tripPlans.first);
       }
     }
   }
@@ -726,10 +822,13 @@ class FlightPlanService extends ChangeNotifier {
 
   @override
   void dispose() {
-    // Close Hive box if open
+    // Close Hive boxes if open
     try {
       if (_flightPlanBox != null && _flightPlanBox!.isOpen) {
         _flightPlanBox!.close();
+      }
+      if (_tripBox != null && _tripBox!.isOpen) {
+        _tripBox!.close();
       }
     } catch (e) {
       // Ignore errors during disposal
