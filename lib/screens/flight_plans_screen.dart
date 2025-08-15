@@ -613,6 +613,8 @@ class _CreateTripDialogState extends State<_CreateTripDialog> {
         .where((fp) => _selectedPlanIds.contains(fp.id))
         .toList();
     
+    debugPrint('Selected ${selectedPlans.length} flight plans for trip: ${selectedPlans.map((p) => p.name).join(", ")}');
+    
     try {
       await flightPlanService.createTripFromFlightPlans(
         selectedPlans,

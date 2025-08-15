@@ -3464,9 +3464,11 @@ class MapScreenState extends State<MapScreen>
                   if (flightPlanService.currentTripPlans.isNotEmpty) {
                     // Display all trip plans
                     plansToDisplay = flightPlanService.currentTripPlans;
+                    debugPrint('Displaying trip with ${plansToDisplay.length} flight plans');
                   } else if (flightPlanService.currentFlightPlan != null) {
                     // Display single flight plan
                     plansToDisplay = [flightPlanService.currentFlightPlan!];
+                    debugPrint('Displaying single flight plan');
                   } else {
                     return const SizedBox.shrink();
                   }

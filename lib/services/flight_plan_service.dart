@@ -209,6 +209,7 @@ class FlightPlanService extends ChangeNotifier {
     );
 
     // Update flight plans to be part of the trip and assign colors
+    debugPrint('Creating trip with ${flightPlans.length} flight plans');
     for (int i = 0; i < flightPlans.length; i++) {
       final plan = flightPlans[i];
       plan.tripId = trip.id;
@@ -217,12 +218,14 @@ class FlightPlanService extends ChangeNotifier {
       plan.modifiedAt = DateTime.now();
       
       trip.flightPlanIds.add(plan.id);
+      debugPrint('Added flight plan ${plan.id} (${plan.name}) to trip as leg $i');
       
       // Save updated flight plan
       if (_flightPlanBox != null) {
         await _flightPlanBox!.put(plan.id, plan);
       }
     }
+    debugPrint('Trip ${trip.id} now has ${trip.flightPlanIds.length} flight plans');
 
     // Save trip
     if (_tripBox != null) {
@@ -248,13 +251,16 @@ class FlightPlanService extends ChangeNotifier {
     
     // Load all flight plans associated with the trip
     _currentTripPlans.clear();
+    debugPrint('Loading trip ${trip.id} with ${trip.flightPlanIds.length} flight plans');
     for (final planId in trip.flightPlanIds) {
       final plan = _savedFlightPlans.firstWhere(
         (fp) => fp.id == planId,
         orElse: () => throw Exception('Flight plan $planId not found'),
       );
       _currentTripPlans.add(plan);
+      debugPrint('Loaded flight plan ${plan.id} (${plan.name}) for trip');
     }
+    debugPrint('Trip loaded with ${_currentTripPlans.length} flight plans');
 
     // Set the first flight plan as the current one for editing/viewing
     if (_currentTripPlans.isNotEmpty) {
