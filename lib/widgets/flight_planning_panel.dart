@@ -225,8 +225,11 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                   children: [
                     Expanded(
                       child: Text(
-                        flightPlan?.name ??
-                            (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan),
+                        // Show trip name if a trip is loaded, otherwise flight plan name
+                        flightPlanService.currentTrip != null
+                            ? flightPlanService.currentTrip!.name
+                            : (flightPlan?.name ??
+                                (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan)),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: _isExpanded ? 14 : 13,
@@ -236,7 +239,8 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                       ),
                     ),
                     // Center flight plan button
-                    if (flightPlan != null && flightPlan.waypoints.isNotEmpty)
+                    if ((flightPlan != null && flightPlan.waypoints.isNotEmpty) || 
+                        flightPlanService.currentTripPlans.isNotEmpty)
                       IconButton(
                         icon: Icon(
                           Icons.center_focus_strong,
@@ -252,7 +256,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                         tooltip: l10n.centerOnFlightPlan,
                       ),
                     // Clear flight plan button
-                    if (flightPlan != null)
+                    if (flightPlan != null || flightPlanService.currentTrip != null)
                       IconButton(
                         icon: Icon(
                           Icons.clear,
@@ -275,25 +279,54 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                       ),
                   ],
                 ),
-                if (_isExpanded &&
-                    flightPlan != null &&
-                    flightPlan.waypoints.isNotEmpty)
+                if (_isExpanded)
                   Consumer<SettingsService>(
                     builder: (context, settings, child) {
                       final isMetric = settings.units == 'metric';
-                      final distance = flightPlan.totalDistance;
-                      final displayDistance = isMetric
-                          ? distance * 1.852
-                          : distance;
-                      final unit = isMetric ? 'km' : 'nm';
-                      return Text(
-                        l10n.waypointsAndDistance(flightPlan.waypoints.length, displayDistance.toStringAsFixed(0), unit),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 11,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      );
+                      
+                      // Calculate total distance and waypoints
+                      double totalDistance = 0;
+                      int totalWaypoints = 0;
+                      
+                      if (flightPlanService.currentTrip != null && 
+                          flightPlanService.currentTripPlans.isNotEmpty) {
+                        // Trip: sum all plans
+                        for (final plan in flightPlanService.currentTripPlans) {
+                          totalDistance += plan.totalDistance;
+                          totalWaypoints += plan.waypoints.length;
+                        }
+                        
+                        final displayDistance = isMetric
+                            ? totalDistance * 1.852
+                            : totalDistance;
+                        final unit = isMetric ? 'km' : 'nm';
+                        
+                        return Text(
+                          '${flightPlanService.currentTripPlans.length} legs, $totalWaypoints waypoints, ${displayDistance.toStringAsFixed(0)} $unit',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      } else if (flightPlan != null && flightPlan.waypoints.isNotEmpty) {
+                        // Single flight plan
+                        final distance = flightPlan.totalDistance;
+                        final displayDistance = isMetric
+                            ? distance * 1.852
+                            : distance;
+                        final unit = isMetric ? 'km' : 'nm';
+                        return Text(
+                          l10n.waypointsAndDistance(flightPlan.waypoints.length, displayDistance.toStringAsFixed(0), unit),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }
+                      
+                      return const SizedBox.shrink();
                     },
                   ),
               ],
@@ -416,8 +449,11 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                         )
                       : null;
                   
-                  // If we have a trip with multiple plans, show all waypoints
-                  if (flightPlanService.currentTripPlans.length > 1) {
+                  // If we have a trip loaded, show all waypoints from all plans
+                  debugPrint('Current trip plans count: ${flightPlanService.currentTripPlans.length}');
+                  debugPrint('Current trip: ${flightPlanService.currentTrip?.name}');
+                  if (flightPlanService.currentTrip != null && flightPlanService.currentTripPlans.isNotEmpty) {
+                    debugPrint('Showing waypoint tables for trip with ${flightPlanService.currentTripPlans.length} legs');
                     // Create multiple waypoint tables for each leg
                     return Column(
                       children: [
@@ -476,6 +512,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                       ],
                     );
                   } else if (flightPlan != null && flightPlan.waypoints.isNotEmpty) {
+                    debugPrint('Showing single waypoint table for flight plan');
                     // Single flight plan
                     return WaypointTableWidget(
                       flightPlan: flightPlan,
