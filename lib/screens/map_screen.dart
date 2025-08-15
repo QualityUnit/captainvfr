@@ -2645,6 +2645,70 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
+  /// Centers the map on the current flight plan or trip.
+  /// For trips, includes all waypoints from all flight plans.
+  void _centerOnFlightPlan() {
+    // Get all flight plans to center on (either from trip or single plan)
+    final List<FlightPlan> plansToCenter;
+    if (_flightPlanService.currentTripPlans.isNotEmpty) {
+      plansToCenter = _flightPlanService.currentTripPlans;
+    } else if (_flightPlanService.currentFlightPlan != null) {
+      plansToCenter = [_flightPlanService.currentFlightPlan!];
+    } else {
+      return;
+    }
+
+    // Collect all waypoints from all plans
+    final allWaypoints = <LatLng>[];
+    for (final plan in plansToCenter) {
+      allWaypoints.addAll(plan.waypoints.map((w) => w.latLng));
+    }
+
+    if (allWaypoints.isEmpty) {
+      return;
+    }
+
+    try {
+      // Use built-in method for better performance
+      final bounds = LatLngBounds.fromPoints(allWaypoints);
+      
+      // Handle edge case: all waypoints at same location
+      if (bounds.north == bounds.south && bounds.east == bounds.west) {
+        // Single point or all waypoints at same location
+        _mapController.move(
+          LatLng(bounds.north, bounds.east),
+          MapConstants.singlePointZoom,
+        );
+        _disableAutoCentering();
+        return;
+      }
+      
+      // Calculate padding based on bounds size
+      final latPadding = (bounds.north - bounds.south) * MapConstants.boundsPaddingFactor;
+      final lngPadding = (bounds.east - bounds.west) * MapConstants.boundsPaddingFactor;
+      
+      // Create padded bounds
+      final paddedBounds = LatLngBounds(
+        LatLng(bounds.south - latPadding, bounds.west - lngPadding),
+        LatLng(bounds.north + latPadding, bounds.east + lngPadding),
+      );
+
+      // Fit bounds with animation
+      _mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: paddedBounds,
+          maxZoom: MapConstants.maxFitZoom,
+          padding: EdgeInsets.all(MapConstants.fitPadding),
+        ),
+      );
+
+      // Disable auto-centering when fitting flight plan
+      _disableAutoCentering();
+    } catch (e) {
+      // Handle cases where map controller is not ready
+    }
+  }
+
   /// Fits the entire flight plan in view with appropriate padding.
   /// Calculates bounds of all waypoints and adds 10% padding.
   /// Handles edge cases like single waypoint or same-location waypoints.
@@ -4131,6 +4195,7 @@ class MapScreenState extends State<MapScreen>
                             child: FlightPlanningPanel(
                               isExpanded: _flightPlanningExpanded,
                               onWaypointFocus: _focusOnWaypoint,
+                              onCenterFlightPlan: _centerOnFlightPlan,
                               onClose: () {
                                 setState(() {
                                   _showFlightPlanning = false;
@@ -4189,6 +4254,7 @@ class MapScreenState extends State<MapScreen>
                           child: FlightPlanningPanel(
                             isExpanded: _flightPlanningExpanded,
                             onWaypointFocus: _focusOnWaypoint,
+                            onCenterFlightPlan: _centerOnFlightPlan,
                             onExpandedChanged: (expanded) {
                               setState(() {
                                 _flightPlanningExpanded = expanded;

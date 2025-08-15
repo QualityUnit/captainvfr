@@ -14,6 +14,7 @@ class FlightPlanningPanel extends StatefulWidget {
   final Function(bool)? onExpandedChanged;
   final VoidCallback? onClose;
   final Function(int)? onWaypointFocus;
+  final VoidCallback? onCenterFlightPlan;
 
   const FlightPlanningPanel({
     super.key,
@@ -21,6 +22,7 @@ class FlightPlanningPanel extends StatefulWidget {
     this.onExpandedChanged,
     this.onClose,
     this.onWaypointFocus,
+    this.onCenterFlightPlan,
   });
 
   @override
@@ -219,15 +221,37 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  flightPlan?.name ??
-                      (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: _isExpanded ? 14 : 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        flightPlan?.name ??
+                            (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: _isExpanded ? 14 : 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Center flight plan button
+                    if (flightPlan != null && flightPlan.waypoints.isNotEmpty)
+                      IconButton(
+                        icon: Icon(
+                          Icons.center_focus_strong,
+                          size: 18,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                        onPressed: widget.onCenterFlightPlan,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 28,
+                          minHeight: 28,
+                        ),
+                        tooltip: l10n.centerOnFlightPlan,
+                      ),
+                  ],
                 ),
                 if (_isExpanded &&
                     flightPlan != null &&

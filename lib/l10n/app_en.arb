@@ -90,6 +90,11 @@
   "@tripCreated": {
     "description": "Trip created success message"
   },
+
+  "centerOnFlightPlan": "Center map on flight plan",
+  "@centerOnFlightPlan": {
+    "description": "Tooltip for center flight plan button"
+  },
   
   "weather": "Weather",
   "@weather": {

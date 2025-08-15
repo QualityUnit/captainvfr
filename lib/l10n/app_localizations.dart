@@ -216,6 +216,12 @@ abstract class AppLocalizations {
   /// **'Trip created successfully'**
   String get tripCreated;
 
+  /// Tooltip for center flight plan button
+  ///
+  /// In en, this message translates to:
+  /// **'Center map on flight plan'**
+  String get centerOnFlightPlan;
+
   /// Weather tab label
   ///
   /// In en, this message translates to:

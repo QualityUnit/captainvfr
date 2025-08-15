@@ -230,11 +230,19 @@ class FlightPlanService extends ChangeNotifier {
     // Save trip
     if (_tripBox != null) {
       await _tripBox!.put(trip.id, trip);
+      debugPrint('Saved trip to Hive with ${trip.flightPlanIds.length} flight plan IDs');
       _loadSavedTrips();
       _loadSavedFlightPlans();
+      
+      // Verify the trip was saved correctly
+      final savedTrip = _tripBox!.get(trip.id);
+      if (savedTrip != null) {
+        debugPrint('Verified saved trip has ${savedTrip.flightPlanIds.length} flight plans');
+      }
     }
 
     // Load the newly created trip so it's displayed on the map
+    debugPrint('Loading newly created trip ${trip.id}');
     loadTrip(trip.id);
 
     return trip;
