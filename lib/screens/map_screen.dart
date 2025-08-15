@@ -4200,84 +4200,42 @@ class MapScreenState extends State<MapScreen>
           // Flight planning UI panels
           Consumer<FlightPlanService>(
             builder: (context, flightPlanService, child) {
-              // Adjust flight planning panel position for screen size changes (orientation)
-              final screenSize = MediaQuery.of(context).size;
-              _adjustFlightPlanningPanelPosition(screenSize);
-              
               return Stack(
                 children: [
-                  // Flight Planning Panel - new unified draggable panel
-                  if (_showFlightPlanning)
-                    Positioned(
-                      left: _flightPlanningPanelPosition.dx,
-                      top: _flightPlanningPanelPosition.dy,
-                      child: Draggable<String>(
-                        data: 'flight_planning_panel',
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width < 600
-                                ? MediaQuery.of(context).size.width - 16
-                                : 600,
-                            child: FlightPlanningPanel(
-                              isExpanded: _flightPlanningExpanded,
-                              onWaypointFocus: _focusOnWaypoint,
-                              onCenterFlightPlan: _centerOnFlightPlan,
-                              onClose: () {
-                                setState(() {
-                                  _showFlightPlanning = false;
-                                });
-                                // Stop planning mode - check if we need to toggle
-                                if (_flightPlanService.isPlanning) {
-                                  _flightPlanService.togglePlanningMode();
-                                }
-                                // Keep flight plan visible on map even when panel is closed
-                                // debugPrint('Flight planning closed from panel');
-                              },
+                  // Flight Planning Panel - left-side sliding panel
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    left: _showFlightPlanning 
+                        ? 0.0 
+                        : -(_flightPlanningExpanded 
+                            ? (MediaQuery.of(context).size.width < 600 
+                                ? MediaQuery.of(context).size.width * 0.85
+                                : 400.0)
+                            : 60.0),
+                    top: MediaQuery.of(context).padding.top + 60,
+                    bottom: 60,
+                    child: Row(
+                      children: [
+                        // Main panel
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: _flightPlanningExpanded 
+                              ? (MediaQuery.of(context).size.width < 600 
+                                  ? MediaQuery.of(context).size.width * 0.85
+                                  : 400)
+                              : 60,
+                          decoration: BoxDecoration(
+                            color: const Color(0xE6000000),
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
                             ),
                           ),
-                        ),
-                        childWhenDragging: Container(),
-                        onDragEnd: (details) {
-                          setState(() {
-                            final screenSize = MediaQuery.of(context).size;
-                            final isPhone = screenSize.width < 600;
-
-                            double newX = details.offset.dx;
-                            double newY = details.offset.dy;
-
-                            final panelWidth = isPhone
-                                ? screenSize.width - 16
-                                : 600;
-                            // Use actual panel heights that match FlightPlanningPanel constraints
-                            final panelHeight = _flightPlanningExpanded
-                                ? 400  // Reduced from 600 - more realistic for most cases
-                                : 60;  // Match the actual collapsed height from FlightPlanningPanel
-
-                            // Constrain position
-                            final minMargin = isPhone ? 8.0 : 16.0;
-
-                            if (!isPhone) {
-                              newX = newX.clamp(
-                                minMargin,
-                                screenSize.width - panelWidth - minMargin,
-                              );
-                            } else {
-                              newX = minMargin;
-                            }
-
-                            newY = newY.clamp(
-                              MediaQuery.of(context).padding.top + 60,
-                              screenSize.height - panelHeight - 100,
-                            );
-
-                            _flightPlanningPanelPosition = Offset(newX, newY);
-                          });
-                        },
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width < 600
-                              ? MediaQuery.of(context).size.width - 16
-                              : 600,
                           child: FlightPlanningPanel(
                             isExpanded: _flightPlanningExpanded,
                             onWaypointFocus: _focusOnWaypoint,
@@ -4297,13 +4255,48 @@ class MapScreenState extends State<MapScreen>
                               if (_flightPlanService.isPlanning) {
                                 _flightPlanService.togglePlanningMode();
                               }
-                              // Keep flight plan visible on map even when panel is closed
-                              // debugPrint('Flight planning closed from panel');
                             },
                           ),
                         ),
-                      ),
+                        // Toggle button (always visible)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _showFlightPlanning = !_showFlightPlanning;
+                              if (_showFlightPlanning && !_flightPlanningExpanded) {
+                                // Auto-expand when opening from collapsed state
+                                _flightPlanningExpanded = true;
+                              }
+                            });
+                          },
+                          child: Container(
+                            width: 32,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: const Color(0xE6000000),
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(8),
+                                bottomRight: Radius.circular(8),
+                              ),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                _showFlightPlanning
+                                    ? Icons.chevron_left
+                                    : Icons.chevron_right,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
                   // Floating waypoint panel for selected waypoint
                   if (_selectedWaypointIndex != null &&
                       flightPlanService.currentFlightPlan != null &&

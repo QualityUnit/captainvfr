@@ -141,16 +141,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
       ),
       child: Material(
         color: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xE6000000), // Black with 0.9 opacity (less transparent)
-            borderRadius: AppTheme.largeRadius,
-            border: Border.all(
-              color: const Color(0x7F448AFF),
-              width: 1.0,
-            ), // Blue accent with 0.5 opacity
-          ),
-          child: Column(
+        child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Header with edit mode toggle
@@ -165,7 +156,6 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                   ),
                 ),
             ],
-          ),
         ),
       ),
     );
@@ -179,29 +169,49 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     final flightPlan = flightPlanService.currentFlightPlan;
     final isPlanning = flightPlanService.isPlanning;
 
+    // If collapsed, show minimal UI
+    if (!_isExpanded) {
+      return GestureDetector(
+        onTap: () => _toggleExpanded(true),
+        child: Container(
+          height: double.infinity,
+          width: double.infinity,
+          color: Colors.transparent,
+          child: Center(
+            child: Icon(
+              Icons.route,
+              color: (flightPlan != null || flightPlanService.currentTrip != null)
+                  ? const Color(0xFF448AFF)
+                  : Colors.white70,
+              size: 24,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: _isEditMode ? const Color(0x33448AFF) : Colors.transparent,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.borderRadiusLarge)),
       ),
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 12.0,
-        vertical: _isExpanded ? 8.0 : 4.0,
+        vertical: 8.0,
       ),
       child: Row(
         children: [
-          // Expand/Collapse button
+          // Collapse button
           IconButton(
-            icon: Icon(
-              _isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: const Color(0xFF448AFF),
-              size: _isExpanded ? 24 : 20,
+            icon: const Icon(
+              Icons.chevron_left,
+              color: Color(0xFF448AFF),
+              size: 24,
             ),
-            onPressed: () => _toggleExpanded(!_isExpanded),
+            onPressed: () => _toggleExpanded(false),
             padding: EdgeInsets.zero,
-            constraints: BoxConstraints(
-              minWidth: _isExpanded ? 32 : 28,
-              minHeight: _isExpanded ? 32 : 28,
+            constraints: const BoxConstraints(
+              minWidth: 32,
+              minHeight: 32,
             ),
           ),
 
