@@ -60,6 +60,36 @@
   "@flightPlanning": {
     "description": "Flight planning screen title"
   },
+
+  "createTrip": "Create Trip",
+  "@createTrip": {
+    "description": "Create trip button text"
+  },
+
+  "tripName": "Trip Name",
+  "@tripName": {
+    "description": "Trip name label"
+  },
+
+  "enterTripName": "Enter trip name",
+  "@enterTripName": {
+    "description": "Trip name input hint"
+  },
+
+  "selectFlightPlans": "Select Flight Plans",
+  "@selectFlightPlans": {
+    "description": "Select flight plans label"
+  },
+
+  "noFlightPlansSelected": "No flight plans selected",
+  "@noFlightPlansSelected": {
+    "description": "No flight plans selected error"
+  },
+
+  "tripCreated": "Trip created successfully",
+  "@tripCreated": {
+    "description": "Trip created success message"
+  },
   
   "weather": "Weather",
   "@weather": {

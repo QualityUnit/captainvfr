@@ -45,6 +45,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get flightPlanning => 'Flight Planning';
 
   @override
+  String get createTrip => 'Create Trip';
+
+  @override
+  String get tripName => 'Trip Name';
+
+  @override
+  String get enterTripName => 'Enter trip name';
+
+  @override
+  String get selectFlightPlans => 'Select Flight Plans';
+
+  @override
+  String get noFlightPlansSelected => 'No flight plans selected';
+
+  @override
+  String get tripCreated => 'Trip created successfully';
+
+  @override
   String get weather => 'Weather';
 
   @override

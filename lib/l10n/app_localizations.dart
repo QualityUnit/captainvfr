@@ -180,6 +180,42 @@ abstract class AppLocalizations {
   /// **'Flight Planning'**
   String get flightPlanning;
 
+  /// Create trip button text
+  ///
+  /// In en, this message translates to:
+  /// **'Create Trip'**
+  String get createTrip;
+
+  /// Trip name label
+  ///
+  /// In en, this message translates to:
+  /// **'Trip Name'**
+  String get tripName;
+
+  /// Trip name input hint
+  ///
+  /// In en, this message translates to:
+  /// **'Enter trip name'**
+  String get enterTripName;
+
+  /// Select flight plans label
+  ///
+  /// In en, this message translates to:
+  /// **'Select Flight Plans'**
+  String get selectFlightPlans;
+
+  /// No flight plans selected error
+  ///
+  /// In en, this message translates to:
+  /// **'No flight plans selected'**
+  String get noFlightPlansSelected;
+
+  /// Trip created success message
+  ///
+  /// In en, this message translates to:
+  /// **'Trip created successfully'**
+  String get tripCreated;
+
   /// Weather tab label
   ///
   /// In en, this message translates to:

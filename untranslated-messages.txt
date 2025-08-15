@@ -1,1 +1,55 @@
-{}
+{
+  "cs": [
+    "createTrip",
+    "tripName",
+    "enterTripName",
+    "selectFlightPlans",
+    "noFlightPlansSelected",
+    "tripCreated"
+  ],
+
+  "de": [
+    "createTrip",
+    "tripName",
+    "enterTripName",
+    "selectFlightPlans",
+    "noFlightPlansSelected",
+    "tripCreated"
+  ],
+
+  "es": [
+    "createTrip",
+    "tripName",
+    "enterTripName",
+    "selectFlightPlans",
+    "noFlightPlansSelected",
+    "tripCreated"
+  ],
+
+  "fr": [
+    "createTrip",
+    "tripName",
+    "enterTripName",
+    "selectFlightPlans",
+    "noFlightPlansSelected",
+    "tripCreated"
+  ],
+
+  "it": [
+    "createTrip",
+    "tripName",
+    "enterTripName",
+    "selectFlightPlans",
+    "noFlightPlansSelected",
+    "tripCreated"
+  ],
+
+  "sk": [
+    "createTrip",
+    "tripName",
+    "enterTripName",
+    "selectFlightPlans",
+    "noFlightPlansSelected",
+    "tripCreated"
+  ]
+}
