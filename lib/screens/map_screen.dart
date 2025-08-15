@@ -3459,76 +3459,103 @@ class MapScreenState extends State<MapScreen>
               // Flight plan overlays - add before current position marker
               Consumer<FlightPlanService>(
                 builder: (context, flightPlanService, child) {
-                  final flightPlan = flightPlanService.currentFlightPlan;
-                  if (flightPlan == null ||
-                      flightPlan.waypoints.isEmpty ||
-                      !flightPlanService.isFlightPlanVisible) {
+                  // Get all flight plans to display (either from trip or single plan)
+                  final List<FlightPlan> plansToDisplay;
+                  if (flightPlanService.currentTripPlans.isNotEmpty) {
+                    // Display all trip plans
+                    plansToDisplay = flightPlanService.currentTripPlans;
+                  } else if (flightPlanService.currentFlightPlan != null) {
+                    // Display single flight plan
+                    plansToDisplay = [flightPlanService.currentFlightPlan!];
+                  } else {
                     return const SizedBox.shrink();
+                  }
+
+                  if (!flightPlanService.isFlightPlanVisible) {
+                    return const SizedBox.shrink();
+                  }
+
+                  // Build polylines for all flight plans
+                  final allPolylines = <Polyline>[];
+                  for (final flightPlan in plansToDisplay) {
+                    if (flightPlan.waypoints.isNotEmpty) {
+                      allPolylines.addAll(
+                        FlightPlanOverlay.buildClickableFlightPath(
+                          flightPlan,
+                          _onFlightPathSegmentTapped,
+                          flightPlanService.isPlanning,
+                        ),
+                      );
+                    }
                   }
 
                   return Stack(
                     children: [
                       // Flight plan route lines
                       PolylineLayer(
-                        polylines: FlightPlanOverlay.buildClickableFlightPath(
-                          flightPlan,
-                          _onFlightPathSegmentTapped,
-                          flightPlanService.isPlanning,
-                        ),
+                        polylines: allPolylines,
                       ),
-                      // Highlight next segment when tracking
-                      if (_flightService.isTracking && _currentPosition != null)
+                      // Highlight next segment when tracking (only for current flight plan)
+                      if (_flightService.isTracking && 
+                          _currentPosition != null &&
+                          flightPlanService.currentFlightPlan != null)
                         PolylineLayer(
                           polylines: FlightPlanOverlay.buildNextSegment(
-                            flightPlan,
+                            flightPlanService.currentFlightPlan!,
                             LatLng(
                               _currentPosition!.latitude,
                               _currentPosition!.longitude,
                             ),
                           ),
                         ),
-                      // Flight path segment click markers (for waypoint insertion)
-                      MarkerLayer(
-                        markers: FlightPlanOverlay.buildSegmentClickMarkers(
-                          flightPlan,
-                          _onFlightPathSegmentTapped,
-                          flightPlanService.isPlanning,
-                        ),
-                      ),
-                      // Waypoint markers
-                      MarkerLayer(
-                        markers: FlightPlanOverlay.buildWaypointMarkers(
-                          flightPlan,
-                          _onWaypointTapped,
-                          _onWaypointMoved,
-                          _selectedWaypointIndex,
-                          (isDragging) {
-                            setState(() {
-                              _isDraggingWaypoint = isDragging;
-                            });
-                          },
-                          _mapKey,
-                          flightPlanService.isPlanning,
-                        ),
-                      ),
-                      // Waypoint name labels (only show when zoomed in)
-                      if (_mapController.camera.zoom > 11)
+                      // Build markers for all flight plans
+                      ...plansToDisplay.expand((flightPlan) => [
+                        // Flight path segment click markers (for waypoint insertion)
+                        if (flightPlan == flightPlanService.currentFlightPlan)
+                          MarkerLayer(
+                            markers: FlightPlanOverlay.buildSegmentClickMarkers(
+                              flightPlan,
+                              _onFlightPathSegmentTapped,
+                              flightPlanService.isPlanning,
+                            ),
+                          ),
+                        // Waypoint markers
                         MarkerLayer(
-                          markers: FlightPlanOverlay.buildWaypointLabels(
+                          markers: FlightPlanOverlay.buildWaypointMarkers(
                             flightPlan,
-                            _selectedWaypointIndex,
+                            flightPlan == flightPlanService.currentFlightPlan ? _onWaypointTapped : (index) {},
+                            flightPlan == flightPlanService.currentFlightPlan ? _onWaypointMoved : (index, pos, {isDragging = false}) {},
+                            flightPlan == flightPlanService.currentFlightPlan ? _selectedWaypointIndex : -1,
+                            flightPlan == flightPlanService.currentFlightPlan ? (isDragging) {
+                              setState(() {
+                                _isDraggingWaypoint = isDragging;
+                              });
+                            } : (isDragging) {},
+                            _mapKey,
+                            flightPlan == flightPlanService.currentFlightPlan && flightPlanService.isPlanning,
                           ),
                         ),
-                      // Segment labels (distance, heading, time)
-                      Builder(
-                        builder: (context) {
-                          return MarkerLayer(
-                            markers: FlightPlanOverlay.buildSegmentLabels(
+                        // Waypoint name labels (only show when zoomed in)
+                        if (_mapController.camera.zoom > 11)
+                          MarkerLayer(
+                            markers: FlightPlanOverlay.buildWaypointLabels(
                               flightPlan,
-                              context,
+                              flightPlan == flightPlanService.currentFlightPlan ? _selectedWaypointIndex : -1,
                             ),
-                          );
-                        },
+                          ),
+                      ]),
+                      // Segment labels (distance, heading, time) for all flight plans
+                      ...plansToDisplay.map((flightPlan) => 
+                        Builder(
+                          builder: (context) {
+                            return MarkerLayer(
+                              markers: FlightPlanOverlay.buildSegmentLabels(
+                                flightPlan,
+                                context,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   );

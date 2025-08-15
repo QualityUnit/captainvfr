@@ -21,6 +21,7 @@ class FlightPlanService extends ChangeNotifier {
   List<Trip> _savedTrips = [];
   Box<Trip>? _tripBox;
   Trip? _currentTrip;
+  final List<FlightPlan> _currentTripPlans = []; // All flight plans in current trip
   final AircraftService? _aircraftService;
   FlightPlanTileDownloadService? _tileDownloadService;
   BuildContext? _context;
@@ -35,6 +36,7 @@ class FlightPlanService extends ChangeNotifier {
   List<FlightPlan> get savedFlightPlans => _savedFlightPlans;
   List<Trip> get savedTrips => _savedTrips;
   Trip? get currentTrip => _currentTrip;
+  List<FlightPlan> get currentTripPlans => _currentTripPlans;
 
   FlightPlanService({AircraftService? aircraftService})
     : _aircraftService = aircraftService;
@@ -114,6 +116,9 @@ class FlightPlanService extends ChangeNotifier {
     );
 
     _currentFlightPlan = flightPlan;
+    // Clear trip data when loading a single flight plan
+    _currentTrip = null;
+    _currentTripPlans.clear();
     // Planning mode is NOT automatically enabled when loading a flight plan
     // Users must explicitly enable it if they want to edit
     _isPlanning = false;
@@ -242,24 +247,24 @@ class FlightPlanService extends ChangeNotifier {
     _currentTrip = trip;
     
     // Load all flight plans associated with the trip
-    final tripPlans = <FlightPlan>[];
+    _currentTripPlans.clear();
     for (final planId in trip.flightPlanIds) {
       final plan = _savedFlightPlans.firstWhere(
         (fp) => fp.id == planId,
         orElse: () => throw Exception('Flight plan $planId not found'),
       );
-      tripPlans.add(plan);
+      _currentTripPlans.add(plan);
     }
 
-    // For now, load the first flight plan of the trip as the current one
-    if (tripPlans.isNotEmpty) {
-      _currentFlightPlan = tripPlans.first;
+    // Set the first flight plan as the current one for editing/viewing
+    if (_currentTripPlans.isNotEmpty) {
+      _currentFlightPlan = _currentTripPlans.first;
       _isPlanning = false;
       notifyListeners();
       
       // Call the callback if set
       if (onFlightPlanLoaded != null) {
-        onFlightPlanLoaded!(tripPlans.first);
+        onFlightPlanLoaded!(_currentTripPlans.first);
       }
     }
   }
@@ -551,6 +556,8 @@ class FlightPlanService extends ChangeNotifier {
   // Clear current flight plan
   void clearFlightPlan() {
     _currentFlightPlan = null;
+    _currentTrip = null;
+    _currentTripPlans.clear();
     _isPlanning = false;
     _waypointCounter = 1;
     notifyListeners();
