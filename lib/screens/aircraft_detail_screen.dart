@@ -20,7 +20,7 @@ class AircraftDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return DefaultTabController(
-      length: 5,
+      length: 4,
       child: Scaffold(
         backgroundColor: AppColors.backgroundColor,
         appBar: AppBar(
@@ -40,7 +40,6 @@ class AircraftDetailScreen extends StatelessWidget {
               Tab(icon: Icon(Icons.photo_library), text: l10n.photos),
               Tab(icon: Icon(Icons.folder), text: l10n.documents),
               Tab(icon: Icon(Icons.list), text: l10n.checklist),
-              Tab(icon: Icon(Icons.flight), text: 'Flights'),
             ],
           ),
         ),
@@ -105,12 +104,6 @@ class AircraftDetailScreen extends StatelessWidget {
                   },
                 );
               },
-            ),
-            Center(
-              child: Text(
-                'Flight history coming soon',
-                style: TextStyle(color: AppColors.tertiaryTextColor),
-              ),
             ),
           ],
         ),

@@ -40,9 +40,22 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showNewFlightPlanDialog(context),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            color: AppColors.dialogBackgroundColor,
+            onSelected: (value) => _handleAppBarMenuAction(context, value),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'new_flight_plan',
+                child: Row(
+                  children: [
+                    Icon(Icons.add, size: 20, color: AppColors.primaryTextColor),
+                    const SizedBox(width: 8),
+                    Text(l10n.newFlightPlan, style: TextStyle(color: AppColors.primaryTextColor)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -228,6 +241,14 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _handleAppBarMenuAction(BuildContext context, String action) {
+    switch (action) {
+      case 'new_flight_plan':
+        _showNewFlightPlanDialog(context);
+        break;
+    }
   }
 
   void _handleMenuAction(
