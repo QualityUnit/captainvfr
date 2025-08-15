@@ -6,7 +6,8 @@
     "selectFlightPlans",
     "noFlightPlansSelected",
     "tripCreated",
-    "centerOnFlightPlan"
+    "centerOnFlightPlan",
+    "clearFlightPlan"
   ],
 
   "de": [
@@ -16,7 +17,8 @@
     "selectFlightPlans",
     "noFlightPlansSelected",
     "tripCreated",
-    "centerOnFlightPlan"
+    "centerOnFlightPlan",
+    "clearFlightPlan"
   ],
 
   "es": [
@@ -26,7 +28,8 @@
     "selectFlightPlans",
     "noFlightPlansSelected",
     "tripCreated",
-    "centerOnFlightPlan"
+    "centerOnFlightPlan",
+    "clearFlightPlan"
   ],
 
   "fr": [
@@ -36,7 +39,8 @@
     "selectFlightPlans",
     "noFlightPlansSelected",
     "tripCreated",
-    "centerOnFlightPlan"
+    "centerOnFlightPlan",
+    "clearFlightPlan"
   ],
 
   "it": [
@@ -46,7 +50,8 @@
     "selectFlightPlans",
     "noFlightPlansSelected",
     "tripCreated",
-    "centerOnFlightPlan"
+    "centerOnFlightPlan",
+    "clearFlightPlan"
   ],
 
   "sk": [
@@ -56,6 +61,7 @@
     "selectFlightPlans",
     "noFlightPlansSelected",
     "tripCreated",
-    "centerOnFlightPlan"
+    "centerOnFlightPlan",
+    "clearFlightPlan"
   ]
 }

@@ -251,6 +251,28 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                         ),
                         tooltip: l10n.centerOnFlightPlan,
                       ),
+                    // Clear flight plan button
+                    if (flightPlan != null)
+                      IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          size: 18,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                        onPressed: () {
+                          // Clear the flight plan from the map
+                          final flightPlanService = context.read<FlightPlanService>();
+                          flightPlanService.clearFlightPlan();
+                          // Close the panel if onClose is provided
+                          widget.onClose?.call();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 28,
+                          minHeight: 28,
+                        ),
+                        tooltip: l10n.clearFlightPlan,
+                      ),
                   ],
                 ),
                 if (_isExpanded &&
@@ -381,8 +403,8 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
               ),
             ),
 
-          // Waypoint table
-          if (flightPlan != null && flightPlan.waypoints.isNotEmpty)
+          // Waypoint table - show all waypoints from trip or single flight plan
+          if (flightPlan != null || flightPlanService.currentTripPlans.isNotEmpty)
             Container(
               margin: const EdgeInsets.only(top: 12),
               child: Consumer<AircraftSettingsService>(
@@ -393,25 +415,90 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                           orElse: () => aircraftService.aircrafts.first,
                         )
                       : null;
-                  return WaypointTableWidget(
-                    flightPlan: flightPlan,
-                    selectedAircraft: selectedAircraft,
-                    selectedWaypointIndex: _selectedWaypointIndex,
-                    isExpanded: _isWaypointTableExpanded,
-                    onExpandedChanged: (expanded) {
-                      setState(() {
-                        _isWaypointTableExpanded = expanded;
-                      });
-                      _saveWaypointTableState(expanded);
-                    },
-                    onWaypointSelected: (index) {
-                      setState(() {
-                        _selectedWaypointIndex = index;
-                      });
-                      // Focus map on selected waypoint
-                      widget.onWaypointFocus?.call(index);
-                    },
-                  );
+                  
+                  // If we have a trip with multiple plans, show all waypoints
+                  if (flightPlanService.currentTripPlans.length > 1) {
+                    // Create multiple waypoint tables for each leg
+                    return Column(
+                      children: [
+                        for (int i = 0; i < flightPlanService.currentTripPlans.length; i++)
+                          if (flightPlanService.currentTripPlans[i].waypoints.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Leg header
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0x1A448AFF),
+                                      borderRadius: AppTheme.smallRadius,
+                                    ),
+                                    child: Text(
+                                      'Leg ${i + 1}: ${flightPlanService.currentTripPlans[i].name}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // Waypoint table for this leg
+                                  WaypointTableWidget(
+                                    flightPlan: flightPlanService.currentTripPlans[i],
+                                    selectedAircraft: selectedAircraft,
+                                    selectedWaypointIndex: flightPlanService.currentTripPlans[i] == flightPlan 
+                                        ? _selectedWaypointIndex 
+                                        : -1,
+                                    isExpanded: _isWaypointTableExpanded,
+                                    onExpandedChanged: (expanded) {
+                                      setState(() {
+                                        _isWaypointTableExpanded = expanded;
+                                      });
+                                      _saveWaypointTableState(expanded);
+                                    },
+                                    onWaypointSelected: (index) {
+                                      // Only allow selection for the current flight plan
+                                      if (flightPlanService.currentTripPlans[i] == flightPlan) {
+                                        setState(() {
+                                          _selectedWaypointIndex = index;
+                                        });
+                                        // Focus map on selected waypoint
+                                        widget.onWaypointFocus?.call(index);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                      ],
+                    );
+                  } else if (flightPlan != null && flightPlan.waypoints.isNotEmpty) {
+                    // Single flight plan
+                    return WaypointTableWidget(
+                      flightPlan: flightPlan,
+                      selectedAircraft: selectedAircraft,
+                      selectedWaypointIndex: _selectedWaypointIndex,
+                      isExpanded: _isWaypointTableExpanded,
+                      onExpandedChanged: (expanded) {
+                        setState(() {
+                          _isWaypointTableExpanded = expanded;
+                        });
+                        _saveWaypointTableState(expanded);
+                      },
+                      onWaypointSelected: (index) {
+                        setState(() {
+                          _selectedWaypointIndex = index;
+                        });
+                        // Focus map on selected waypoint
+                        widget.onWaypointFocus?.call(index);
+                      },
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
                 },
               ),
             ),

@@ -95,6 +95,11 @@
   "@centerOnFlightPlan": {
     "description": "Tooltip for center flight plan button"
   },
+
+  "clearFlightPlan": "Remove flight plan from map",
+  "@clearFlightPlan": {
+    "description": "Tooltip for clear flight plan button"
+  },
   
   "weather": "Weather",
   "@weather": {

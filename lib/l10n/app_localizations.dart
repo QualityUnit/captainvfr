@@ -222,6 +222,12 @@ abstract class AppLocalizations {
   /// **'Center map on flight plan'**
   String get centerOnFlightPlan;
 
+  /// Tooltip for clear flight plan button
+  ///
+  /// In en, this message translates to:
+  /// **'Remove flight plan from map'**
+  String get clearFlightPlan;
+
   /// Weather tab label
   ///
   /// In en, this message translates to:

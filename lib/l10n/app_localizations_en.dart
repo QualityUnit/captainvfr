@@ -66,6 +66,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get centerOnFlightPlan => 'Center map on flight plan';
 
   @override
+  String get clearFlightPlan => 'Remove flight plan from map';
+
+  @override
   String get weather => 'Weather';
 
   @override

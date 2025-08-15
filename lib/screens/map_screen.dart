@@ -3554,6 +3554,33 @@ class MapScreenState extends State<MapScreen>
                       );
                     }
                   }
+                  
+                  // Add red transfer lines between flight plans in a trip
+                  if (flightPlanService.currentTripPlans.length > 1) {
+                    for (int i = 0; i < flightPlanService.currentTripPlans.length - 1; i++) {
+                      final currentPlan = flightPlanService.currentTripPlans[i];
+                      final nextPlan = flightPlanService.currentTripPlans[i + 1];
+                      
+                      if (currentPlan.waypoints.isNotEmpty && nextPlan.waypoints.isNotEmpty) {
+                        final lastWaypoint = currentPlan.waypoints.last;
+                        final firstWaypoint = nextPlan.waypoints.first;
+                        
+                        // Only add transfer line if waypoints are different
+                        if (lastWaypoint.latitude != firstWaypoint.latitude ||
+                            lastWaypoint.longitude != firstWaypoint.longitude) {
+                          allPolylines.add(
+                            Polyline(
+                              points: [lastWaypoint.latLng, firstWaypoint.latLng],
+                              strokeWidth: 3.0,
+                              color: Colors.red.withValues(alpha: 0.7),
+                              // Use pattern to create a dashed line effect
+                              pattern: StrokePattern.dashed(segments: [10, 10]),
+                            ),
+                          );
+                        }
+                      }
+                    }
+                  }
 
                   return Stack(
                     children: [
