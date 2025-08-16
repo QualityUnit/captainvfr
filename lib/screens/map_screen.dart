@@ -3967,6 +3967,41 @@ class MapScreenState extends State<MapScreen>
           
           ],
 
+          // OpenStreetMap attribution - centered horizontally, behind all controls
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8, // Same as zoom controls
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5), // More visible
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: InkWell(
+                    onTap: () async {
+                      const url = 'https://openstreetmap.org/copyright';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url));
+                      }
+                    },
+                    child: Text(
+                      '© OpenStreetMap',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.7), // More visible white text
+                        decoration: TextDecoration.none, // Remove underline for cleaner look
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Menu button in top-right corner
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
@@ -4319,41 +4354,6 @@ class MapScreenState extends State<MapScreen>
             child: IgnorePointer(
               ignoring: false, // Allow interaction with the close button
               child: LoadingProgressBar(),
-            ),
-          ),
-          
-          // OpenStreetMap attribution - centered horizontally, behind other controls
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8, // Same as zoom controls
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5), // More visible
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: InkWell(
-                    onTap: () async {
-                      const url = 'https://openstreetmap.org/copyright';
-                      if (await canLaunchUrl(Uri.parse(url))) {
-                        await launchUrl(Uri.parse(url));
-                      }
-                    },
-                    child: Text(
-                      '© OpenStreetMap',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.white.withValues(alpha: 0.7), // More visible white text
-                        decoration: TextDecoration.none, // Remove underline for cleaner look
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
           
