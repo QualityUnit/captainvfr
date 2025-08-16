@@ -21,40 +21,43 @@ class ExpandedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header with fixed height
-        SizedBox(
-          height: 40,
-          child: DashboardHeader(
-            onCollapse: onCollapse,
-            flightService: flightService,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with fixed height
+          SizedBox(
+            height: 40,
+            child: DashboardHeader(
+              onCollapse: onCollapse,
+              flightService: flightService,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        // Main indicators with fixed height
-        SizedBox(
-          height: 90,
-          child: MainIndicators(
+          const SizedBox(height: 8),
+          // Main indicators with fixed height
+          SizedBox(
+            height: 90,
+            child: MainIndicators(
+              flightService: flightService,
+              barometerService: barometerService,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Secondary indicators
+          SecondaryIndicators(
             flightService: flightService,
             barometerService: barometerService,
           ),
-        ),
-        const SizedBox(height: 8),
-        // Secondary indicators
-        SecondaryIndicators(
-          flightService: flightService,
-          barometerService: barometerService,
-        ),
-        const SizedBox(height: 8),
-        // Additional indicators
-        AdditionalIndicators(
-          flightService: flightService,
-          barometerService: barometerService,
-        ),
-      ],
+          const SizedBox(height: 8),
+          // Additional indicators
+          AdditionalIndicators(
+            flightService: flightService,
+            barometerService: barometerService,
+          ),
+        ],
+      ),
     );
   }
 }

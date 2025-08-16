@@ -235,7 +235,7 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        height: _isExpanded ? 320 + safeAreaBottom : 50 + safeAreaBottom,
+        height: _isExpanded ? 320 + safeAreaBottom : 48 + safeAreaBottom,
         width: panelWidth,
         decoration: BoxDecoration(
           color: const Color(0xE6000000),
@@ -339,13 +339,10 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
               // Panel content
               if (_isExpanded)
                 Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: safeAreaBottom),
-                    child: ExpandedView(
-                      onCollapse: _toggleExpanded,
-                      flightService: context.read<FlightService>(),
-                      barometerService: context.read<BarometerService>(),
-                    ),
+                  child: ExpandedView(
+                    onCollapse: _toggleExpanded,
+                    flightService: context.read<FlightService>(),
+                    barometerService: context.read<BarometerService>(),
                   ),
                 ),
               if (!_isExpanded)
