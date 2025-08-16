@@ -31,7 +31,6 @@ class ExpandedView extends StatelessWidget {
           SizedBox(
             height: 40,
             child: DashboardHeader(
-              onCollapse: onCollapse,
               flightService: flightService,
             ),
           ),
