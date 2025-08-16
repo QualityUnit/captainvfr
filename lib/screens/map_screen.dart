@@ -4290,15 +4290,16 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
           
-          // Zoom control buttons in bottom left corner
+          // Zoom control buttons in top left corner
           Positioned(
-            bottom: 16,
-            left: 16,
+            top: MediaQuery.of(context).padding.top + 70, // Below the top bar
+            left: 12,
             child: MapZoomControls(
               mapController: _mapController,
               minZoom: MapConstants.minZoom,
               maxZoom: MapConstants.maxZoom,
               onZoomChanged: _onZoomButtonPressed,
+              isCompact: true, // Make controls smaller
             ),
           ),
           
