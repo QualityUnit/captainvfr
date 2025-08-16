@@ -502,10 +502,9 @@ class MapScreenState extends State<MapScreen>
   void _onFlightPlanUpdated() {
     if (mounted && !_hasInputFocus) {
       setState(() {
-        // Show flight plan panel when a plan is loaded
-        if (_flightPlanService.currentFlightPlan != null) {
-          _showFlightPlanning = true;
-        }
+        // Don't automatically show the panel - let user control panel visibility
+        // Only refresh the UI to show waypoints on map
+        // The panel should remain in its current state (open or closed)
       });
 
       // Prefetch NOTAMs for airports in the flight plan when it changes
@@ -898,15 +897,6 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
-  // Save flight planning panel expanded state to SharedPreferences
-  Future<void> _saveFlightPlanningPanelState(bool isExpanded) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(MapConstants.keyFlightPlanningExpanded, isExpanded);
-    } catch (e) {
-      // Ignore save errors - not critical functionality
-    }
-  }
 
   // Adjust flight planning panel position for screen size changes (orientation)
   void _adjustFlightPlanningPanelPosition(Size newScreenSize) {
@@ -1796,11 +1786,25 @@ class MapScreenState extends State<MapScreen>
       return;
     }
 
-    // If in flight planning mode and panel is visible, add waypoint
-    // Only allow adding waypoints when the flight planning panel is shown and in edit mode
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
+    // Debug output
+    debugPrint('Map tapped - isPlanning: ${_flightPlanService.isPlanning}, currentFlightPlan: ${_flightPlanService.currentFlightPlan?.name}');
+
+    // If in flight planning mode, add waypoint
+    // Allow adding waypoints when in edit mode, regardless of panel visibility
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Planning mode is active, checking for flight plan...');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        // Create a new flight plan if none exists
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
+      debugPrint('Adding waypoint at: ${point.latitude}, ${point.longitude}');
       _flightPlanService.addWaypoint(point);
+      debugPrint('Waypoint added. Total waypoints: ${_flightPlanService.currentFlightPlan?.waypoints.length}');
       return;
+    } else {
+      debugPrint('Not in planning mode, ignoring tap');
     }
 
     // Check if any airspaces contain the tapped point
@@ -2297,6 +2301,7 @@ class MapScreenState extends State<MapScreen>
 
   /// Check if waypoint was dropped on an airport or navaid and update its name/type accordingly
   void _checkAndUpdateWaypointForMarker(int waypointIndex, LatLng dropPosition) {
+    debugPrint('Checking for markers near dropped waypoint at: ${dropPosition.latitude}, ${dropPosition.longitude}');
     try {
       // Calculate search radius based on zoom level
       // At zoom 10: ~1000m radius, at zoom 15: ~31m radius
@@ -2327,6 +2332,7 @@ class MapScreenState extends State<MapScreen>
     );
     
     if (closestAirport != null) {
+      debugPrint('Found airport nearby: ${closestAirport.name} (${closestAirport.icao})');
       // Update waypoint with airport information
       _flightPlanService.updateWaypointName(waypointIndex, closestAirport.name);
       _flightPlanService.updateWaypointNotes(waypointIndex, 
@@ -2335,6 +2341,7 @@ class MapScreenState extends State<MapScreen>
           : (closestAirport.iataCode ?? closestAirport.icao));
       // Update waypoint type to airport
       _flightPlanService.updateWaypointType(waypointIndex, WaypointType.airport);
+      debugPrint('Waypoint renamed to: ${closestAirport.name}');
       return;
     }
     
@@ -2357,11 +2364,13 @@ class MapScreenState extends State<MapScreen>
     );
     
     if (closestNavaid != null) {
+      debugPrint('Found navaid nearby: ${closestNavaid.name} (${closestNavaid.ident})');
       // Update waypoint with navaid information
       _flightPlanService.updateWaypointName(waypointIndex, closestNavaid.name);
       _flightPlanService.updateWaypointNotes(waypointIndex, closestNavaid.ident);
       // Update waypoint type to navaid
       _flightPlanService.updateWaypointType(waypointIndex, WaypointType.navaid);
+      debugPrint('Waypoint renamed to: ${closestNavaid.name}');
       return;
     }
     
@@ -2376,17 +2385,20 @@ class MapScreenState extends State<MapScreen>
       );
       
       if (closestPoint != null) {
+        debugPrint('Found reporting point nearby: ${closestPoint.displayName}');
         // Update waypoint with reporting point information
         _flightPlanService.updateWaypointName(waypointIndex, closestPoint.displayName);
         _flightPlanService.updateWaypointNotes(waypointIndex, closestPoint.type ?? 'Reporting Point');
         // Update waypoint type to reporting point
         _flightPlanService.updateWaypointType(waypointIndex, WaypointType.reportingPoint);
+        debugPrint('Waypoint renamed to: ${closestPoint.displayName}');
         return;
       }
     }
     
     // If no marker found at drop position, keep it as a user waypoint
     // The position has already been updated by updateWaypointPosition
+    debugPrint('No markers found nearby - keeping original waypoint name');
     } catch (e) {
       // Handle cases where map controller is not ready
       // Position update already happened, just skip marker detection
@@ -2430,13 +2442,18 @@ class MapScreenState extends State<MapScreen>
         // Failed to load full data, continue with partial data
       }
     }
-    // debugPrint('_onAirportSelected called for ${airport.icao} - ${airport.name}');
+    debugPrint('_onAirportSelected called for ${airport.icao} - ${airport.name}');
 
-    // If in flight planning mode and panel is visible, add airport as waypoint instead of showing details
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
-      // debugPrint('Flight planning mode active - adding airport as waypoint');
+    // If in flight planning mode, add airport as waypoint instead of showing details
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Flight planning mode active - adding airport as waypoint');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
       _flightPlanService.addAirportWaypoint(fullAirport);
-      // debugPrint('Added airport waypoint: ${airport.icao} - ${airport.name}');
+      debugPrint('Added airport waypoint: ${airport.icao} - ${airport.name}');
       return;
     }
 
@@ -2576,7 +2593,7 @@ class MapScreenState extends State<MapScreen>
     }
     
     // If in flight planning mode, add navaid as waypoint
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
+    if (_flightPlanService.isPlanning) {
       _flightPlanService.addNavaidWaypoint(navaid);
     }
   }
@@ -2645,6 +2662,70 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
+  /// Centers the map on the current flight plan or trip.
+  /// For trips, includes all waypoints from all flight plans.
+  void _centerOnFlightPlan() {
+    // Get all flight plans to center on (either from trip or single plan)
+    final List<FlightPlan> plansToCenter;
+    if (_flightPlanService.currentTripPlans.isNotEmpty) {
+      plansToCenter = _flightPlanService.currentTripPlans;
+    } else if (_flightPlanService.currentFlightPlan != null) {
+      plansToCenter = [_flightPlanService.currentFlightPlan!];
+    } else {
+      return;
+    }
+
+    // Collect all waypoints from all plans
+    final allWaypoints = <LatLng>[];
+    for (final plan in plansToCenter) {
+      allWaypoints.addAll(plan.waypoints.map((w) => w.latLng));
+    }
+
+    if (allWaypoints.isEmpty) {
+      return;
+    }
+
+    try {
+      // Use built-in method for better performance
+      final bounds = LatLngBounds.fromPoints(allWaypoints);
+      
+      // Handle edge case: all waypoints at same location
+      if (bounds.north == bounds.south && bounds.east == bounds.west) {
+        // Single point or all waypoints at same location
+        _mapController.move(
+          LatLng(bounds.north, bounds.east),
+          MapConstants.singlePointZoom,
+        );
+        _disableAutoCentering();
+        return;
+      }
+      
+      // Calculate padding based on bounds size
+      final latPadding = (bounds.north - bounds.south) * MapConstants.boundsPaddingFactor;
+      final lngPadding = (bounds.east - bounds.west) * MapConstants.boundsPaddingFactor;
+      
+      // Create padded bounds
+      final paddedBounds = LatLngBounds(
+        LatLng(bounds.south - latPadding, bounds.west - lngPadding),
+        LatLng(bounds.north + latPadding, bounds.east + lngPadding),
+      );
+
+      // Fit bounds with animation
+      _mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: paddedBounds,
+          maxZoom: MapConstants.maxFitZoom,
+          padding: EdgeInsets.all(MapConstants.fitPadding),
+        ),
+      );
+
+      // Disable auto-centering when fitting flight plan
+      _disableAutoCentering();
+    } catch (e) {
+      // Handle cases where map controller is not ready
+    }
+  }
+
   /// Fits the entire flight plan in view with appropriate padding.
   /// Calculates bounds of all waypoints and adds 10% padding.
   /// Handles edge cases like single waypoint or same-location waypoints.
@@ -2700,13 +2781,18 @@ class MapScreenState extends State<MapScreen>
 
   // Handle navaid selection
   Future<void> _onNavaidSelected(Navaid navaid) async {
-    // debugPrint('_onNavaidSelected called for ${navaid.ident} - ${navaid.name}');
+    debugPrint('_onNavaidSelected called for ${navaid.ident} - ${navaid.name}');
 
-    // If in flight planning mode and panel is visible, add navaid as waypoint instead of showing details
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
-      // debugPrint('Flight planning mode active - adding navaid as waypoint');
+    // If in flight planning mode, add navaid as waypoint instead of showing details
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Flight planning mode active - adding navaid as waypoint');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
       _flightPlanService.addNavaidWaypoint(navaid);
-      // debugPrint('Added navaid waypoint: ${navaid.ident} - ${navaid.name}');
+      debugPrint('Added navaid waypoint: ${navaid.ident} - ${navaid.name}');
       return;
     }
 
@@ -2855,9 +2941,18 @@ class MapScreenState extends State<MapScreen>
 
   // Handle reporting point selection
   Future<void> _onReportingPointSelected(ReportingPoint point) async {
-    // If in flight planning mode and panel is visible, add reporting point as waypoint instead of showing details
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
+    debugPrint('_onReportingPointSelected called for ${point.name}');
+    
+    // If in flight planning mode, add reporting point as waypoint instead of showing details
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Flight planning mode active - adding reporting point as waypoint');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
       _flightPlanService.addReportingPointWaypoint(point);
+      debugPrint('Added reporting point waypoint: ${point.name}');
       return;
     }
     
@@ -3459,76 +3554,132 @@ class MapScreenState extends State<MapScreen>
               // Flight plan overlays - add before current position marker
               Consumer<FlightPlanService>(
                 builder: (context, flightPlanService, child) {
-                  final flightPlan = flightPlanService.currentFlightPlan;
-                  if (flightPlan == null ||
-                      flightPlan.waypoints.isEmpty ||
-                      !flightPlanService.isFlightPlanVisible) {
+                  // Get all flight plans to display (either from trip or single plan)
+                  final List<FlightPlan> plansToDisplay;
+                  if (flightPlanService.currentTripPlans.isNotEmpty) {
+                    // Display all trip plans
+                    plansToDisplay = flightPlanService.currentTripPlans;
+                    debugPrint('Displaying trip with ${plansToDisplay.length} flight plans');
+                  } else if (flightPlanService.currentFlightPlan != null) {
+                    // Display single flight plan
+                    plansToDisplay = [flightPlanService.currentFlightPlan!];
+                    debugPrint('Displaying single flight plan');
+                  } else {
                     return const SizedBox.shrink();
+                  }
+
+                  if (!flightPlanService.isFlightPlanVisible) {
+                    return const SizedBox.shrink();
+                  }
+
+                  // Build polylines for all flight plans
+                  final allPolylines = <Polyline>[];
+                  for (final flightPlan in plansToDisplay) {
+                    if (flightPlan.waypoints.isNotEmpty) {
+                      allPolylines.addAll(
+                        FlightPlanOverlay.buildClickableFlightPath(
+                          flightPlan,
+                          _onFlightPathSegmentTapped,
+                          flightPlanService.isPlanning,
+                        ),
+                      );
+                    }
+                  }
+                  
+                  // Add red transfer lines between flight plans in a trip
+                  if (flightPlanService.currentTripPlans.length > 1) {
+                    for (int i = 0; i < flightPlanService.currentTripPlans.length - 1; i++) {
+                      final currentPlan = flightPlanService.currentTripPlans[i];
+                      final nextPlan = flightPlanService.currentTripPlans[i + 1];
+                      
+                      if (currentPlan.waypoints.isNotEmpty && nextPlan.waypoints.isNotEmpty) {
+                        final lastWaypoint = currentPlan.waypoints.last;
+                        final firstWaypoint = nextPlan.waypoints.first;
+                        
+                        // Only add transfer line if waypoints are different
+                        if (lastWaypoint.latitude != firstWaypoint.latitude ||
+                            lastWaypoint.longitude != firstWaypoint.longitude) {
+                          allPolylines.add(
+                            Polyline(
+                              points: [lastWaypoint.latLng, firstWaypoint.latLng],
+                              strokeWidth: 3.0,
+                              color: Colors.red.withValues(alpha: 0.7),
+                              // Use pattern to create a dashed line effect
+                              pattern: StrokePattern.dashed(segments: [10, 10]),
+                            ),
+                          );
+                        }
+                      }
+                    }
                   }
 
                   return Stack(
                     children: [
                       // Flight plan route lines
                       PolylineLayer(
-                        polylines: FlightPlanOverlay.buildClickableFlightPath(
-                          flightPlan,
-                          _onFlightPathSegmentTapped,
-                          flightPlanService.isPlanning,
-                        ),
+                        polylines: allPolylines,
                       ),
-                      // Highlight next segment when tracking
-                      if (_flightService.isTracking && _currentPosition != null)
+                      // Highlight next segment when tracking (only for current flight plan)
+                      if (_flightService.isTracking && 
+                          _currentPosition != null &&
+                          flightPlanService.currentFlightPlan != null)
                         PolylineLayer(
                           polylines: FlightPlanOverlay.buildNextSegment(
-                            flightPlan,
+                            flightPlanService.currentFlightPlan!,
                             LatLng(
                               _currentPosition!.latitude,
                               _currentPosition!.longitude,
                             ),
                           ),
                         ),
-                      // Flight path segment click markers (for waypoint insertion)
-                      MarkerLayer(
-                        markers: FlightPlanOverlay.buildSegmentClickMarkers(
-                          flightPlan,
-                          _onFlightPathSegmentTapped,
-                          flightPlanService.isPlanning,
-                        ),
-                      ),
-                      // Waypoint markers
-                      MarkerLayer(
-                        markers: FlightPlanOverlay.buildWaypointMarkers(
-                          flightPlan,
-                          _onWaypointTapped,
-                          _onWaypointMoved,
-                          _selectedWaypointIndex,
-                          (isDragging) {
-                            setState(() {
-                              _isDraggingWaypoint = isDragging;
-                            });
-                          },
-                          _mapKey,
-                          flightPlanService.isPlanning,
-                        ),
-                      ),
-                      // Waypoint name labels (only show when zoomed in)
-                      if (_mapController.camera.zoom > 11)
+                      // Build markers for all flight plans
+                      ...plansToDisplay.expand((flightPlan) => [
+                        // Flight path segment click markers (for waypoint insertion)
+                        if (flightPlan == flightPlanService.currentFlightPlan)
+                          MarkerLayer(
+                            markers: FlightPlanOverlay.buildSegmentClickMarkers(
+                              flightPlan,
+                              _onFlightPathSegmentTapped,
+                              flightPlanService.isPlanning,
+                            ),
+                          ),
+                        // Waypoint markers
                         MarkerLayer(
-                          markers: FlightPlanOverlay.buildWaypointLabels(
+                          markers: FlightPlanOverlay.buildWaypointMarkers(
                             flightPlan,
-                            _selectedWaypointIndex,
+                            flightPlan == flightPlanService.currentFlightPlan ? _onWaypointTapped : (index) {},
+                            flightPlan == flightPlanService.currentFlightPlan ? _onWaypointMoved : (index, pos, {isDragging = false}) {},
+                            flightPlan == flightPlanService.currentFlightPlan ? _selectedWaypointIndex : -1,
+                            flightPlan == flightPlanService.currentFlightPlan ? (isDragging) {
+                              setState(() {
+                                _isDraggingWaypoint = isDragging;
+                              });
+                            } : (isDragging) {},
+                            _mapKey,
+                            flightPlan == flightPlanService.currentFlightPlan && flightPlanService.isPlanning,
                           ),
                         ),
-                      // Segment labels (distance, heading, time)
-                      Builder(
-                        builder: (context) {
-                          return MarkerLayer(
-                            markers: FlightPlanOverlay.buildSegmentLabels(
+                        // Waypoint name labels (only show when zoomed in)
+                        if (_mapController.camera.zoom > 11)
+                          MarkerLayer(
+                            markers: FlightPlanOverlay.buildWaypointLabels(
                               flightPlan,
-                              context,
+                              flightPlan == flightPlanService.currentFlightPlan ? _selectedWaypointIndex : -1,
                             ),
-                          );
-                        },
+                          ),
+                      ]),
+                      // Segment labels (distance, heading, time) for all flight plans
+                      ...plansToDisplay.map((flightPlan) => 
+                        Builder(
+                          builder: (context) {
+                            return MarkerLayer(
+                              markers: FlightPlanOverlay.buildSegmentLabels(
+                                flightPlan,
+                                context,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   );
@@ -4080,108 +4231,122 @@ class MapScreenState extends State<MapScreen>
           // Flight planning UI panels
           Consumer<FlightPlanService>(
             builder: (context, flightPlanService, child) {
-              // Adjust flight planning panel position for screen size changes (orientation)
-              final screenSize = MediaQuery.of(context).size;
-              _adjustFlightPlanningPanelPosition(screenSize);
-              
               return Stack(
                 children: [
-                  // Flight Planning Panel - new unified draggable panel
+                  // Flight Planning Panel - left-side sliding panel
                   if (_showFlightPlanning)
                     Positioned(
-                      left: _flightPlanningPanelPosition.dx,
-                      top: _flightPlanningPanelPosition.dy,
-                      child: Draggable<String>(
-                        data: 'flight_planning_panel',
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width < 600
-                                ? MediaQuery.of(context).size.width - 16
-                                : 600,
-                            child: FlightPlanningPanel(
-                              isExpanded: _flightPlanningExpanded,
-                              onWaypointFocus: _focusOnWaypoint,
-                              onClose: () {
-                                setState(() {
-                                  _showFlightPlanning = false;
-                                });
-                                // Stop planning mode - check if we need to toggle
-                                if (_flightPlanService.isPlanning) {
-                                  _flightPlanService.togglePlanningMode();
-                                }
-                                // Keep flight plan visible on map even when panel is closed
-                                // debugPrint('Flight planning closed from panel');
-                              },
-                            ),
+                      left: 0,
+                      top: MediaQuery.of(context).padding.top + 60,
+                      bottom: 60,
+                      width: (_flightPlanningExpanded 
+                          ? (MediaQuery.of(context).size.width < 600 
+                              ? MediaQuery.of(context).size.width * 0.85
+                              : 400.0)
+                          : 60.0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        width: (_flightPlanningExpanded 
+                            ? (MediaQuery.of(context).size.width < 600 
+                                ? MediaQuery.of(context).size.width * 0.85
+                                : 400.0)
+                            : 60.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xE6000000),
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
                           ),
                         ),
-                        childWhenDragging: Container(),
-                        onDragEnd: (details) {
-                          setState(() {
-                            final screenSize = MediaQuery.of(context).size;
-                            final isPhone = screenSize.width < 600;
-
-                            double newX = details.offset.dx;
-                            double newY = details.offset.dy;
-
-                            final panelWidth = isPhone
-                                ? screenSize.width - 16
-                                : 600;
-                            // Use actual panel heights that match FlightPlanningPanel constraints
-                            final panelHeight = _flightPlanningExpanded
-                                ? 400  // Reduced from 600 - more realistic for most cases
-                                : 60;  // Match the actual collapsed height from FlightPlanningPanel
-
-                            // Constrain position
-                            final minMargin = isPhone ? 8.0 : 16.0;
-
-                            if (!isPhone) {
-                              newX = newX.clamp(
-                                minMargin,
-                                screenSize.width - panelWidth - minMargin,
-                              );
-                            } else {
-                              newX = minMargin;
-                            }
-
-                            newY = newY.clamp(
-                              MediaQuery.of(context).padding.top + 60,
-                              screenSize.height - panelHeight - 100,
-                            );
-
-                            _flightPlanningPanelPosition = Offset(newX, newY);
-                          });
-                        },
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width < 600
-                              ? MediaQuery.of(context).size.width - 16
-                              : 600,
-                          child: FlightPlanningPanel(
-                            isExpanded: _flightPlanningExpanded,
-                            onWaypointFocus: _focusOnWaypoint,
-                            onExpandedChanged: (expanded) {
-                              setState(() {
-                                _flightPlanningExpanded = expanded;
-                              });
-                              // Save the state to SharedPreferences
-                              _saveFlightPlanningPanelState(expanded);
-                            },
-                            onClose: () {
-                              setState(() {
-                                _showFlightPlanning = false;
-                              });
-                              // Stop planning mode - check if we need to toggle
-                              if (_flightPlanService.isPlanning) {
-                                _flightPlanService.togglePlanningMode();
-                              }
-                              // Keep flight plan visible on map even when panel is closed
-                              // debugPrint('Flight planning closed from panel');
-                            },
-                          ),
+                        child: FlightPlanningPanel(
+                          onWaypointFocus: _focusOnWaypoint,
+                          onCenterFlightPlan: _centerOnFlightPlan,
+                          onClose: () {
+                            setState(() {
+                              _showFlightPlanning = false;
+                            });
+                            // Don't stop planning mode - let it persist when panel is hidden
+                            // User can add waypoints on the map even with panel hidden
+                          },
                         ),
                       ),
                     ),
+                  
+                  // Toggle button - always visible, positioned at left edge
+                  Positioned(
+                    left: _showFlightPlanning
+                        ? (_flightPlanningExpanded 
+                            ? (MediaQuery.of(context).size.width < 600 
+                                ? MediaQuery.of(context).size.width * 0.85
+                                : 400.0)
+                            : 60.0)
+                        : 0,
+                    top: MediaQuery.of(context).padding.top + 100,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showFlightPlanning = !_showFlightPlanning;
+                          if (_showFlightPlanning && !_flightPlanningExpanded) {
+                            // Auto-expand when opening from collapsed state
+                            _flightPlanningExpanded = true;
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 36,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          // Show orange background when in edit mode
+                          color: flightPlanService.isPlanning 
+                              ? const Color(0xFFFF6B35) // Orange for edit mode
+                              : const Color(0xE6000000), // Black when not editing
+                          borderRadius: BorderRadius.only(
+                            topRight: const Radius.circular(8),
+                            bottomRight: const Radius.circular(8),
+                            topLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
+                            bottomLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
+                          ),
+                          border: Border.all(
+                            color: flightPlanService.isPlanning 
+                                ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                : Colors.white.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.route,
+                              color: flightPlanService.isPlanning
+                                  ? Colors.white // White icon when in edit mode (orange background)
+                                  : (flightPlanService.currentFlightPlan != null || 
+                                      flightPlanService.currentTrip != null)
+                                      ? const Color(0xFF448AFF)
+                                      : Colors.white.withValues(alpha: 0.7),
+                              size: 20,
+                            ),
+                            const SizedBox(height: 4),
+                            Icon(
+                              _showFlightPlanning
+                                  ? Icons.chevron_left
+                                  : Icons.chevron_right,
+                              color: flightPlanService.isPlanning
+                                  ? Colors.white // White chevron when in edit mode
+                                  : Colors.white.withValues(alpha: 0.8),
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   // Floating waypoint panel for selected waypoint
                   if (_selectedWaypointIndex != null &&
                       flightPlanService.currentFlightPlan != null &&

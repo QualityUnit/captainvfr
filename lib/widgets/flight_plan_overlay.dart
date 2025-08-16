@@ -5,14 +5,26 @@ import 'dart:math' as math;
 import '../models/flight_plan.dart';
 import 'draggable_waypoint_marker.dart';
 import '../constants/app_theme.dart';
+import '../constants/trip_colors.dart';
 
 class FlightPlanOverlay {
   /// Build flight path polylines for the entire plan.
   static List<Polyline> buildFlightPath(FlightPlan flightPlan) {
     if (flightPlan.waypoints.length < 2) return [];
+    
+    // Determine color based on whether this is part of a trip
+    Color pathColor;
+    if (flightPlan.legColor != null) {
+      // Part of a trip - use the assigned leg color
+      pathColor = TripColors.colorFromValue(flightPlan.legColor!);
+    } else {
+      // Single flight plan - use default color
+      pathColor = TripColors.defaultFlightPlanColor;
+    }
+    
     final points = flightPlan.waypoints.map((wp) => wp.latLng).toList();
     return [
-      Polyline(points: points, strokeWidth: 5.0, color: Colors.green.shade600),
+      Polyline(points: points, strokeWidth: 5.0, color: pathColor),
     ];
   }
 
@@ -26,13 +38,23 @@ class FlightPlanOverlay {
       return [];
     }
 
+    // Determine color based on whether this is part of a trip
+    Color pathColor;
+    if (flightPlan.legColor != null) {
+      // Part of a trip - use the assigned leg color
+      pathColor = TripColors.colorFromValue(flightPlan.legColor!);
+    } else {
+      // Single flight plan - use default color
+      pathColor = TripColors.defaultFlightPlanColor;
+    }
+
     // Always show the flight path, make it thicker in edit mode
     final points = flightPlan.waypoints.map((wp) => wp.latLng).toList();
     return [
       Polyline(
         points: points,
         strokeWidth: isEditMode ? 7.0 : 5.0,
-        color: Colors.green.shade600,
+        color: pathColor,
       ),
     ];
   }

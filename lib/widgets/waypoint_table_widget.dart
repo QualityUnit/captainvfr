@@ -347,13 +347,9 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                             ),
                           ),
                         )
-                      : Container(
-                          constraints: BoxConstraints(
-                            maxHeight: 400, // Limit height to enable scrolling
-                          ),
-                          child: ReorderableListView.builder(
+                      : ReorderableListView.builder(
                             shrinkWrap: true,
-                            physics: const ClampingScrollPhysics(),
+                            physics: const NeverScrollableScrollPhysics(), // Let parent handle scrolling
                             buildDefaultDragHandles: false,
                             onReorder: (oldIndex, newIndex) {
                               final flightPlanService =
@@ -768,7 +764,6 @@ class _WaypointTableWidgetState extends State<WaypointTableWidget>
                               );
                             },
                           ),
-                        ),
                 ),
               ),
             ],

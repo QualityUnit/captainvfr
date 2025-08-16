@@ -46,6 +46,7 @@ import 'models/flight_point.dart';
 import 'models/flight_segment.dart';
 import 'models/moving_segment.dart';
 import 'models/flight_plan.dart';
+import 'models/trip.dart';
 import 'models/airspace.dart';
 import 'models/reporting_point.dart';
 import 'models/endorsement.dart';
@@ -151,6 +152,7 @@ Future<void> _initializeApp() async {
     Hive.registerAdapter(WaypointTypeAdapter());
     Hive.registerAdapter(FlightRulesAdapter());
     Hive.registerAdapter(LatLngAdapter());
+    Hive.registerAdapter(TripAdapter());
 
     // Register aircraft-related adapters
     Hive.registerAdapter(ManufacturerAdapter());

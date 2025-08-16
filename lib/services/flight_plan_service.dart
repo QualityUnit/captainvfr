@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hive/hive.dart';
 import '../models/flight_plan.dart';
+import '../models/trip.dart';
 import '../models/airport.dart';
 import '../models/navaid.dart';
 import '../models/aircraft.dart';
 import '../models/reporting_point.dart';
+import '../constants/trip_colors.dart';
 import '../services/aircraft_service.dart';
 import '../services/flight_plan_tile_download_service.dart';
 
@@ -16,6 +18,10 @@ class FlightPlanService extends ChangeNotifier {
   int _waypointCounter = 1;
   List<FlightPlan> _savedFlightPlans = [];
   Box<FlightPlan>? _flightPlanBox;
+  List<Trip> _savedTrips = [];
+  Box<Trip>? _tripBox;
+  Trip? _currentTrip;
+  final List<FlightPlan> _currentTripPlans = []; // All flight plans in current trip
   final AircraftService? _aircraftService;
   FlightPlanTileDownloadService? _tileDownloadService;
   BuildContext? _context;
@@ -28,6 +34,9 @@ class FlightPlanService extends ChangeNotifier {
   bool get isFlightPlanVisible => _isFlightPlanVisible;
   List<Waypoint> get waypoints => _currentFlightPlan?.waypoints ?? [];
   List<FlightPlan> get savedFlightPlans => _savedFlightPlans;
+  List<Trip> get savedTrips => _savedTrips;
+  Trip? get currentTrip => _currentTrip;
+  List<FlightPlan> get currentTripPlans => _currentTripPlans;
 
   FlightPlanService({AircraftService? aircraftService})
     : _aircraftService = aircraftService;
@@ -42,22 +51,33 @@ class FlightPlanService extends ChangeNotifier {
     _context = context;
   }
 
-  // Initialize Hive box for flight plans
+  // Initialize Hive boxes for flight plans and trips
   Future<void> initialize() async {
     try {
       _flightPlanBox = await Hive.openBox<FlightPlan>('flight_plans');
-      _loadSavedFlightPlans();
+      _tripBox = await Hive.openBox<Trip>('trips');
+      _loadSavedFlightPlans(notify: false);
+      _loadSavedTrips(notify: true); // Only notify once after both are loaded
     } catch (e) {
       // debugPrint('Error initializing flight plan service: $e');
     }
   }
 
   // Load saved flight plans from storage
-  void _loadSavedFlightPlans() {
+  void _loadSavedFlightPlans({bool notify = true}) {
     if (_flightPlanBox != null) {
       _savedFlightPlans = _flightPlanBox!.values.toList();
       _savedFlightPlans.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      notifyListeners();
+      if (notify) notifyListeners();
+    }
+  }
+
+  // Load saved trips from storage
+  void _loadSavedTrips({bool notify = true}) {
+    if (_tripBox != null) {
+      _savedTrips = _tripBox!.values.toList();
+      _savedTrips.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      if (notify) notifyListeners();
     }
   }
 
@@ -96,6 +116,9 @@ class FlightPlanService extends ChangeNotifier {
     );
 
     _currentFlightPlan = flightPlan;
+    // Clear trip data when loading a single flight plan
+    _currentTrip = null;
+    _currentTripPlans.clear();
     // Planning mode is NOT automatically enabled when loading a flight plan
     // Users must explicitly enable it if they want to edit
     _isPlanning = false;
@@ -164,6 +187,251 @@ class FlightPlanService extends ChangeNotifier {
         // debugPrint('Flight plan duplicated: ${duplicatedPlan.name}');
       } catch (e) {
         // debugPrint('Error duplicating flight plan: $e');
+      }
+    }
+  }
+
+  // Add a flight plan to an existing trip or create a new trip
+  Future<void> addFlightPlanToTrip(FlightPlan newFlightPlan) async {
+    if (_currentTrip != null) {
+      // Add to existing trip
+      debugPrint('Adding flight plan ${newFlightPlan.id} to existing trip ${_currentTrip!.id}');
+      
+      // Set trip properties on the new flight plan
+      newFlightPlan.tripId = _currentTrip!.id;
+      newFlightPlan.legNumber = _currentTripPlans.length;
+      newFlightPlan.legColor = TripColors.getColorValueForLeg(_currentTripPlans.length);
+      newFlightPlan.modifiedAt = DateTime.now();
+      
+      // Add to trip's flight plan list
+      _currentTrip!.flightPlanIds.add(newFlightPlan.id);
+      
+      // Save the updated flight plan
+      if (_flightPlanBox != null) {
+        await _flightPlanBox!.put(newFlightPlan.id, newFlightPlan);
+      }
+      
+      // Save the updated trip
+      if (_tripBox != null) {
+        await _tripBox!.put(_currentTrip!.id, _currentTrip!);
+      }
+      
+      // Add to current trip plans
+      _currentTripPlans.add(newFlightPlan);
+      
+      debugPrint('Trip ${_currentTrip!.id} now has ${_currentTripPlans.length} legs');
+      
+      // Reload to refresh the UI
+      _loadSavedTrips(notify: false);
+      _loadSavedFlightPlans(notify: false);
+      notifyListeners();
+      
+    } else if (_currentFlightPlan != null && _currentFlightPlan!.waypoints.isNotEmpty) {
+      // Create a new trip from current flight plan and the new one
+      debugPrint('Creating new trip from current flight plan ${_currentFlightPlan!.id} and new flight plan ${newFlightPlan.id}');
+      
+      // Save current flight plan first if it has changes
+      await saveCurrentFlightPlan();
+      
+      // Create trip name from the two flight plan names
+      final tripName = '${_currentFlightPlan!.name} + ${newFlightPlan.name}';
+      
+      // Create a new trip with both flight plans
+      await createTripFromFlightPlans([_currentFlightPlan!, newFlightPlan], tripName);
+    } else {
+      // No current flight plan, just load the new one
+      debugPrint('No current flight plan, loading new flight plan ${newFlightPlan.id}');
+      loadFlightPlan(newFlightPlan.id);
+    }
+  }
+
+  // Create trip from multiple flight plans
+  Future<Trip> createTripFromFlightPlans(
+    List<FlightPlan> flightPlans, 
+    String tripName,
+  ) async {
+    if (flightPlans.isEmpty) {
+      throw Exception('Cannot create trip from empty flight plans');
+    }
+
+    final trip = Trip(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: tripName,
+      createdAt: DateTime.now(),
+      flightPlanIds: [],
+      aircraftId: flightPlans.first.aircraftId,
+    );
+
+    // Update flight plans to be part of the trip and assign colors
+    debugPrint('Creating trip with ${flightPlans.length} flight plans');
+    for (int i = 0; i < flightPlans.length; i++) {
+      final plan = flightPlans[i];
+      plan.tripId = trip.id;
+      plan.legNumber = i;
+      plan.legColor = TripColors.getColorValueForLeg(i);
+      plan.modifiedAt = DateTime.now();
+      
+      trip.flightPlanIds.add(plan.id);
+      debugPrint('Added flight plan ${plan.id} (${plan.name}) to trip as leg $i');
+      
+      // Save updated flight plan
+      if (_flightPlanBox != null) {
+        await _flightPlanBox!.put(plan.id, plan);
+      }
+    }
+    debugPrint('Trip ${trip.id} now has ${trip.flightPlanIds.length} flight plans');
+
+    // Save trip
+    if (_tripBox != null) {
+      await _tripBox!.put(trip.id, trip);
+      debugPrint('Saved trip to Hive with ${trip.flightPlanIds.length} flight plan IDs');
+      _loadSavedTrips(notify: false);
+      _loadSavedFlightPlans(notify: false);
+      
+      // Verify the trip was saved correctly
+      final savedTrip = _tripBox!.get(trip.id);
+      if (savedTrip != null) {
+        debugPrint('Verified saved trip has ${savedTrip.flightPlanIds.length} flight plans');
+      }
+    }
+
+    // Load the newly created trip so it's displayed on the map
+    debugPrint('Loading newly created trip ${trip.id}');
+    loadTrip(trip.id);
+
+    return trip;
+  }
+
+  // Remove a leg from the current trip
+  Future<void> removeLegFromTrip(int legIndex) async {
+    if (_currentTrip == null || legIndex < 0 || legIndex >= _currentTripPlans.length) {
+      return;
+    }
+
+    debugPrint('Removing leg $legIndex from trip ${_currentTrip!.id}');
+    
+    // Get the flight plan to remove
+    final planToRemove = _currentTripPlans[legIndex];
+    
+    // Remove from trip's flight plan IDs
+    _currentTrip!.flightPlanIds.removeAt(legIndex);
+    
+    // Remove from current trip plans
+    _currentTripPlans.removeAt(legIndex);
+    
+    // Clear trip ID from the removed flight plan
+    planToRemove.tripId = null;
+    planToRemove.legNumber = null;
+    planToRemove.legColor = null;
+    planToRemove.modifiedAt = DateTime.now();
+    
+    // Save the updated flight plan
+    if (_flightPlanBox != null) {
+      await _flightPlanBox!.put(planToRemove.id, planToRemove);
+    }
+    
+    // Check if we still have multiple legs
+    if (_currentTripPlans.length > 1) {
+      // Update leg numbers and colors for remaining plans
+      for (int i = 0; i < _currentTripPlans.length; i++) {
+        final plan = _currentTripPlans[i];
+        plan.legNumber = i;
+        plan.legColor = TripColors.getColorValueForLeg(i);
+        plan.modifiedAt = DateTime.now();
+        
+        // Save updated flight plan
+        if (_flightPlanBox != null) {
+          await _flightPlanBox!.put(plan.id, plan);
+        }
+      }
+      
+      // Save the updated trip
+      if (_tripBox != null) {
+        await _tripBox!.put(_currentTrip!.id, _currentTrip!);
+      }
+      
+      // Set the first remaining plan as current
+      _currentFlightPlan = _currentTripPlans.first;
+      
+    } else if (_currentTripPlans.length == 1) {
+      // Only one leg left - convert back to single flight plan
+      debugPrint('Only one leg remaining, converting back to single flight plan');
+      
+      final remainingPlan = _currentTripPlans.first;
+      
+      // Clear trip properties
+      remainingPlan.tripId = null;
+      remainingPlan.legNumber = null;
+      remainingPlan.legColor = null;
+      remainingPlan.modifiedAt = DateTime.now();
+      
+      // Save the updated flight plan
+      if (_flightPlanBox != null) {
+        await _flightPlanBox!.put(remainingPlan.id, remainingPlan);
+      }
+      
+      // Delete the trip
+      if (_tripBox != null) {
+        await _tripBox!.delete(_currentTrip!.id);
+      }
+      
+      // Clear trip data and set the remaining plan as current
+      _currentTrip = null;
+      _currentTripPlans.clear();
+      _currentFlightPlan = remainingPlan;
+      
+    } else {
+      // No legs left - clear everything
+      debugPrint('No legs remaining, clearing trip');
+      
+      // Delete the trip
+      if (_tripBox != null) {
+        await _tripBox!.delete(_currentTrip!.id);
+      }
+      
+      // Clear everything
+      _currentTrip = null;
+      _currentTripPlans.clear();
+      _currentFlightPlan = null;
+    }
+    
+    // Reload saved data and notify listeners once
+    _loadSavedTrips(notify: false);
+    _loadSavedFlightPlans(notify: false);
+    notifyListeners();
+  }
+
+  // Load a trip and its associated flight plans
+  void loadTrip(String tripId) {
+    final trip = _savedTrips.firstWhere(
+      (t) => t.id == tripId,
+      orElse: () => throw Exception('Trip not found'),
+    );
+
+    _currentTrip = trip;
+    
+    // Load all flight plans associated with the trip
+    _currentTripPlans.clear();
+    debugPrint('Loading trip ${trip.id} with ${trip.flightPlanIds.length} flight plans');
+    for (final planId in trip.flightPlanIds) {
+      final plan = _savedFlightPlans.firstWhere(
+        (fp) => fp.id == planId,
+        orElse: () => throw Exception('Flight plan $planId not found'),
+      );
+      _currentTripPlans.add(plan);
+      debugPrint('Loaded flight plan ${plan.id} (${plan.name}) for trip');
+    }
+    debugPrint('Trip loaded with ${_currentTripPlans.length} flight plans');
+
+    // Set the first flight plan as the current one for editing/viewing
+    if (_currentTripPlans.isNotEmpty) {
+      _currentFlightPlan = _currentTripPlans.first;
+      _isPlanning = false;
+      notifyListeners();
+      
+      // Call the callback if set
+      if (onFlightPlanLoaded != null) {
+        onFlightPlanLoaded!(_currentTripPlans.first);
       }
     }
   }
@@ -455,6 +723,8 @@ class FlightPlanService extends ChangeNotifier {
   // Clear current flight plan
   void clearFlightPlan() {
     _currentFlightPlan = null;
+    _currentTrip = null;
+    _currentTripPlans.clear();
     _isPlanning = false;
     _waypointCounter = 1;
     notifyListeners();
@@ -726,10 +996,13 @@ class FlightPlanService extends ChangeNotifier {
 
   @override
   void dispose() {
-    // Close Hive box if open
+    // Close Hive boxes if open
     try {
       if (_flightPlanBox != null && _flightPlanBox!.isOpen) {
         _flightPlanBox!.close();
+      }
+      if (_tripBox != null && _tripBox!.isOpen) {
+        _tripBox!.close();
       }
     } catch (e) {
       // Ignore errors during disposal

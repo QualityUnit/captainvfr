@@ -32,6 +32,15 @@ class FlightPlan extends HiveObject {
   @HiveField(8)
   double? fuelConsumptionRate; // Gallons per hour - from aircraft or manual input
 
+  @HiveField(9)
+  String? tripId; // Reference to trip if part of multi-leg trip
+
+  @HiveField(10)
+  int? legNumber; // Order within trip (0-based)
+
+  @HiveField(11)
+  int? legColor; // Color value for visual distinction
+
   FlightPlan({
     required this.id,
     required this.name,
@@ -42,6 +51,9 @@ class FlightPlan extends HiveObject {
     this.cruiseSpeed,
     this.flightRules,
     this.fuelConsumptionRate,
+    this.tripId,
+    this.legNumber,
+    this.legColor,
   });
 
   // Calculate total distance in nautical miles

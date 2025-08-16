@@ -5,22 +5,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/flight_plan_service.dart';
 import '../services/aircraft_settings_service.dart';
 import '../services/settings_service.dart';
+import '../screens/flight_plans_screen.dart';
 import 'waypoint_table_widget.dart';
 import '../constants/app_theme.dart';
 import '../l10n/app_localizations.dart';
 
 class FlightPlanningPanel extends StatefulWidget {
-  final bool? isExpanded;
-  final Function(bool)? onExpandedChanged;
   final VoidCallback? onClose;
   final Function(int)? onWaypointFocus;
+  final VoidCallback? onCenterFlightPlan;
 
   const FlightPlanningPanel({
     super.key,
-    this.isExpanded,
-    this.onExpandedChanged,
     this.onClose,
     this.onWaypointFocus,
+    this.onCenterFlightPlan,
   });
 
   @override
@@ -28,7 +27,6 @@ class FlightPlanningPanel extends StatefulWidget {
 }
 
 class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
-  late bool _isExpanded;
   bool _isEditMode = false;
   final TextEditingController _cruiseSpeedController = TextEditingController();
   String? _selectedAircraftId;
@@ -42,17 +40,15 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.isExpanded ?? true;
     _loadWaypointTableState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final flightPlanService = context.read<FlightPlanService>();
       final aircraftService = context.read<AircraftSettingsService>();
       final flightPlan = flightPlanService.currentFlightPlan;
 
-      // Sync edit mode with planning mode - only sync if planning mode is true
-      // This prevents turning off planning mode when the panel is first opened
-      if (flightPlanService.isPlanning &&
-          flightPlanService.isPlanning != _isEditMode) {
+      // Always sync edit mode with planning mode state
+      // This ensures the panel reflects the actual planning state
+      if (flightPlanService.isPlanning != _isEditMode) {
         setState(() {
           _isEditMode = flightPlanService.isPlanning;
         });
@@ -106,13 +102,6 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     super.dispose();
   }
 
-  void _toggleExpanded(bool expanded) {
-    setState(() {
-      _isExpanded = expanded;
-    });
-    widget.onExpandedChanged?.call(expanded);
-  }
-
   @override
   Widget build(BuildContext context) {
     final flightPlanService = Provider.of<FlightPlanService>(context);
@@ -120,50 +109,26 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final isPhone = screenWidth < 600;
-    final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    // Responsive margins and width
+    // Responsive margins
     final horizontalMargin = isPhone ? 8.0 : 16.0;
-    final maxWidth = isPhone ? double.infinity : (isTablet ? 600.0 : 800.0);
 
     return Container(
-      margin: EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: horizontalMargin,
-        vertical: 16.0,
-      ),
-      constraints: BoxConstraints(
-        minHeight: _isExpanded ? 200 : 60,
-        maxHeight: _isExpanded ? 600 : 60,
-        minWidth: 300,
-        maxWidth: maxWidth,
+        vertical: 8.0,
       ),
       child: Material(
         color: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xE6000000), // Black with 0.9 opacity (less transparent)
-            borderRadius: AppTheme.largeRadius,
-            border: Border.all(
-              color: const Color(0x7F448AFF),
-              width: 1.0,
-            ), // Blue accent with 0.5 opacity
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        child: Column(
             children: [
               // Header with edit mode toggle
               _buildHeader(context, flightPlanService),
-              if (_isExpanded)
-                Flexible(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: 550, // Leave some space for header
-                    ),
-                    child: _buildExpandedView(context, flightPlanService),
-                  ),
-                ),
+              // Expanded view takes all available space
+              Expanded(
+                child: _buildExpandedView(context, flightPlanService),
+              ),
             ],
-          ),
         ),
       ),
     );
@@ -180,132 +145,174 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     return Container(
       decoration: BoxDecoration(
         color: _isEditMode ? const Color(0x33448AFF) : Colors.transparent,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.borderRadiusLarge)),
       ),
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 12.0,
-        vertical: _isExpanded ? 8.0 : 4.0,
+        vertical: 8.0,
       ),
       child: Row(
         children: [
-          // Expand/Collapse button
-          IconButton(
-            icon: Icon(
-              _isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: const Color(0xFF448AFF),
-              size: _isExpanded ? 24 : 20,
-            ),
-            onPressed: () => _toggleExpanded(!_isExpanded),
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(
-              minWidth: _isExpanded ? 32 : 28,
-              minHeight: _isExpanded ? 32 : 28,
-            ),
-          ),
-
-          // Flight planning icon
-          Icon(
-            isPlanning || _isEditMode ? Icons.flight_takeoff : Icons.map,
-            color: isPlanning || _isEditMode
-                ? const Color(0xFF448AFF)
-                : Colors.white70,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-
-          // Title and stats
+          // Title and stats - now has more space without icons
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  flightPlan?.name ??
-                      (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: _isExpanded ? 14 : 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (_isExpanded &&
-                    flightPlan != null &&
-                    flightPlan.waypoints.isNotEmpty)
-                  Consumer<SettingsService>(
-                    builder: (context, settings, child) {
-                      final isMetric = settings.units == 'metric';
-                      final distance = flightPlan.totalDistance;
-                      final displayDistance = isMetric
-                          ? distance * 1.852
-                          : distance;
-                      final unit = isMetric ? 'km' : 'nm';
-                      return Text(
-                        l10n.waypointsAndDistance(flightPlan.waypoints.length, displayDistance.toStringAsFixed(0), unit),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 11,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        // Show trip name if a trip is loaded, otherwise flight plan name
+                        flightPlanService.currentTrip != null
+                            ? flightPlanService.currentTrip!.name
+                            : (flightPlan?.name ??
+                                (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan)),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
-                      );
-                    },
-                  ),
-              ],
-            ),
-          ),
-
-          // Edit mode toggle slider
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Text(
-                  l10n.editMode,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 12,
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Transform.scale(
-                  scale: 0.8,
-                  child: Switch(
-                    value: _isEditMode,
-                    onChanged: (value) {
-                      setState(() {
-                        _isEditMode = value;
-                      });
-                      if (value && !flightPlanService.isPlanning) {
-                        flightPlanService.togglePlanningMode();
-                      } else if (!value && flightPlanService.isPlanning) {
-                        flightPlanService.togglePlanningMode();
+                Consumer<SettingsService>(
+                  builder: (context, settings, child) {
+                      final isMetric = settings.units == 'metric';
+                      
+                      // Calculate total distance and waypoints
+                      double totalDistance = 0;
+                      int totalWaypoints = 0;
+                      
+                      if (flightPlanService.currentTrip != null && 
+                          flightPlanService.currentTripPlans.isNotEmpty) {
+                        // Trip: sum all plans
+                        for (final plan in flightPlanService.currentTripPlans) {
+                          totalDistance += plan.totalDistance;
+                          totalWaypoints += plan.waypoints.length;
+                        }
+                        
+                        final displayDistance = isMetric
+                            ? totalDistance * 1.852
+                            : totalDistance;
+                        final unit = isMetric ? 'km' : 'nm';
+                        
+                        return Text(
+                          '${flightPlanService.currentTripPlans.length} legs, $totalWaypoints waypoints, ${displayDistance.toStringAsFixed(0)} $unit',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      } else if (flightPlan != null && flightPlan.waypoints.isNotEmpty) {
+                        // Single flight plan
+                        final distance = flightPlan.totalDistance;
+                        final displayDistance = isMetric
+                            ? distance * 1.852
+                            : distance;
+                        final unit = isMetric ? 'km' : 'nm';
+                        return Text(
+                          l10n.waypointsAndDistance(flightPlan.waypoints.length, displayDistance.toStringAsFixed(0), unit),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
                       }
+                      
+                      return const SizedBox.shrink();
                     },
-                    activeColor: const Color(0xFF448AFF),
-                    activeTrackColor: const Color(0x66448AFF),
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
                   ),
-                ),
               ],
             ),
           ),
 
-          // Close button
-          if (widget.onClose != null)
-            IconButton(
-              icon: Icon(
-                Icons.close,
-                size: _isExpanded ? 20 : 18,
-                color: Colors.white.withValues(alpha: 0.7),
+          // Spacer to push controls to the right
+          const Spacer(),
+
+          // Control buttons row
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Center button with label
+              if ((flightPlan != null && flightPlan.waypoints.isNotEmpty) || 
+                  flightPlanService.currentTripPlans.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.center_focus_strong,
+                          size: 20,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                        onPressed: widget.onCenterFlightPlan,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        tooltip: l10n.centerOnFlightPlan,
+                      ),
+                      Text(
+                        'Center',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              
+              // Edit mode toggle with label
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: _isEditMode,
+                        onChanged: (value) {
+                          debugPrint('Edit mode switch changed to: $value');
+                          debugPrint('Current isPlanning: ${flightPlanService.isPlanning}');
+                          setState(() {
+                            _isEditMode = value;
+                          });
+                          if (value && !flightPlanService.isPlanning) {
+                            debugPrint('Enabling planning mode...');
+                            flightPlanService.togglePlanningMode();
+                          } else if (!value && flightPlanService.isPlanning) {
+                            debugPrint('Disabling planning mode...');
+                            flightPlanService.togglePlanningMode();
+                          }
+                          debugPrint('After toggle - isPlanning: ${flightPlanService.isPlanning}');
+                        },
+                        activeColor: const Color(0xFF448AFF),
+                        activeTrackColor: const Color(0x66448AFF),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    Text(
+                      l10n.editMode,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              onPressed: widget.onClose,
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints(
-                minWidth: _isExpanded ? 32 : 28,
-                minHeight: _isExpanded ? 32 : 28,
-              ),
-            ),
+            ],
+          ),
         ],
       ),
     );
@@ -357,8 +364,29 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
               ),
             ),
 
-          // Waypoint table
-          if (flightPlan != null && flightPlan.waypoints.isNotEmpty)
+          // Show "Load Flight Plan" button when no waypoints exist
+          if (flightPlan == null && flightPlanService.currentTripPlans.isEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => _openFlightPlansScreen(context),
+                  icon: const Icon(Icons.folder_open, size: 20),
+                  label: Text(l10n.loadToMap),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF448AFF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppTheme.mediumRadius,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Waypoint table - show all waypoints from trip or single flight plan
+          if (flightPlan != null || flightPlanService.currentTripPlans.isNotEmpty)
             Container(
               margin: const EdgeInsets.only(top: 12),
               child: Consumer<AircraftSettingsService>(
@@ -369,30 +397,295 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                           orElse: () => aircraftService.aircrafts.first,
                         )
                       : null;
-                  return WaypointTableWidget(
-                    flightPlan: flightPlan,
-                    selectedAircraft: selectedAircraft,
-                    selectedWaypointIndex: _selectedWaypointIndex,
-                    isExpanded: _isWaypointTableExpanded,
-                    onExpandedChanged: (expanded) {
-                      setState(() {
-                        _isWaypointTableExpanded = expanded;
-                      });
-                      _saveWaypointTableState(expanded);
-                    },
-                    onWaypointSelected: (index) {
-                      setState(() {
-                        _selectedWaypointIndex = index;
-                      });
-                      // Focus map on selected waypoint
-                      widget.onWaypointFocus?.call(index);
-                    },
-                  );
+                  
+                  // If we have a trip loaded, show all waypoints from all plans
+                  debugPrint('Current trip plans count: ${flightPlanService.currentTripPlans.length}');
+                  debugPrint('Current trip: ${flightPlanService.currentTrip?.name}');
+                  if (flightPlanService.currentTrip != null && flightPlanService.currentTripPlans.isNotEmpty) {
+                    debugPrint('Showing waypoint tables for trip with ${flightPlanService.currentTripPlans.length} legs');
+                    // Create multiple waypoint tables for each leg
+                    return Column(
+                      children: [
+                        for (int i = 0; i < flightPlanService.currentTripPlans.length; i++)
+                          if (flightPlanService.currentTripPlans[i].waypoints.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Leg header with delete button
+                                  Container(
+                                    padding: const EdgeInsets.only(left: 12, right: 4, top: 4, bottom: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0x1A448AFF),
+                                      borderRadius: AppTheme.smallRadius,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'Leg ${i + 1}: ${flightPlanService.currentTripPlans[i].name}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white.withValues(alpha: 0.9),
+                                            ),
+                                          ),
+                                        ),
+                                        // Delete leg button - only show if more than one leg
+                                        if (flightPlanService.currentTripPlans.length > 1)
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.delete_outline,
+                                              size: 16,
+                                              color: Colors.red.withValues(alpha: 0.7),
+                                            ),
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                              minWidth: 24,
+                                              minHeight: 24,
+                                            ),
+                                            onPressed: () => _showDeleteLegConfirmation(
+                                              context,
+                                              flightPlanService,
+                                              i,
+                                              flightPlanService.currentTripPlans[i].name,
+                                            ),
+                                            tooltip: 'Delete this leg',
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // Waypoint table for this leg
+                                  WaypointTableWidget(
+                                    flightPlan: flightPlanService.currentTripPlans[i],
+                                    selectedAircraft: selectedAircraft,
+                                    selectedWaypointIndex: flightPlanService.currentTripPlans[i] == flightPlan 
+                                        ? _selectedWaypointIndex 
+                                        : -1,
+                                    isExpanded: _isWaypointTableExpanded,
+                                    onExpandedChanged: (expanded) {
+                                      setState(() {
+                                        _isWaypointTableExpanded = expanded;
+                                      });
+                                      _saveWaypointTableState(expanded);
+                                    },
+                                    onWaypointSelected: (index) {
+                                      // Only allow selection for the current flight plan
+                                      if (flightPlanService.currentTripPlans[i] == flightPlan) {
+                                        setState(() {
+                                          _selectedWaypointIndex = index;
+                                        });
+                                        // Focus map on selected waypoint
+                                        widget.onWaypointFocus?.call(index);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                      ],
+                    );
+                  } else if (flightPlan != null && flightPlan.waypoints.isNotEmpty) {
+                    debugPrint('Showing single waypoint table for flight plan');
+                    // Single flight plan
+                    return WaypointTableWidget(
+                      flightPlan: flightPlan,
+                      selectedAircraft: selectedAircraft,
+                      selectedWaypointIndex: _selectedWaypointIndex,
+                      isExpanded: _isWaypointTableExpanded,
+                      onExpandedChanged: (expanded) {
+                        setState(() {
+                          _isWaypointTableExpanded = expanded;
+                        });
+                        _saveWaypointTableState(expanded);
+                      },
+                      onWaypointSelected: (index) {
+                        setState(() {
+                          _selectedWaypointIndex = index;
+                        });
+                        // Focus map on selected waypoint
+                        widget.onWaypointFocus?.call(index);
+                      },
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
                 },
+              ),
+            ),
+            
+          // Add to Trip button - shown when there are waypoints
+          if (flightPlan != null || flightPlanService.currentTripPlans.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => _openFlightPlansForTrip(context, flightPlanService),
+                  icon: const Icon(Icons.add_road, size: 20),
+                  label: Text(l10n.addFlightPlanToTrip),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppTheme.mediumRadius,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+          // Clear flight plan button - placed below waypoint table
+          if (flightPlan != null || flightPlanService.currentTrip != null)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              child: ElevatedButton.icon(
+                onPressed: () => _showClearConfirmationDialog(context, flightPlanService),
+                icon: const Icon(Icons.delete_outline, size: 20),
+                label: Text(l10n.clearFlightPlan),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.withValues(alpha: 0.8),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppTheme.mediumRadius,
+                  ),
+                ),
               ),
             ),
         ],
       ),
+    );
+  }
+  
+  // Open flight plans screen to load a flight plan
+  void _openFlightPlansScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FlightPlansScreen(),
+      ),
+    );
+  }
+
+  // Open flight plans screen to add another flight plan to the trip
+  void _openFlightPlansForTrip(BuildContext context, FlightPlanService flightPlanService) {
+    // Save current flight plan first if it has waypoints
+    if (flightPlanService.currentFlightPlan != null && 
+        flightPlanService.currentFlightPlan!.waypoints.isNotEmpty) {
+      flightPlanService.saveCurrentFlightPlan();
+    }
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FlightPlansScreen(),
+      ),
+    ).then((_) {
+      // When returning, check if a new flight plan was loaded
+      // If so, we could create a trip from both plans
+      // This is handled by the FlightPlansScreen when user selects a plan
+    });
+  }
+
+  // Show confirmation dialog before clearing flight plan
+  void _showDeleteLegConfirmation(
+    BuildContext context,
+    FlightPlanService flightPlanService,
+    int legIndex,
+    String legName,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xE6000000),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.largeRadius,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          title: Text(
+            l10n.deleteLeg,
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            l10n.deleteLegConfirmation(legName),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                l10n.cancel,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                flightPlanService.removeLegFromTrip(legIndex);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showClearConfirmationDialog(BuildContext context, FlightPlanService flightPlanService) {
+    final l10n = AppLocalizations.of(context)!;
+    final planName = flightPlanService.currentTrip != null 
+        ? flightPlanService.currentTrip!.name
+        : (flightPlanService.currentFlightPlan?.name ?? 'flight plan');
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xE6000000),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.largeRadius,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          title: Text(
+            l10n.clearFlightPlan,
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Are you sure you want to clear "$planName" from the map?',
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                l10n.cancel,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                flightPlanService.clearFlightPlan();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(l10n.clear),
+            ),
+          ],
+        );
+      },
     );
   }
 

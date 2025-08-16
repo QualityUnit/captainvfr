@@ -45,6 +45,53 @@ class AppLocalizationsCs extends AppLocalizations {
   String get flightPlanning => 'Plánování letu';
 
   @override
+  String get createTrip => 'Create Trip';
+
+  @override
+  String get tripName => 'Trip Name';
+
+  @override
+  String get enterTripName => 'Enter trip name';
+
+  @override
+  String get selectFlightPlans => 'Select Flight Plans';
+
+  @override
+  String get noFlightPlansSelected => 'No flight plans selected';
+
+  @override
+  String get tripCreated => 'Trip created successfully';
+
+  @override
+  String get centerOnFlightPlan => 'Center map on flight plan';
+
+  @override
+  String get clearFlightPlan => 'Remove flight plan from map';
+
+  @override
+  String get deleteLeg => 'Delete Leg';
+
+  @override
+  String deleteLegConfirmation(String legName) {
+    return 'Are you sure you want to delete leg \"$legName\" from the trip?';
+  }
+
+  @override
+  String get addToTrip => 'Add to Trip';
+
+  @override
+  String get replaceCurrent => 'Replace Current';
+
+  @override
+  String get addFlightPlanToTrip => 'Add Flight Plan to Trip';
+
+  @override
+  String get clear => 'Vymazat';
+
+  @override
+  String get addedTo => 'Added to trip:';
+
+  @override
   String get weather => 'Počasí';
 
   @override
@@ -962,9 +1009,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get create => 'Vytvořit';
-
-  @override
-  String get clear => 'Vymazat';
 
   @override
   String get reset => 'Obnovit';

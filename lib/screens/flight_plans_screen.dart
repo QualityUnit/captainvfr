@@ -40,9 +40,32 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
         backgroundColor: AppColors.dialogBackgroundColor,
         foregroundColor: AppColors.primaryTextColor,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showNewFlightPlanDialog(context),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            color: AppColors.dialogBackgroundColor,
+            onSelected: (value) => _handleAppBarMenuAction(context, value),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'new_flight_plan',
+                child: Row(
+                  children: [
+                    Icon(Icons.add, size: 20, color: AppColors.primaryTextColor),
+                    const SizedBox(width: 8),
+                    Text(l10n.newFlightPlan, style: TextStyle(color: AppColors.primaryTextColor)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'create_trip',
+                child: Row(
+                  children: [
+                    Icon(Icons.alt_route, size: 20, color: AppColors.primaryTextColor),
+                    const SizedBox(width: 8),
+                    Text(l10n.createTrip, style: TextStyle(color: AppColors.primaryTextColor)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -108,6 +131,11 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
           flightPlan,
           flightPlanService,
         ),
+        onLongPress: () => _showFlightPlanOptionsDialog(
+          context,
+          flightPlan,
+          flightPlanService,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -159,14 +187,25 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                     _handleMenuAction(context, value, flightPlan, flightPlanService),
                 itemBuilder: (context) {
                   final l10n = AppLocalizations.of(context)!;
+                  final hasCurrentFlightPlan = flightPlanService.currentFlightPlan != null && 
+                                               flightPlanService.currentFlightPlan!.waypoints.isNotEmpty;
+                  final hasCurrentTrip = flightPlanService.currentTrip != null;
+                  
                   return [
                     PopupMenuItem(
                       value: 'load',
                       child: Row(
                         children: [
-                          Icon(Icons.map, size: 20, color: AppColors.primaryTextColor),
+                          Icon(
+                            hasCurrentFlightPlan || hasCurrentTrip ? Icons.add_road : Icons.map, 
+                            size: 20, 
+                            color: AppColors.primaryTextColor
+                          ),
                           const SizedBox(width: 8),
-                          Text(l10n.loadToMap, style: TextStyle(color: AppColors.primaryTextColor)),
+                          Text(
+                            hasCurrentFlightPlan || hasCurrentTrip ? l10n.addToTrip : l10n.loadToMap, 
+                            style: TextStyle(color: AppColors.primaryTextColor)
+                          ),
                         ],
                       ),
                     ),
@@ -230,6 +269,17 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 
+  void _handleAppBarMenuAction(BuildContext context, String action) {
+    switch (action) {
+      case 'new_flight_plan':
+        _showNewFlightPlanDialog(context);
+        break;
+      case 'create_trip':
+        _showCreateTripDialog(context);
+        break;
+    }
+  }
+
   void _handleMenuAction(
     BuildContext context,
     String action,
@@ -258,14 +308,32 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     FlightPlanService flightPlanService,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    flightPlanService.loadFlightPlan(flightPlan.id);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.loadedFlightPlan(flightPlan.name)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    
+    // Check if we have an existing trip or flight plan
+    if (flightPlanService.currentTrip != null || 
+        (flightPlanService.currentFlightPlan != null && 
+         flightPlanService.currentFlightPlan!.waypoints.isNotEmpty)) {
+      // We have an existing trip or flight plan - add this as a new leg
+      debugPrint('Adding flight plan ${flightPlan.id} to existing trip/creating new trip');
+      flightPlanService.addFlightPlanToTrip(flightPlan);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l10n.addedTo} ${flightPlan.name}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      // No existing flight plan - just load it normally
+      flightPlanService.loadFlightPlan(flightPlan.id);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.loadedFlightPlan(flightPlan.name)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _showNewFlightPlanDialog(BuildContext context) {
@@ -422,5 +490,283 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
         ],
       ),
     );
+  }
+
+  void _showFlightPlanOptionsDialog(
+    BuildContext context,
+    FlightPlan flightPlan,
+    FlightPlanService flightPlanService,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final hasCurrentFlightPlan = flightPlanService.currentFlightPlan != null && 
+                                 flightPlanService.currentFlightPlan!.waypoints.isNotEmpty;
+    final hasCurrentTrip = flightPlanService.currentTrip != null;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          backgroundColor: const Color(0xE6000000),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.largeRadius,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          title: Text(
+            flightPlan.name,
+            style: const TextStyle(color: Colors.white),
+          ),
+          children: [
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _loadFlightPlanAndNavigateBack(context, flightPlan, flightPlanService);
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    hasCurrentFlightPlan || hasCurrentTrip ? Icons.add_road : Icons.map, 
+                    size: 20, 
+                    color: AppColors.primaryTextColor
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    hasCurrentFlightPlan || hasCurrentTrip ? l10n.addToTrip : l10n.loadToMap,
+                    style: TextStyle(color: AppColors.primaryTextColor),
+                  ),
+                ],
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Force replace - clear current and load new
+                flightPlanService.clearFlightPlan();
+                flightPlanService.loadFlightPlan(flightPlan.id);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.loadedFlightPlan(flightPlan.name)),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Icon(Icons.replay, size: 20, color: AppColors.primaryTextColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.replaceCurrent,
+                    style: TextStyle(color: AppColors.primaryTextColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCreateTripDialog(BuildContext context) {
+    final flightPlanService = Provider.of<FlightPlanService>(context, listen: false);
+    final flightPlans = flightPlanService.savedFlightPlans;
+    
+    if (flightPlans.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Need at least 2 flight plans to create a trip'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => _CreateTripDialog(flightPlans: flightPlans),
+    );
+  }
+}
+
+class _CreateTripDialog extends StatefulWidget {
+  final List<FlightPlan> flightPlans;
+
+  const _CreateTripDialog({required this.flightPlans});
+
+  @override
+  State<_CreateTripDialog> createState() => _CreateTripDialogState();
+}
+
+class _CreateTripDialogState extends State<_CreateTripDialog> {
+  final _tripNameController = TextEditingController();
+  final Set<String> _selectedPlanIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Generate default trip name
+    final randomNum = DateTime.now().millisecondsSinceEpoch % 1000;
+    _tripNameController.text = 'Trip $randomNum';
+    _tripNameController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _tripNameController.text.length,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return FormThemeHelper.buildDialog(
+      context: context,
+      title: l10n.createTrip,
+      content: SizedBox(
+        width: 400,
+        height: 500,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Trip name input
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: FormThemeHelper.buildFormField(
+                controller: _tripNameController,
+                labelText: l10n.tripName,
+                hintText: l10n.enterTripName,
+              ),
+            ),
+            
+            // Flight plans selection
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                l10n.selectFlightPlans,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryTextColor,
+                ),
+              ),
+            ),
+            
+            // Flight plans list
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: widget.flightPlans.length,
+                itemBuilder: (context, index) {
+                  final flightPlan = widget.flightPlans[index];
+                  final isSelected = _selectedPlanIds.contains(flightPlan.id);
+                  
+                  return CheckboxListTile(
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value == true) {
+                          _selectedPlanIds.add(flightPlan.id);
+                        } else {
+                          _selectedPlanIds.remove(flightPlan.id);
+                        }
+                      });
+                    },
+                    title: Text(
+                      flightPlan.name,
+                      style: TextStyle(color: AppColors.primaryTextColor),
+                    ),
+                    subtitle: Text(
+                      _getFlightPlanSummary(flightPlan),
+                      style: TextStyle(color: AppColors.secondaryTextColor),
+                    ),
+                    activeColor: AppColors.primaryAccent,
+                    checkColor: Colors.white,
+                    tileColor: AppColors.sectionBackgroundColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppTheme.mediumRadius,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        ElevatedButton(
+          onPressed: _selectedPlanIds.isEmpty ? null : () => _createTrip(context),
+          child: Text(l10n.create),
+        ),
+      ],
+    );
+  }
+
+  void _createTrip(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final flightPlanService = Provider.of<FlightPlanService>(context, listen: false);
+    
+    if (_selectedPlanIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.noFlightPlansSelected),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Get selected flight plans in order
+    final selectedPlans = widget.flightPlans
+        .where((fp) => _selectedPlanIds.contains(fp.id))
+        .toList();
+    
+    debugPrint('Selected ${selectedPlans.length} flight plans for trip: ${selectedPlans.map((p) => p.name).join(", ")}');
+    
+    try {
+      await flightPlanService.createTripFromFlightPlans(
+        selectedPlans,
+        _tripNameController.text.trim(),
+      );
+      
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close the dialog
+      
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Go back to map screen
+      
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.tripCreated),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating trip: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  String _getFlightPlanSummary(FlightPlan flightPlan) {
+    final distance = flightPlan.totalDistance;
+    final time = flightPlan.totalFlightTime;
+
+    String summary = '${flightPlan.waypoints.length} waypoints, ';
+    summary += '${distance.toStringAsFixed(1)} NM';
+
+    if (time > 0) {
+      final hours = (time / 60).floor();
+      final minutes = (time % 60).round();
+      summary += ', ${hours}h ${minutes}m';
+    }
+
+    return summary;
   }
 }

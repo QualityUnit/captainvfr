@@ -60,6 +60,87 @@
   "@flightPlanning": {
     "description": "Flight planning screen title"
   },
+
+  "createTrip": "Create Trip",
+  "@createTrip": {
+    "description": "Create trip button text"
+  },
+
+  "tripName": "Trip Name",
+  "@tripName": {
+    "description": "Trip name label"
+  },
+
+  "enterTripName": "Enter trip name",
+  "@enterTripName": {
+    "description": "Trip name input hint"
+  },
+
+  "selectFlightPlans": "Select Flight Plans",
+  "@selectFlightPlans": {
+    "description": "Select flight plans label"
+  },
+
+  "noFlightPlansSelected": "No flight plans selected",
+  "@noFlightPlansSelected": {
+    "description": "No flight plans selected error"
+  },
+
+  "tripCreated": "Trip created successfully",
+  "@tripCreated": {
+    "description": "Trip created success message"
+  },
+
+  "centerOnFlightPlan": "Center map on flight plan",
+  "@centerOnFlightPlan": {
+    "description": "Tooltip for center flight plan button"
+  },
+
+  "clearFlightPlan": "Remove flight plan from map",
+  "@clearFlightPlan": {
+    "description": "Tooltip for clear flight plan button"
+  },
+
+  "deleteLeg": "Delete Leg",
+  "@deleteLeg": {
+    "description": "Delete leg dialog title"
+  },
+
+  "deleteLegConfirmation": "Are you sure you want to delete leg \"{legName}\" from the trip?",
+  "@deleteLegConfirmation": {
+    "description": "Delete leg confirmation message",
+    "placeholders": {
+      "legName": {
+        "type": "String",
+        "description": "Name of the leg to delete"
+      }
+    }
+  },
+
+  "addToTrip": "Add to Trip",
+  "@addToTrip": {
+    "description": "Add flight plan to trip button"
+  },
+
+  "replaceCurrent": "Replace Current",
+  "@replaceCurrent": {
+    "description": "Replace current flight plan button"
+  },
+
+  "addFlightPlanToTrip": "Add Flight Plan to Trip",
+  "@addFlightPlanToTrip": {
+    "description": "Add flight plan to trip button text"
+  },
+
+  "clear": "Clear",
+  "@clear": {
+    "description": "Clear button text"
+  },
+
+  "addedTo": "Added to trip:",
+  "@addedTo": {
+    "description": "Added to trip message prefix"
+  },
   
   "weather": "Weather",
   "@weather": {
