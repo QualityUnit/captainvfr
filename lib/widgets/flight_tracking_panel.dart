@@ -269,72 +269,70 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                     topRight: Radius.circular(16),
                   ),
                 ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Drag handle bar
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Drag handle bar
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      const SizedBox(width: 16),
-                      // Compass icon
-                      Icon(
-                        Icons.explore,
+                    ),
+                    const SizedBox(width: 16),
+                    // Compass icon
+                    Icon(
+                      Icons.explore,
+                      color: isTracking 
+                        ? Colors.red 
+                        : Colors.white.withValues(alpha: 0.8),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    // Title
+                    Text(
+                      isTracking ? 'TRACKING' : 'FLIGHT DATA',
+                      style: TextStyle(
                         color: isTracking 
-                          ? Colors.red 
+                          ? Colors.red
                           : Colors.white.withValues(alpha: 0.8),
-                        size: 22,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
                       ),
-                      const SizedBox(width: 8),
-                      // Title
-                      Text(
-                        isTracking ? 'TRACKING' : 'FLIGHT DATA',
-                        style: TextStyle(
-                          color: isTracking 
-                            ? Colors.red
-                            : Colors.white.withValues(alpha: 0.8),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      // Recording indicator
-                      if (isTracking) ...[
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.red.withValues(alpha: 0.5),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 16),
-                      // Drag handle bar (right side)
+                    ),
+                    // Recording indicator
+                    if (isTracking) ...[
+                      const SizedBox(width: 12),
                       Container(
-                        width: 40,
-                        height: 4,
+                        width: 8,
+                        height: 8,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(2),
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withValues(alpha: 0.5),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
+                    const SizedBox(width: 16),
+                    // Drag handle bar (right side)
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
