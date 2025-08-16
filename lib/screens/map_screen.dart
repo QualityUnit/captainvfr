@@ -4215,7 +4215,13 @@ class MapScreenState extends State<MapScreen>
                             : 60.0),
                     top: MediaQuery.of(context).padding.top + 60,
                     bottom: 60,
+                    width: (_flightPlanningExpanded 
+                        ? (MediaQuery.of(context).size.width < 600 
+                            ? MediaQuery.of(context).size.width * 0.85
+                            : 400.0)
+                        : 60.0) + 32, // Panel width + toggle button width
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         // Main panel
                         AnimatedContainer(
