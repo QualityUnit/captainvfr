@@ -56,28 +56,28 @@ class FlightPlanService extends ChangeNotifier {
     try {
       _flightPlanBox = await Hive.openBox<FlightPlan>('flight_plans');
       _tripBox = await Hive.openBox<Trip>('trips');
-      _loadSavedFlightPlans();
-      _loadSavedTrips();
+      _loadSavedFlightPlans(notify: false);
+      _loadSavedTrips(notify: true); // Only notify once after both are loaded
     } catch (e) {
       // debugPrint('Error initializing flight plan service: $e');
     }
   }
 
   // Load saved flight plans from storage
-  void _loadSavedFlightPlans() {
+  void _loadSavedFlightPlans({bool notify = true}) {
     if (_flightPlanBox != null) {
       _savedFlightPlans = _flightPlanBox!.values.toList();
       _savedFlightPlans.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      notifyListeners();
+      if (notify) notifyListeners();
     }
   }
 
   // Load saved trips from storage
-  void _loadSavedTrips() {
+  void _loadSavedTrips({bool notify = true}) {
     if (_tripBox != null) {
       _savedTrips = _tripBox!.values.toList();
       _savedTrips.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      notifyListeners();
+      if (notify) notifyListeners();
     }
   }
 
@@ -222,8 +222,8 @@ class FlightPlanService extends ChangeNotifier {
       debugPrint('Trip ${_currentTrip!.id} now has ${_currentTripPlans.length} legs');
       
       // Reload to refresh the UI
-      _loadSavedTrips();
-      _loadSavedFlightPlans();
+      _loadSavedTrips(notify: false);
+      _loadSavedFlightPlans(notify: false);
       notifyListeners();
       
     } else if (_currentFlightPlan != null && _currentFlightPlan!.waypoints.isNotEmpty) {
@@ -285,8 +285,8 @@ class FlightPlanService extends ChangeNotifier {
     if (_tripBox != null) {
       await _tripBox!.put(trip.id, trip);
       debugPrint('Saved trip to Hive with ${trip.flightPlanIds.length} flight plan IDs');
-      _loadSavedTrips();
-      _loadSavedFlightPlans();
+      _loadSavedTrips(notify: false);
+      _loadSavedFlightPlans(notify: false);
       
       // Verify the trip was saved correctly
       final savedTrip = _tripBox!.get(trip.id);
@@ -395,9 +395,9 @@ class FlightPlanService extends ChangeNotifier {
       _currentFlightPlan = null;
     }
     
-    // Reload saved data
-    _loadSavedTrips();
-    _loadSavedFlightPlans();
+    // Reload saved data and notify listeners once
+    _loadSavedTrips(notify: false);
+    _loadSavedFlightPlans(notify: false);
     notifyListeners();
   }
 

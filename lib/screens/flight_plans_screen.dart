@@ -203,7 +203,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            hasCurrentFlightPlan || hasCurrentTrip ? 'Add to Trip' : l10n.loadToMap, 
+                            hasCurrentFlightPlan || hasCurrentTrip ? l10n.addToTrip : l10n.loadToMap, 
                             style: TextStyle(color: AppColors.primaryTextColor)
                           ),
                         ],
@@ -319,7 +319,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Added ${flightPlan.name} to trip'),
+          content: Text('${l10n.addedTo} ${flightPlan.name}'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -530,7 +530,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    hasCurrentFlightPlan || hasCurrentTrip ? 'Add to Trip' : l10n.loadToMap,
+                    hasCurrentFlightPlan || hasCurrentTrip ? l10n.addToTrip : l10n.loadToMap,
                     style: TextStyle(color: AppColors.primaryTextColor),
                   ),
                 ],
@@ -555,7 +555,7 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                   Icon(Icons.replay, size: 20, color: AppColors.primaryTextColor),
                   const SizedBox(width: 8),
                   Text(
-                    'Replace Current',
+                    l10n.replaceCurrent,
                     style: TextStyle(color: AppColors.primaryTextColor),
                   ),
                 ],

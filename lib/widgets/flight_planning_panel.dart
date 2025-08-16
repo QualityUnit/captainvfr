@@ -524,7 +524,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                 child: ElevatedButton.icon(
                   onPressed: () => _openFlightPlansForTrip(context, flightPlanService),
                   icon: const Icon(Icons.add_road, size: 20),
-                  label: Text('Add Flight Plan to Trip'),
+                  label: Text(l10n.addFlightPlanToTrip),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
                     foregroundColor: Colors.white,
@@ -609,11 +609,11 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
             side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
           ),
           title: Text(
-            'Delete Leg',
+            l10n.deleteLeg,
             style: const TextStyle(color: Colors.white),
           ),
           content: Text(
-            'Are you sure you want to delete leg "$legName" from the trip?',
+            l10n.deleteLegConfirmation(legName),
             style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
           ),
           actions: [

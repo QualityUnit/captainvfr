@@ -7,7 +7,13 @@
     "noFlightPlansSelected",
     "tripCreated",
     "centerOnFlightPlan",
-    "clearFlightPlan"
+    "clearFlightPlan",
+    "deleteLeg",
+    "deleteLegConfirmation",
+    "addToTrip",
+    "replaceCurrent",
+    "addFlightPlanToTrip",
+    "addedTo"
   ],
 
   "de": [
@@ -18,7 +24,13 @@
     "noFlightPlansSelected",
     "tripCreated",
     "centerOnFlightPlan",
-    "clearFlightPlan"
+    "clearFlightPlan",
+    "deleteLeg",
+    "deleteLegConfirmation",
+    "addToTrip",
+    "replaceCurrent",
+    "addFlightPlanToTrip",
+    "addedTo"
   ],
 
   "es": [
@@ -29,7 +41,13 @@
     "noFlightPlansSelected",
     "tripCreated",
     "centerOnFlightPlan",
-    "clearFlightPlan"
+    "clearFlightPlan",
+    "deleteLeg",
+    "deleteLegConfirmation",
+    "addToTrip",
+    "replaceCurrent",
+    "addFlightPlanToTrip",
+    "addedTo"
   ],
 
   "fr": [
@@ -40,7 +58,13 @@
     "noFlightPlansSelected",
     "tripCreated",
     "centerOnFlightPlan",
-    "clearFlightPlan"
+    "clearFlightPlan",
+    "deleteLeg",
+    "deleteLegConfirmation",
+    "addToTrip",
+    "replaceCurrent",
+    "addFlightPlanToTrip",
+    "addedTo"
   ],
 
   "it": [
@@ -51,7 +75,13 @@
     "noFlightPlansSelected",
     "tripCreated",
     "centerOnFlightPlan",
-    "clearFlightPlan"
+    "clearFlightPlan",
+    "deleteLeg",
+    "deleteLegConfirmation",
+    "addToTrip",
+    "replaceCurrent",
+    "addFlightPlanToTrip",
+    "addedTo"
   ],
 
   "sk": [
@@ -62,6 +92,12 @@
     "noFlightPlansSelected",
     "tripCreated",
     "centerOnFlightPlan",
-    "clearFlightPlan"
+    "clearFlightPlan",
+    "deleteLeg",
+    "deleteLegConfirmation",
+    "addToTrip",
+    "replaceCurrent",
+    "addFlightPlanToTrip",
+    "addedTo"
   ]
 }

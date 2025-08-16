@@ -69,6 +69,29 @@ class AppLocalizationsSk extends AppLocalizations {
   String get clearFlightPlan => 'Remove flight plan from map';
 
   @override
+  String get deleteLeg => 'Delete Leg';
+
+  @override
+  String deleteLegConfirmation(String legName) {
+    return 'Are you sure you want to delete leg \"$legName\" from the trip?';
+  }
+
+  @override
+  String get addToTrip => 'Add to Trip';
+
+  @override
+  String get replaceCurrent => 'Replace Current';
+
+  @override
+  String get addFlightPlanToTrip => 'Add Flight Plan to Trip';
+
+  @override
+  String get clear => 'Vymazať';
+
+  @override
+  String get addedTo => 'Added to trip:';
+
+  @override
   String get weather => 'Počasie';
 
   @override
@@ -980,9 +1003,6 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get create => 'Vytvoriť';
-
-  @override
-  String get clear => 'Vymazať';
 
   @override
   String get reset => 'Obnoviť';

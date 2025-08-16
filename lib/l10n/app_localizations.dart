@@ -228,6 +228,48 @@ abstract class AppLocalizations {
   /// **'Remove flight plan from map'**
   String get clearFlightPlan;
 
+  /// Delete leg dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Leg'**
+  String get deleteLeg;
+
+  /// Delete leg confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete leg \"{legName}\" from the trip?'**
+  String deleteLegConfirmation(String legName);
+
+  /// Add flight plan to trip button
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Trip'**
+  String get addToTrip;
+
+  /// Replace current flight plan button
+  ///
+  /// In en, this message translates to:
+  /// **'Replace Current'**
+  String get replaceCurrent;
+
+  /// Add flight plan to trip button text
+  ///
+  /// In en, this message translates to:
+  /// **'Add Flight Plan to Trip'**
+  String get addFlightPlanToTrip;
+
+  /// Clear button label
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// Added to trip message prefix
+  ///
+  /// In en, this message translates to:
+  /// **'Added to trip:'**
+  String get addedTo;
+
   /// Weather tab label
   ///
   /// In en, this message translates to:
@@ -1937,12 +1979,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create'**
   String get create;
-
-  /// Clear button label
-  ///
-  /// In en, this message translates to:
-  /// **'Clear'**
-  String get clear;
 
   /// Reset button label
   ///
