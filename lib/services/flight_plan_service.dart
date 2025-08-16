@@ -302,6 +302,105 @@ class FlightPlanService extends ChangeNotifier {
     return trip;
   }
 
+  // Remove a leg from the current trip
+  Future<void> removeLegFromTrip(int legIndex) async {
+    if (_currentTrip == null || legIndex < 0 || legIndex >= _currentTripPlans.length) {
+      return;
+    }
+
+    debugPrint('Removing leg $legIndex from trip ${_currentTrip!.id}');
+    
+    // Get the flight plan to remove
+    final planToRemove = _currentTripPlans[legIndex];
+    
+    // Remove from trip's flight plan IDs
+    _currentTrip!.flightPlanIds.removeAt(legIndex);
+    
+    // Remove from current trip plans
+    _currentTripPlans.removeAt(legIndex);
+    
+    // Clear trip ID from the removed flight plan
+    planToRemove.tripId = null;
+    planToRemove.legNumber = null;
+    planToRemove.legColor = null;
+    planToRemove.modifiedAt = DateTime.now();
+    
+    // Save the updated flight plan
+    if (_flightPlanBox != null) {
+      await _flightPlanBox!.put(planToRemove.id, planToRemove);
+    }
+    
+    // Check if we still have multiple legs
+    if (_currentTripPlans.length > 1) {
+      // Update leg numbers and colors for remaining plans
+      for (int i = 0; i < _currentTripPlans.length; i++) {
+        final plan = _currentTripPlans[i];
+        plan.legNumber = i;
+        plan.legColor = TripColors.getColorValueForLeg(i);
+        plan.modifiedAt = DateTime.now();
+        
+        // Save updated flight plan
+        if (_flightPlanBox != null) {
+          await _flightPlanBox!.put(plan.id, plan);
+        }
+      }
+      
+      // Save the updated trip
+      if (_tripBox != null) {
+        await _tripBox!.put(_currentTrip!.id, _currentTrip!);
+      }
+      
+      // Set the first remaining plan as current
+      _currentFlightPlan = _currentTripPlans.first;
+      
+    } else if (_currentTripPlans.length == 1) {
+      // Only one leg left - convert back to single flight plan
+      debugPrint('Only one leg remaining, converting back to single flight plan');
+      
+      final remainingPlan = _currentTripPlans.first;
+      
+      // Clear trip properties
+      remainingPlan.tripId = null;
+      remainingPlan.legNumber = null;
+      remainingPlan.legColor = null;
+      remainingPlan.modifiedAt = DateTime.now();
+      
+      // Save the updated flight plan
+      if (_flightPlanBox != null) {
+        await _flightPlanBox!.put(remainingPlan.id, remainingPlan);
+      }
+      
+      // Delete the trip
+      if (_tripBox != null) {
+        await _tripBox!.delete(_currentTrip!.id);
+      }
+      
+      // Clear trip data and set the remaining plan as current
+      _currentTrip = null;
+      _currentTripPlans.clear();
+      _currentFlightPlan = remainingPlan;
+      
+    } else {
+      // No legs left - clear everything
+      debugPrint('No legs remaining, clearing trip');
+      
+      // Delete the trip
+      if (_tripBox != null) {
+        await _tripBox!.delete(_currentTrip!.id);
+      }
+      
+      // Clear everything
+      _currentTrip = null;
+      _currentTripPlans.clear();
+      _currentFlightPlan = null;
+    }
+    
+    // Reload saved data
+    _loadSavedTrips();
+    _loadSavedFlightPlans();
+    notifyListeners();
+  }
+
   // Load a trip and its associated flight plans
   void loadTrip(String tripId) {
     final trip = _savedTrips.firstWhere(

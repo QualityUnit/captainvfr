@@ -413,20 +413,47 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Leg header
+                                  // Leg header with delete button
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    padding: const EdgeInsets.only(left: 12, right: 4, top: 4, bottom: 4),
                                     decoration: BoxDecoration(
                                       color: const Color(0x1A448AFF),
                                       borderRadius: AppTheme.smallRadius,
                                     ),
-                                    child: Text(
-                                      'Leg ${i + 1}: ${flightPlanService.currentTripPlans[i].name}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white.withValues(alpha: 0.9),
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'Leg ${i + 1}: ${flightPlanService.currentTripPlans[i].name}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white.withValues(alpha: 0.9),
+                                            ),
+                                          ),
+                                        ),
+                                        // Delete leg button - only show if more than one leg
+                                        if (flightPlanService.currentTripPlans.length > 1)
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.delete_outline,
+                                              size: 16,
+                                              color: Colors.red.withValues(alpha: 0.7),
+                                            ),
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                              minWidth: 24,
+                                              minHeight: 24,
+                                            ),
+                                            onPressed: () => _showDeleteLegConfirmation(
+                                              context,
+                                              flightPlanService,
+                                              i,
+                                              flightPlanService.currentTripPlans[i].name,
+                                            ),
+                                            tooltip: 'Delete this leg',
+                                          ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -564,6 +591,56 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
   }
 
   // Show confirmation dialog before clearing flight plan
+  void _showDeleteLegConfirmation(
+    BuildContext context,
+    FlightPlanService flightPlanService,
+    int legIndex,
+    String legName,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xE6000000),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.largeRadius,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          title: Text(
+            'Delete Leg',
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Are you sure you want to delete leg "$legName" from the trip?',
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                l10n.cancel,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                flightPlanService.removeLegFromTrip(legIndex);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showClearConfirmationDialog(BuildContext context, FlightPlanService flightPlanService) {
     final l10n = AppLocalizations.of(context)!;
     final planName = flightPlanService.currentTrip != null 
