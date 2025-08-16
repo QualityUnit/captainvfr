@@ -277,141 +277,135 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                       ? Colors.red.withValues(alpha: 0.1)
                       : Colors.transparent,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Drag handle bar
-                      Container(
-                        width: 36,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(1.5),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Compass icon
-                      Icon(
-                        Icons.explore,
-                        color: isTracking 
-                          ? Colors.red 
-                          : Colors.white.withValues(alpha: 0.8),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      // Title
-                      Text(
-                        isTracking ? 'TRACKING' : 'FLIGHT DATA',
-                        style: TextStyle(
-                          color: isTracking 
-                            ? Colors.red
-                            : Colors.white.withValues(alpha: 0.8),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      // Recording indicator
-                      if (isTracking) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 12),
-                      // Drag handle bar (right side)
-                      Container(
-                        width: 36,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(1.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // Panel content with tracking button
-              if (_isExpanded)
-                Expanded(
                   child: Stack(
                     children: [
-                      // Main content
-                      ExpandedView(
-                        onCollapse: _toggleExpanded,
-                        flightService: context.read<FlightService>(),
-                        barometerService: context.read<BarometerService>(),
-                      ),
-                      // Tracking button in top-right corner
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            border: Border.all(
-                              color: flightService.isTracking
-                                  ? Colors.red.withValues(alpha: 0.8)
-                                  : Colors.green.withValues(alpha: 0.8),
-                              width: 2.0,
+                      // Center content
+                      Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Drag handle bar
+                            Container(
+                              width: 36,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(1.5),
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (flightService.isTracking ? Colors.red : Colors.green)
-                                    .withValues(alpha: 0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                            const SizedBox(width: 12),
+                            // Compass icon
+                            Icon(
+                              Icons.explore,
+                              color: isTracking 
+                                ? Colors.red 
+                                : Colors.white.withValues(alpha: 0.8),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            // Title
+                            Text(
+                              isTracking ? 'TRACKING' : 'FLIGHT DATA',
+                              style: TextStyle(
+                                color: isTracking 
+                                  ? Colors.red
+                                  : Colors.white.withValues(alpha: 0.8),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            // Recording indicator
+                            if (isTracking) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                            child: InkWell(
+                            const SizedBox(width: 12),
+                            // Drag handle bar (right side)
+                            Container(
+                              width: 36,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(1.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Tracking button on the right if expanded
+                      if (_isExpanded)
+                        Positioned(
+                          right: 8,
+                          top: 3,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              border: Border.all(
+                                color: flightService.isTracking
+                                    ? Colors.red.withValues(alpha: 0.8)
+                                    : Colors.green.withValues(alpha: 0.8),
+                                width: 2.0,
+                              ),
                               borderRadius: BorderRadius.circular(20),
-                              onTap: () async {
-                                if (flightService.isTracking) {
-                                  // Show confirmation dialog
-                                  final shouldStop = await StopTrackingDialog.show(context);
-                                  if (shouldStop == true) {
-                                    final savedFlight = await flightService.stopTracking();
-                                    
-                                    // Navigate to flight detail if a flight was saved
-                                    if (savedFlight != null && context.mounted) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => FlightDetailScreen(flight: savedFlight),
-                                        ),
-                                      );
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(20),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap: () async {
+                                  if (flightService.isTracking) {
+                                    // Show confirmation dialog
+                                    final shouldStop = await StopTrackingDialog.show(context);
+                                    if (shouldStop == true) {
+                                      final savedFlight = await flightService.stopTracking();
+                                      
+                                      // Navigate to flight detail if a flight was saved
+                                      if (savedFlight != null && context.mounted) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => FlightDetailScreen(flight: savedFlight),
+                                          ),
+                                        );
+                                      }
                                     }
+                                  } else {
+                                    flightService.startTracking();
                                   }
-                                } else {
-                                  flightService.startTracking();
-                                }
-                              },
-                              child: Center(
-                                child: Icon(
-                                  flightService.isTracking ? Icons.stop : Icons.play_arrow,
-                                  color: flightService.isTracking ? Colors.red : Colors.green,
-                                  size: 20,
+                                },
+                                child: Center(
+                                  child: Icon(
+                                    flightService.isTracking ? Icons.stop : Icons.play_arrow,
+                                    color: flightService.isTracking ? Colors.red : Colors.green,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
                     ],
+                  ),
+                ),
+              ),
+              // Panel content
+              if (_isExpanded)
+                Expanded(
+                  child: ExpandedView(
+                    onCollapse: _toggleExpanded,
+                    flightService: context.read<FlightService>(),
+                    barometerService: context.read<BarometerService>(),
                   ),
                 ),
               if (!_isExpanded)
