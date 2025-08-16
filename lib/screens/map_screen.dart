@@ -3794,15 +3794,8 @@ class MapScreenState extends State<MapScreen>
             ],
           ),
 
-          // Flight tracking panel - sliding from bottom
-          FlightTrackingPanel(
-            isVisible: _mapStateController.showStats,
-            onClose: () {
-              setState(() {
-                _mapStateController.toggleStats();
-              });
-            },
-          ),
+          // Flight tracking panel - always visible on bottom right
+          const FlightTrackingPanel(),
 
           // Airspace information panel
           if (_showCurrentAirspacePanel) ...[

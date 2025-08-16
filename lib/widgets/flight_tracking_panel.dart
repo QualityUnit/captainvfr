@@ -13,12 +13,10 @@ import '../l10n/app_localizations.dart';
 
 class FlightTrackingPanel extends StatefulWidget {
   final VoidCallback? onClose;
-  final bool isVisible;
 
   const FlightTrackingPanel({
     super.key, 
     this.onClose,
-    this.isVisible = false,
   });
 
   @override
@@ -26,38 +24,20 @@ class FlightTrackingPanel extends StatefulWidget {
 }
 
 class _FlightTrackingPanelState extends State<FlightTrackingPanel> 
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+    with WidgetsBindingObserver {
   bool _isExpanded = false;
   Timer? _headingCheckTimer;
   bool _hasShownPermissionDialog = false;
   static const String _permissionNotificationKey = 'has_shown_location_permission_notification';
   static const String _expandedStateKey = 'flight_tracking_panel_expanded';
   
-  late AnimationController _animationController;
-  late Animation<double> _slideAnimation;
+  // Remove animation controller - panel is always visible
 
   @override
   void initState() {
     super.initState();
     
-    // Initialize animation controller
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    
-    _slideAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    // Set initial animation state based on visibility
-    if (widget.isVisible) {
-      _animationController.forward();
-    }
+    // Panel is always visible, no need for animation controller
     
     // Add lifecycle observer to detect when app returns from background
     WidgetsBinding.instance.addObserver(this);
@@ -89,17 +69,6 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
     await prefs.setBool(_expandedStateKey, expanded);
   }
   
-  @override
-  void didUpdateWidget(FlightTrackingPanel oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isVisible != oldWidget.isVisible) {
-      if (widget.isVisible) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    }
-  }
   
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -222,7 +191,6 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _headingCheckTimer?.cancel();
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -239,116 +207,103 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
     final flightService = Provider.of<FlightService>(context);
     final isTracking = flightService.isTracking;
     
-    // Calculate panel heights
-    final collapsedHeight = 60.0 + safeAreaBottom;
-    final expandedHeight = 260.0 + safeAreaBottom;
-    final currentHeight = _isExpanded ? expandedHeight : collapsedHeight;
-    
-    return AnimatedBuilder(
-      animation: _slideAnimation,
-      builder: (context, child) {
-        return Positioned(
-          left: 0,
-          right: 0,
-          bottom: -currentHeight * _slideAnimation.value,
-          height: currentHeight,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.9),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Drag handle with recording indicator
-                GestureDetector(
-                  onTap: _toggleExpanded,
-                  onVerticalDragUpdate: (details) {
-                    // Allow dragging to expand/collapse
-                    if (details.delta.dy < -10 && !_isExpanded) {
-                      _toggleExpanded();
-                    } else if (details.delta.dy > 10 && _isExpanded) {
-                      _toggleExpanded();
-                    }
-                  },
-                  child: Container(
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: isTracking 
-                        ? Colors.red.withValues(alpha: 0.2)
-                        : Colors.transparent,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
-                      border: isTracking 
-                        ? Border.all(
-                            color: Colors.red.withValues(alpha: 0.5),
-                            width: 1,
-                          )
-                        : null,
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Recording indicator
-                          if (isTracking) ...[
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.red.withValues(alpha: 0.5),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'RECORDING',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                          // Handle bar
-                          Container(
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isTracking 
-                                ? Colors.red.withValues(alpha: 0.7)
-                                : Colors.white.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+    // Panel is always visible at bottom right, similar to flight planning panel
+    return Positioned(
+      right: 0,
+      bottom: safeAreaBottom + 60, // Position above bottom navigation
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: _isExpanded ? 320 : 60,
+        height: _isExpanded ? 260 : 60,
+        child: Row(
+          children: [
+            // Handle on the left side with compass icon
+            GestureDetector(
+              onTap: _toggleExpanded,
+              child: Container(
+                width: 60,
+                height: _isExpanded ? 260 : 60,
+                decoration: BoxDecoration(
+                  color: const Color(0xE6000000),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                  border: Border.all(
+                    color: isTracking 
+                      ? Colors.red.withValues(alpha: 0.5)
+                      : Colors.white.withValues(alpha: 0.2),
+                    width: 1,
                   ),
                 ),
-                
-                // Panel content
-                Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Compass icon
+                    Icon(
+                      Icons.explore,
+                      color: isTracking 
+                        ? Colors.red 
+                        : Colors.white.withValues(alpha: 0.8),
+                      size: 24,
+                    ),
+                    if (_isExpanded) ...[
+                      const SizedBox(height: 8),
+                      // Rotate 90 degrees to show text vertically
+                      RotatedBox(
+                        quarterTurns: 3,
+                        child: Text(
+                          isTracking ? 'TRACKING' : 'FLIGHT DATA',
+                          style: TextStyle(
+                            color: isTracking 
+                              ? Colors.red.withValues(alpha: 0.9)
+                              : Colors.white.withValues(alpha: 0.6),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (isTracking && !_isExpanded) ...[
+                      const SizedBox(height: 4),
+                      // Small recording indicator
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withValues(alpha: 0.5),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            // Panel content (only visible when expanded)
+            if (_isExpanded)
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xE6000000),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
                   child: _isExpanded
                     ? ExpandedView(
                         onCollapse: _toggleExpanded,
@@ -359,11 +314,10 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                         onExpand: _toggleExpanded,
                       ),
                 ),
-              ],
-            ),
-          ),
-        );
-      },
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
