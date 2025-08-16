@@ -47,7 +47,7 @@ import '../widgets/optimized_marker_layer.dart';
 import '../widgets/optimized_heatmap_layer.dart';
 import '../services/flight_heatmap_processor.dart';
 import '../widgets/airport_info_sheet.dart';
-import '../widgets/flight_dashboard.dart';
+import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
@@ -147,13 +147,7 @@ class MapScreenState extends State<MapScreen>
   int _notamFetchGeneration =
       0; // Track NOTAM fetch generations to cancel outdated requests
 
-  // Flight data panel position state
-  Offset _flightDataPanelPosition = const Offset(
-    8,
-    220,
-  ); // Default to bottom with minimal margin for phones
-  bool _flightDashboardExpanded =
-      true; // Track expanded state of flight dashboard
+  // Flight tracking panel state is now handled internally by FlightTrackingPanel
 
   // Airspace panel visibility and position
   bool _showCurrentAirspacePanel =
@@ -527,36 +521,8 @@ class MapScreenState extends State<MapScreen>
 
   void _handleOrientationChange() {
     final screenSize = MediaQuery.of(context).size;
-    final safeAreaTop = MediaQuery.of(context).padding.top;
     
     setState(() {
-      
-      // Adjust flight data panel position
-      final isPhone = screenSize.width < 600;
-      final panelWidth = isPhone ? screenSize.width - 16 : 600;
-      final panelHeight = _flightDashboardExpanded ? 260 : 60;
-      final minMargin = isPhone ? 8.0 : 16.0;
-      
-      // Check horizontal bounds
-      double newX = _flightDataPanelPosition.dx;
-      if (newX + panelWidth > screenSize.width) {
-        newX = (screenSize.width - panelWidth - minMargin).clamp(minMargin, screenSize.width - panelWidth - minMargin);
-      }
-      
-      // Check vertical bounds (bottom distance)
-      double bottomDistance = _flightDataPanelPosition.dy;
-      // Ensure panel stays within screen bounds
-      // Maximum bottom distance is screen height minus panel height minus top safe area
-      final maxBottomDistance = screenSize.height - panelHeight - safeAreaTop - 50; // 50px minimum from top
-      // Ensure max is at least equal to min to avoid clamp error
-      final clampMax = maxBottomDistance < 16.0 ? 16.0 : maxBottomDistance;
-      bottomDistance = bottomDistance.clamp(16.0, clampMax);
-      
-      _flightDataPanelPosition = Offset(
-        isPhone ? minMargin : newX, // On phones, keep centered
-        bottomDistance
-      );
-      
       // Adjust airspace panel position
       if (_airspacePanelPosition != null) {
         final panelWidth = screenSize.width < 600 ? screenSize.width - 16 : 600;
@@ -570,6 +536,9 @@ class MapScreenState extends State<MapScreen>
       
       // Adjust flight planning panel position
       _adjustFlightPlanningPanelPosition(screenSize);
+      
+      // Note: Flight tracking panel now handles its own positioning (sticks to bottom)
+      // No need to manually adjust its position anymore
     });
   }
 
@@ -3825,85 +3794,15 @@ class MapScreenState extends State<MapScreen>
             ],
           ),
 
-          // Flight dashboard overlay - show when toggle is active
-          if (_mapStateController.showStats)
-            Positioned(
-              left: _flightDataPanelPosition.dx,
-              bottom: _flightDataPanelPosition
-                  .dy, // Use positive value for bottom positioning
-              child: Draggable<String>(
-                data: 'flight_panel',
-                feedback: Material(
-                  color: Colors.transparent,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width < 600
-                        ? MediaQuery.of(context).size.width -
-                              16 // Phone width
-                        : 600, // Tablet/desktop max width
-                    child: FlightDashboard(
-                      isExpanded: _flightDashboardExpanded,
-                      onExpandedChanged: (expanded) {
-                        // Don't update state during drag
-                      },
-                    ),
-                  ),
-                ),
-                childWhenDragging: Container(), // Empty container when dragging
-                onDragEnd: (details) {
-                  setState(() {
-                    // Calculate new position based on drag end position
-                    final screenSize = MediaQuery.of(context).size;
-                    final isPhone = screenSize.width < 600;
-
-                    double newX = details.offset.dx;
-                    double newY = details.offset.dy;
-
-                    // Get panel dimensions
-                    final panelWidth = isPhone ? screenSize.width - 16 : 600;
-                    final panelHeight = _flightDashboardExpanded ? 260 : 60;
-
-                    // Convert screen coordinates to bottom-relative positioning
-                    double bottomDistance =
-                        screenSize.height - newY - panelHeight;
-
-                    // Constrain to screen bounds with margins
-                    final minMargin = isPhone ? 8.0 : 16.0;
-
-                    // Allow full horizontal movement on tablets/desktop
-                    if (!isPhone) {
-                      newX = newX.clamp(
-                        minMargin,
-                        screenSize.width - panelWidth - minMargin,
-                      );
-                    } else {
-                      // On phones, keep centered
-                      newX = minMargin;
-                    }
-
-                    bottomDistance = bottomDistance.clamp(
-                      16.0,
-                      screenSize.height - panelHeight - 100,
-                    );
-
-                    _flightDataPanelPosition = Offset(newX, bottomDistance);
-                  });
-                },
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width < 600
-                      ? MediaQuery.of(context).size.width -
-                            16 // Phone width
-                      : 600, // Tablet/desktop max width
-                  child: FlightDashboard(
-                    isExpanded: _flightDashboardExpanded,
-                    onExpandedChanged: (expanded) {
-                      setState(() {
-                        _flightDashboardExpanded = expanded;
-                      });
-                    },
-                  ),
-                ),
-              ),
-            ),
+          // Flight tracking panel - sliding from bottom
+          FlightTrackingPanel(
+            isVisible: _mapStateController.showStats,
+            onClose: () {
+              setState(() {
+                _mapStateController.toggleStats();
+              });
+            },
+          ),
 
           // Airspace information panel
           if (_showCurrentAirspacePanel) ...[
