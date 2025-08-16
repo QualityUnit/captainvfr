@@ -4180,7 +4180,7 @@ class MapScreenState extends State<MapScreen>
                       ),
                     ),
                   
-                  // Toggle button - always visible, positioned at left edge
+                  // Toggle button - always visible, centered vertically
                   Positioned(
                     left: _showFlightPlanning
                         ? (_flightPlanningExpanded 
@@ -4189,7 +4189,7 @@ class MapScreenState extends State<MapScreen>
                                 : 400.0)
                             : 60.0)
                         : 0,
-                    top: MediaQuery.of(context).padding.top + 100,
+                    top: (MediaQuery.of(context).size.height - 100) / 2, // Center vertically
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
