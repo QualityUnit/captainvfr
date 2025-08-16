@@ -4322,6 +4322,41 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
           
+          // OpenStreetMap attribution - centered horizontally, behind other controls
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8, // Same as zoom controls
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5), // More visible
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: InkWell(
+                    onTap: () async {
+                      const url = 'https://openstreetmap.org/copyright';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url));
+                      }
+                    },
+                    child: Text(
+                      '© OpenStreetMap',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.7), // More visible white text
+                        decoration: TextDecoration.none, // Remove underline for cleaner look
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
           // Zoom control buttons in top left corner, aligned with menu button
           Positioned(
             top: MediaQuery.of(context).padding.top + 8, // Same as menu button
@@ -4332,39 +4367,6 @@ class MapScreenState extends State<MapScreen>
               maxZoom: MapConstants.maxZoom,
               onZoomChanged: _onZoomButtonPressed,
               isCompact: true, // Make controls smaller
-            ),
-          ),
-          
-          // OpenStreetMap attribution - centered horizontally, aligned with zoom controls
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8, // Same as zoom controls
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3), // More transparent
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: InkWell(
-                  onTap: () async {
-                    const url = 'https://openstreetmap.org/copyright';
-                    if (await canLaunchUrl(Uri.parse(url))) {
-                      await launchUrl(Uri.parse(url));
-                    }
-                  },
-                  child: Text(
-                    '© OpenStreetMap',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Colors.white.withValues(alpha: 0.5), // More subtle white text
-                      decoration: TextDecoration.none, // Remove underline for cleaner look
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
             ],
