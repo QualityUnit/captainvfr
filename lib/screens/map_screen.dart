@@ -4335,30 +4335,33 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
           
-          // OpenStreetMap attribution near zoom controls at top left - more transparent
+          // OpenStreetMap attribution - centered horizontally, aligned with zoom controls
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8 + 35, // Below zoom controls
-            left: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.3), // More transparent
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: InkWell(
-                onTap: () async {
-                  const url = 'https://openstreetmap.org/copyright';
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url));
-                  }
-                },
-                child: Text(
-                  '© OpenStreetMap',
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Colors.white.withValues(alpha: 0.5), // More subtle white text
-                    decoration: TextDecoration.none, // Remove underline for cleaner look
-                    fontWeight: FontWeight.w400,
+            top: MediaQuery.of(context).padding.top + 8, // Same as zoom controls
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.3), // More transparent
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: InkWell(
+                  onTap: () async {
+                    const url = 'https://openstreetmap.org/copyright';
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url));
+                    }
+                  },
+                  child: Text(
+                    '© OpenStreetMap',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Colors.white.withValues(alpha: 0.5), // More subtle white text
+                      decoration: TextDecoration.none, // Remove underline for cleaner look
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ),
