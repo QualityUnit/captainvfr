@@ -5,6 +5,7 @@ import 'dashboard_header.dart';
 import 'main_indicators.dart';
 import 'secondary_indicators.dart';
 import 'additional_indicators.dart';
+import 'aircraft_selector.dart';
 
 /// Expanded view of the flight dashboard showing all flight information
 class ExpandedView extends StatelessWidget {
@@ -54,6 +55,11 @@ class ExpandedView extends StatelessWidget {
           AdditionalIndicators(
             flightService: flightService,
             barometerService: barometerService,
+          ),
+          const SizedBox(height: 12),
+          // Aircraft selector at the bottom
+          Center(
+            child: AircraftSelector(flightService: flightService),
           ),
         ],
       ),

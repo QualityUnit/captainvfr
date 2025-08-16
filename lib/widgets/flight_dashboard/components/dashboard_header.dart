@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../services/flight_service.dart';
 import '../../../screens/flight_detail_screen.dart';
-import 'aircraft_selector.dart';
 import 'stop_tracking_dialog.dart';
 
-/// Header component for the flight dashboard with aircraft selector and tracking button
+/// Header component for the flight dashboard with tracking button
 class DashboardHeader extends StatelessWidget {
   final FlightService flightService;
 
@@ -16,14 +15,9 @@ class DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Aircraft selector on the left
-        Expanded(
-          child: AircraftSelector(flightService: flightService),
-        ),
-        const SizedBox(width: 8),
-        // Tracking button on the right
+        // Tracking button aligned to the right
         Container(
           width: 40,
           height: 40,
