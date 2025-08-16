@@ -110,24 +110,29 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
   }
 
   void _startHeadingService() async {
-    // Start heading service when panel is shown
-    final headingService = context.read<HeadingService>();
-    
-    // Always try to start/restart the service
-    await headingService.retryStart();
-    
-    // Only show permission notification once and only if permission is actually denied
-    if (!_hasShownPermissionDialog && mounted) {
-      // Check actual permission status
-      final whenInUseStatus = await Permission.locationWhenInUse.status;
-      final alwaysStatus = await Permission.locationAlways.status;
+    try {
+      // Start heading service when panel is shown
+      final headingService = context.read<HeadingService>();
       
-      // Only show notification if permission is truly denied or permanently denied
-      if ((whenInUseStatus.isDenied || whenInUseStatus.isPermanentlyDenied) &&
-          (alwaysStatus.isDenied || alwaysStatus.isPermanentlyDenied)) {
-        _hasShownPermissionDialog = true;
-        _showPermissionDeniedNotification();
+      // Always try to start/restart the service
+      await headingService.retryStart();
+      
+      // Only show permission notification once and only if permission is actually denied
+      if (!_hasShownPermissionDialog && mounted) {
+        // Check actual permission status
+        final whenInUseStatus = await Permission.locationWhenInUse.status;
+        final alwaysStatus = await Permission.locationAlways.status;
+        
+        // Only show notification if permission is truly denied or permanently denied
+        if ((whenInUseStatus.isDenied || whenInUseStatus.isPermanentlyDenied) &&
+            (alwaysStatus.isDenied || alwaysStatus.isPermanentlyDenied)) {
+          _hasShownPermissionDialog = true;
+          _showPermissionDeniedNotification();
+        }
       }
+    } catch (e) {
+      // Handle permission check errors gracefully (e.g., in simulator)
+      debugPrint('Error checking permissions: $e');
     }
   }
   
@@ -245,114 +250,108 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
             width: 1,
           ),
         ),
-        child: Column(
-          children: [
-            // Handle at the top with compass icon
-            GestureDetector(
-              onTap: _toggleExpanded,
-              onVerticalDragUpdate: (details) {
-                // Allow dragging to expand/collapse
-                if (details.delta.dy < -10 && !_isExpanded) {
-                  _toggleExpanded();
-                } else if (details.delta.dy > 10 && _isExpanded) {
-                  _toggleExpanded();
-                }
-              },
-              child: Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: isTracking 
-                    ? Colors.red.withValues(alpha: 0.1)
-                    : Colors.transparent,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+          child: Column(
+            children: [
+              // Handle at the top with compass icon
+              GestureDetector(
+                onTap: _toggleExpanded,
+                onVerticalDragUpdate: (details) {
+                  // Allow dragging to expand/collapse
+                  if (details.delta.dy < -10 && !_isExpanded) {
+                    _toggleExpanded();
+                  } else if (details.delta.dy > 10 && _isExpanded) {
+                    _toggleExpanded();
+                  }
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isTracking 
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.transparent,
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Drag handle bar
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Compass icon
-                    Icon(
-                      Icons.explore,
-                      color: isTracking 
-                        ? Colors.red 
-                        : Colors.white.withValues(alpha: 0.8),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    // Title
-                    Text(
-                      isTracking ? 'TRACKING' : 'FLIGHT DATA',
-                      style: TextStyle(
-                        color: isTracking 
-                          ? Colors.red
-                          : Colors.white.withValues(alpha: 0.8),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    // Recording indicator
-                    if (isTracking) ...[
-                      const SizedBox(width: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Drag handle bar
                       Container(
-                        width: 8,
-                        height: 8,
+                        width: 36,
+                        height: 3,
                         decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.red.withValues(alpha: 0.5),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ],
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(1.5),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Compass icon
+                      Icon(
+                        Icons.explore,
+                        color: isTracking 
+                          ? Colors.red 
+                          : Colors.white.withValues(alpha: 0.8),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      // Title
+                      Text(
+                        isTracking ? 'TRACKING' : 'FLIGHT DATA',
+                        style: TextStyle(
+                          color: isTracking 
+                            ? Colors.red
+                            : Colors.white.withValues(alpha: 0.8),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      // Recording indicator
+                      if (isTracking) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 12),
+                      // Drag handle bar (right side)
+                      Container(
+                        width: 36,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(1.5),
                         ),
                       ),
                     ],
-                    const SizedBox(width: 16),
-                    // Drag handle bar (right side)
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Panel content
-            if (_isExpanded)
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: safeAreaBottom),
-                  child: ExpandedView(
-                    onCollapse: _toggleExpanded,
-                    flightService: context.read<FlightService>(),
-                    barometerService: context.read<BarometerService>(),
                   ),
                 ),
               ),
-            if (!_isExpanded)
-              Padding(
-                padding: EdgeInsets.only(bottom: safeAreaBottom),
-              ),
-          ],
+              // Panel content
+              if (_isExpanded)
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: safeAreaBottom),
+                    child: ExpandedView(
+                      onCollapse: _toggleExpanded,
+                      flightService: context.read<FlightService>(),
+                      barometerService: context.read<BarometerService>(),
+                    ),
+                  ),
+                ),
+              if (!_isExpanded)
+                SizedBox(height: safeAreaBottom),
+            ],
+          ),
         ),
       ),
     );
