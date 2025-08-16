@@ -8,7 +8,6 @@ import '../services/aircraft_settings_service.dart';
 import '../services/barometer_service.dart';
 import '../services/heading_service.dart';
 import 'flight_dashboard/components/expanded_view.dart';
-import 'flight_dashboard/components/collapsed_view.dart';
 import '../l10n/app_localizations.dart';
 
 class FlightTrackingPanel extends StatefulWidget {
@@ -206,114 +205,154 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     final flightService = Provider.of<FlightService>(context);
     final isTracking = flightService.isTracking;
+    final screenWidth = MediaQuery.of(context).size.width;
     
-    // Panel is always visible at bottom right, similar to flight planning panel
+    // Calculate panel width based on screen size
+    // On small screens (phones), use most of the width
+    // On larger screens (tablets/desktop), cap at max width
+    double panelWidth;
+    if (screenWidth < 600) {
+      // Phone: use full width
+      panelWidth = screenWidth;
+    } else if (screenWidth < 1200) {
+      // Small tablet: max 600px
+      panelWidth = screenWidth.clamp(400.0, 600.0);
+    } else {
+      // Large tablet/desktop: fixed width
+      panelWidth = 800.0;
+    }
+    
+    // Panel slides from bottom to top
     return Positioned(
-      right: 0,
-      bottom: safeAreaBottom + 60, // Position above bottom navigation
+      left: (screenWidth - panelWidth) / 2, // Center horizontally
+      right: (screenWidth - panelWidth) / 2,
+      bottom: 0,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        width: _isExpanded ? 320 : 60,
-        height: _isExpanded ? 260 : 60,
-        child: Row(
+        height: _isExpanded ? 320 + safeAreaBottom : 50 + safeAreaBottom,
+        width: panelWidth,
+        decoration: BoxDecoration(
+          color: const Color(0xE6000000),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+          border: Border.all(
+            color: isTracking 
+              ? Colors.red.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
           children: [
-            // Handle on the left side with compass icon
+            // Handle at the top with compass icon
             GestureDetector(
               onTap: _toggleExpanded,
+              onVerticalDragUpdate: (details) {
+                // Allow dragging to expand/collapse
+                if (details.delta.dy < -10 && !_isExpanded) {
+                  _toggleExpanded();
+                } else if (details.delta.dy > 10 && _isExpanded) {
+                  _toggleExpanded();
+                }
+              },
               child: Container(
-                width: 60,
-                height: _isExpanded ? 260 : 60,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: const Color(0xE6000000),
+                  color: isTracking 
+                    ? Colors.red.withValues(alpha: 0.1)
+                    : Colors.transparent,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
-                  border: Border.all(
-                    color: isTracking 
-                      ? Colors.red.withValues(alpha: 0.5)
-                      : Colors.white.withValues(alpha: 0.2),
-                    width: 1,
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Compass icon
-                    Icon(
-                      Icons.explore,
-                      color: isTracking 
-                        ? Colors.red 
-                        : Colors.white.withValues(alpha: 0.8),
-                      size: 24,
-                    ),
-                    if (_isExpanded) ...[
-                      const SizedBox(height: 8),
-                      // Rotate 90 degrees to show text vertically
-                      RotatedBox(
-                        quarterTurns: 3,
-                        child: Text(
-                          isTracking ? 'TRACKING' : 'FLIGHT DATA',
-                          style: TextStyle(
-                            color: isTracking 
-                              ? Colors.red.withValues(alpha: 0.9)
-                              : Colors.white.withValues(alpha: 0.6),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Drag handle bar
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Compass icon
+                      Icon(
+                        Icons.explore,
+                        color: isTracking 
+                          ? Colors.red 
+                          : Colors.white.withValues(alpha: 0.8),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      // Title
+                      Text(
+                        isTracking ? 'TRACKING' : 'FLIGHT DATA',
+                        style: TextStyle(
+                          color: isTracking 
+                            ? Colors.red
+                            : Colors.white.withValues(alpha: 0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      // Recording indicator
+                      if (isTracking) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withValues(alpha: 0.5),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                    if (isTracking && !_isExpanded) ...[
-                      const SizedBox(height: 4),
-                      // Small recording indicator
+                      ],
+                      const SizedBox(width: 16),
+                      // Drag handle bar (right side)
                       Container(
-                        width: 6,
-                        height: 6,
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.red.withValues(alpha: 0.5),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ],
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
-            // Panel content (only visible when expanded)
+            // Panel content
             if (_isExpanded)
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xE6000000),
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(12),
-                      bottomRight: Radius.circular(12),
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: safeAreaBottom),
+                  child: ExpandedView(
+                    onCollapse: _toggleExpanded,
+                    flightService: context.read<FlightService>(),
+                    barometerService: context.read<BarometerService>(),
                   ),
-                  child: _isExpanded
-                    ? ExpandedView(
-                        onCollapse: _toggleExpanded,
-                        flightService: context.read<FlightService>(),
-                        barometerService: context.read<BarometerService>(),
-                      )
-                    : CollapsedView(
-                        onExpand: _toggleExpanded,
-                      ),
                 ),
+              ),
+            if (!_isExpanded)
+              Padding(
+                padding: EdgeInsets.only(bottom: safeAreaBottom),
               ),
           ],
         ),
