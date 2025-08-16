@@ -4150,9 +4150,20 @@ class MapScreenState extends State<MapScreen>
                             topRight: Radius.circular(12),
                             bottomRight: Radius.circular(12),
                           ),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            width: 1,
+                          border: Border(
+                            top: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            right: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            // No left border - connected to edge
                           ),
                         ),
                         child: FlightPlanningPanel(
@@ -4198,17 +4209,38 @@ class MapScreenState extends State<MapScreen>
                           color: flightPlanService.isPlanning 
                               ? const Color(0xFFFF6B35) // Orange for edit mode
                               : const Color(0xE6000000), // Black when not editing
-                          borderRadius: BorderRadius.only(
-                            topRight: const Radius.circular(8),
-                            bottomRight: const Radius.circular(8),
-                            topLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
-                            bottomLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(8),
+                            bottomRight: Radius.circular(8),
+                            // No left rounded corners - always connected to edge
                           ),
-                          border: Border.all(
-                            color: flightPlanService.isPlanning 
-                                ? const Color(0xFFFF8C55) // Lighter orange border when editing
-                                : Colors.white.withValues(alpha: 0.2),
-                            width: 1,
+                          border: Border(
+                            top: BorderSide(
+                              color: flightPlanService.isPlanning 
+                                  ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                  : Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            right: BorderSide(
+                              color: flightPlanService.isPlanning 
+                                  ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                  : Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            bottom: BorderSide(
+                              color: flightPlanService.isPlanning 
+                                  ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                  : Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            left: _showFlightPlanning 
+                              ? BorderSide.none  // No left border when panel is open
+                              : BorderSide(      // Left border when panel is closed
+                                  color: flightPlanService.isPlanning 
+                                      ? const Color(0xFFFF8C55)
+                                      : Colors.white.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
                           ),
                         ),
                         child: Column(
