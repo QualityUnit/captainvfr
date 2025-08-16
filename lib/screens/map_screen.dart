@@ -4273,8 +4273,8 @@ class MapScreenState extends State<MapScreen>
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        width: 32,
-                        height: 80,
+                        width: 36,
+                        height: 100,
                         decoration: BoxDecoration(
                           color: const Color(0xE6000000),
                           borderRadius: BorderRadius.only(
@@ -4288,14 +4288,26 @@ class MapScreenState extends State<MapScreen>
                             width: 1,
                           ),
                         ),
-                        child: Center(
-                          child: Icon(
-                            _showFlightPlanning
-                                ? Icons.chevron_left
-                                : Icons.chevron_right,
-                            color: Colors.white.withValues(alpha: 0.8),
-                            size: 20,
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.route,
+                              color: (flightPlanService.currentFlightPlan != null || 
+                                      flightPlanService.currentTrip != null)
+                                  ? const Color(0xFF448AFF)
+                                  : Colors.white.withValues(alpha: 0.7),
+                              size: 20,
+                            ),
+                            const SizedBox(height: 4),
+                            Icon(
+                              _showFlightPlanning
+                                  ? Icons.chevron_left
+                                  : Icons.chevron_right,
+                              color: Colors.white.withValues(alpha: 0.8),
+                              size: 16,
+                            ),
+                          ],
                         ),
                       ),
                     ),
