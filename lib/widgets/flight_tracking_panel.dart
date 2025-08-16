@@ -269,7 +269,7 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                   }
                 },
                 child: Container(
-                  height: 48,
+                  height: 46, // Account for 1px border on each side
                   decoration: BoxDecoration(
                     color: isTracking 
                       ? Colors.red.withValues(alpha: 0.1)
