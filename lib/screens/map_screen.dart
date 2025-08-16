@@ -4335,22 +4335,15 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
           
-          // OpenStreetMap attribution in bottom right corner - always on top
+          // OpenStreetMap attribution near zoom controls at top left - more transparent
           Positioned(
-            bottom: 8,
-            right: 8,
+            top: MediaQuery.of(context).padding.top + 8 + 35, // Below zoom controls
+            left: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: AppTheme.smallRadius,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: Colors.black.withValues(alpha: 0.3), // More transparent
+                borderRadius: BorderRadius.circular(4),
               ),
               child: InkWell(
                 onTap: () async {
@@ -4360,12 +4353,12 @@ class MapScreenState extends State<MapScreen>
                   }
                 },
                 child: Text(
-                  'Map data © OpenStreetMap',
+                  '© OpenStreetMap',
                   style: TextStyle(
-                    fontSize: 11,
-                    color: Color.fromRGBO(0, 0, 0, 0.87),
-                    decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 9,
+                    color: Colors.white.withValues(alpha: 0.5), // More subtle white text
+                    decoration: TextDecoration.none, // Remove underline for cleaner look
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
