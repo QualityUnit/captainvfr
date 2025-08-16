@@ -8,7 +8,6 @@ import '../../../services/settings_service.dart';
 import '../../../services/flight_plan_service.dart';
 import '../../../widgets/compass_widget.dart';
 import '../models/flight_icons.dart';
-import 'indicator_widget.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Main indicators section showing altitude, speed and compass
@@ -21,6 +20,63 @@ class MainIndicators extends StatelessWidget {
     required this.flightService,
     required this.barometerService,
   });
+
+  /// Build a large indicator widget with bigger fonts for better visibility
+  Widget _buildLargeIndicator({
+    required String label,
+    required String value,
+    required String unit,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Icon(icon, color: Colors.blueAccent, size: 20), // Larger icon
+              const SizedBox(width: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28, // Much larger font for value
+                  fontWeight: FontWeight.bold,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(width: 2),
+              Text(
+                unit,
+                style: const TextStyle(
+                  color: Colors.blueAccent,
+                  fontSize: 16, // Larger unit font
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12, // Larger label font
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,28 +117,22 @@ class MainIndicators extends StatelessWidget {
 
         return Row(
           children: [
+            // Altitude on the left
             Expanded(
-              child: IndicatorWidget(
+              child: _buildLargeIndicator(
                 label: 'ALT',
                 value: displayAltitude.toStringAsFixed(0),
                 unit: altitudeUnit,
                 icon: FlightIcons.altitude,
               ),
             ),
-            Expanded(
-              child: IndicatorWidget(
-                label: 'SPEED',
-                value: displaySpeed.toStringAsFixed(0),
-                unit: speedUnit,
-                icon: FlightIcons.speed,
-              ),
-            ),
+            // Compass in the center (bigger)
             Expanded(
               child: Center(
                 child: CompassWidget(
                   heading: headingService.currentHeading ?? flightService.currentHeading ?? 0,
                   targetHeading: targetHeading,
-                  size: 50,
+                  size: 70, // Increased from 50 to 70
                   onTap: () async {
                     await headingService.requestCalibration();
                     if (context.mounted) {
@@ -97,6 +147,15 @@ class MainIndicators extends StatelessWidget {
                     }
                   },
                 ),
+              ),
+            ),
+            // Speed on the right
+            Expanded(
+              child: _buildLargeIndicator(
+                label: 'SPEED',
+                value: displaySpeed.toStringAsFixed(0),
+                unit: speedUnit,
+                icon: FlightIcons.speed,
               ),
             ),
           ],

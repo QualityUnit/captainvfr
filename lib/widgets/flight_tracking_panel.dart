@@ -237,7 +237,7 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        height: _isExpanded ? 320 + safeAreaBottom : 48 + safeAreaBottom,
+        height: _isExpanded ? 340 + safeAreaBottom : 48 + safeAreaBottom, // Increased from 320 to accommodate larger indicators
         width: panelWidth,
         decoration: BoxDecoration(
           color: const Color(0xE6000000),

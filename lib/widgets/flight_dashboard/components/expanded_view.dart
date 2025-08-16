@@ -27,9 +27,9 @@ class ExpandedView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Main indicators with fixed height
+          // Main indicators with fixed height (increased for larger display)
           SizedBox(
-            height: 90,
+            height: 110, // Increased from 90 to accommodate larger text and compass
             child: MainIndicators(
               flightService: flightService,
               barometerService: barometerService,
