@@ -4203,112 +4203,101 @@ class MapScreenState extends State<MapScreen>
               return Stack(
                 children: [
                   // Flight Planning Panel - left-side sliding panel
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    left: _showFlightPlanning 
-                        ? 0.0 
-                        : -(_flightPlanningExpanded 
+                  if (_showFlightPlanning)
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      left: 0,
+                      top: MediaQuery.of(context).padding.top + 60,
+                      bottom: 60,
+                      child: Container(
+                        width: (_flightPlanningExpanded 
                             ? (MediaQuery.of(context).size.width < 600 
                                 ? MediaQuery.of(context).size.width * 0.85
                                 : 400.0)
                             : 60.0),
-                    top: MediaQuery.of(context).padding.top + 60,
-                    height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - 120,
-                    width: (_flightPlanningExpanded 
-                        ? (MediaQuery.of(context).size.width < 600 
-                            ? MediaQuery.of(context).size.width * 0.85
-                            : 400.0)
-                        : 60.0) + 32, // Panel width + toggle button width
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Main panel
-                        SizedBox(
-                          width: _flightPlanningExpanded 
-                              ? (MediaQuery.of(context).size.width < 600 
-                                  ? MediaQuery.of(context).size.width * 0.85
-                                  : 400)
-                              : 60,
-                          child: Material(
-                            color: const Color(0xE6000000),
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(12),
-                              bottomRight: Radius.circular(12),
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(12),
-                                  bottomRight: Radius.circular(12),
-                                ),
-                              ),
-                              child: FlightPlanningPanel(
-                                isExpanded: _flightPlanningExpanded,
-                                onWaypointFocus: _focusOnWaypoint,
-                                onCenterFlightPlan: _centerOnFlightPlan,
-                                onExpandedChanged: (expanded) {
-                                  setState(() {
-                                    _flightPlanningExpanded = expanded;
-                                  });
-                                  // Save the state to SharedPreferences
-                                  _saveFlightPlanningPanelState(expanded);
-                                },
-                                onClose: () {
-                                  setState(() {
-                                    _showFlightPlanning = false;
-                                  });
-                                  // Stop planning mode - check if we need to toggle
-                                  if (_flightPlanService.isPlanning) {
-                                    _flightPlanService.togglePlanningMode();
-                                  }
-                                },
-                              ),
-                            ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xE6000000),
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
                           ),
                         ),
-                        // Toggle button (always visible)
-                        GestureDetector(
-                          onTap: () {
+                        child: FlightPlanningPanel(
+                          isExpanded: _flightPlanningExpanded,
+                          onWaypointFocus: _focusOnWaypoint,
+                          onCenterFlightPlan: _centerOnFlightPlan,
+                          onExpandedChanged: (expanded) {
                             setState(() {
-                              _showFlightPlanning = !_showFlightPlanning;
-                              if (_showFlightPlanning && !_flightPlanningExpanded) {
-                                // Auto-expand when opening from collapsed state
-                                _flightPlanningExpanded = true;
-                              }
+                              _flightPlanningExpanded = expanded;
                             });
+                            // Save the state to SharedPreferences
+                            _saveFlightPlanningPanelState(expanded);
                           },
-                          child: Container(
-                            width: 32,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: const Color(0xE6000000),
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(8),
-                                bottomRight: Radius.circular(8),
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                _showFlightPlanning
-                                    ? Icons.chevron_left
-                                    : Icons.chevron_right,
-                                color: Colors.white.withValues(alpha: 0.8),
-                                size: 20,
-                              ),
-                            ),
+                          onClose: () {
+                            setState(() {
+                              _showFlightPlanning = false;
+                            });
+                            // Stop planning mode - check if we need to toggle
+                            if (_flightPlanService.isPlanning) {
+                              _flightPlanService.togglePlanningMode();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  
+                  // Toggle button - always visible, positioned at left edge
+                  Positioned(
+                    left: _showFlightPlanning
+                        ? (_flightPlanningExpanded 
+                            ? (MediaQuery.of(context).size.width < 600 
+                                ? MediaQuery.of(context).size.width * 0.85
+                                : 400.0)
+                            : 60.0)
+                        : 0,
+                    top: MediaQuery.of(context).padding.top + 100,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showFlightPlanning = !_showFlightPlanning;
+                          if (_showFlightPlanning && !_flightPlanningExpanded) {
+                            // Auto-expand when opening from collapsed state
+                            _flightPlanningExpanded = true;
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 32,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: const Color(0xE6000000),
+                          borderRadius: BorderRadius.only(
+                            topRight: const Radius.circular(8),
+                            bottomRight: const Radius.circular(8),
+                            topLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
+                            bottomLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
                           ),
                         ),
-                      ],
+                        child: Center(
+                          child: Icon(
+                            _showFlightPlanning
+                                ? Icons.chevron_left
+                                : Icons.chevron_right,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   // Floating waypoint panel for selected waypoint
