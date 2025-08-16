@@ -8,6 +8,7 @@ import '../../../services/settings_service.dart';
 import '../../../services/flight_plan_service.dart';
 import '../../../widgets/compass_widget.dart';
 import '../models/flight_icons.dart';
+import '../constants/flight_panel_constants.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Main indicators section showing altitude, speed and compass
@@ -39,13 +40,13 @@ class MainIndicators extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Icon(icon, color: Colors.blueAccent, size: 20), // Larger icon
-              const SizedBox(width: 4),
+              Icon(icon, color: Colors.blueAccent, size: FlightPanelConstants.mainIndicatorIconSize),
+              SizedBox(width: FlightPanelConstants.smallSpacing),
               Text(
                 value,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 28, // Much larger font for value
+                  fontSize: FlightPanelConstants.mainIndicatorFontSize,
                   fontWeight: FontWeight.bold,
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
@@ -56,18 +57,18 @@ class MainIndicators extends StatelessWidget {
                 unit,
                 style: const TextStyle(
                   color: Colors.blueAccent,
-                  fontSize: 16, // Larger unit font
+                  fontSize: FlightPanelConstants.mainIndicatorUnitFontSize,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: FlightPanelConstants.smallSpacing),
           Text(
             label,
             style: const TextStyle(
               color: Colors.white70,
-              fontSize: 12, // Larger label font
+              fontSize: FlightPanelConstants.mainIndicatorLabelFontSize,
               letterSpacing: 0.8,
               fontWeight: FontWeight.w500,
             ),
@@ -132,7 +133,7 @@ class MainIndicators extends StatelessWidget {
                 child: CompassWidget(
                   heading: headingService.currentHeading ?? flightService.currentHeading ?? 0,
                   targetHeading: targetHeading,
-                  size: 70, // Increased from 50 to 70
+                  size: FlightPanelConstants.compassSize,
                   onTap: () async {
                     await headingService.requestCalibration();
                     if (context.mounted) {
