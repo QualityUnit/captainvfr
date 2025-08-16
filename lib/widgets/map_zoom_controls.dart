@@ -10,6 +10,7 @@ class MapZoomControls extends StatelessWidget {
   final double maxZoom;
   final double zoomStep;
   final VoidCallback? onZoomChanged;
+  final bool isCompact;
   
   const MapZoomControls({
     super.key,
@@ -18,6 +19,7 @@ class MapZoomControls extends StatelessWidget {
     required this.maxZoom,
     this.zoomStep = 0.5,
     this.onZoomChanged,
+    this.isCompact = false,
   });
 
   void _zoomIn() {
@@ -59,12 +61,14 @@ class MapZoomControls extends StatelessWidget {
         
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.95),
-            borderRadius: AppTheme.defaultRadius,
+            color: isCompact 
+              ? Colors.black.withValues(alpha: 0.7)
+              : Colors.white.withValues(alpha: 0.95),
+            borderRadius: isCompact ? BorderRadius.circular(6) : AppTheme.defaultRadius,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 4,
+                blurRadius: isCompact ? 2 : 4,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -78,32 +82,36 @@ class MapZoomControls extends StatelessWidget {
                 semanticLabel: l10n.zoomIn,
                 enabled: canZoomIn,
                 onTap: _zoomIn,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(AppTheme.borderRadiusDefault),
-                  bottomLeft: Radius.circular(AppTheme.borderRadiusDefault),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(isCompact ? 6 : AppTheme.borderRadiusDefault),
+                  bottomLeft: Radius.circular(isCompact ? 6 : AppTheme.borderRadiusDefault),
                 ),
               ),
-              Container(
-                width: 1,
-                height: 20,
-                color: Colors.white.withValues(alpha: 0.3),
-              ),
-              // Zoom level indicator
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  currentZoom.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+              if (!isCompact) ...[
+                Container(
+                  width: 1,
+                  height: 20,
+                  color: Colors.white.withValues(alpha: 0.3),
+                ),
+                // Zoom level indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    currentZoom.toStringAsFixed(1),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
-              ),
+              ],
               Container(
                 width: 1,
-                height: 20,
-                color: Colors.white.withValues(alpha: 0.3),
+                height: isCompact ? 16 : 20,
+                color: isCompact 
+                  ? Colors.white.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.3),
               ),
               _buildZoomButton(
                 icon: Icons.remove,
@@ -111,9 +119,9 @@ class MapZoomControls extends StatelessWidget {
                 semanticLabel: l10n.zoomOut,
                 enabled: canZoomOut,
                 onTap: _zoomOut,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(AppTheme.borderRadiusDefault),
-                  bottomRight: Radius.circular(AppTheme.borderRadiusDefault),
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(isCompact ? 6 : AppTheme.borderRadiusDefault),
+                  bottomRight: Radius.circular(isCompact ? 6 : AppTheme.borderRadiusDefault),
                 ),
               ),
             ],
@@ -131,6 +139,10 @@ class MapZoomControls extends StatelessWidget {
     required VoidCallback onTap,
     required BorderRadius borderRadius,
   }) {
+    final iconColor = isCompact 
+      ? (enabled ? Colors.white : Colors.white.withValues(alpha: 0.3))
+      : (enabled ? Colors.black87 : Colors.white);
+    
     return Material(
       color: Colors.transparent,
       child: Tooltip(
@@ -143,11 +155,11 @@ class MapZoomControls extends StatelessWidget {
             onTap: enabled ? onTap : null,
             borderRadius: borderRadius,
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(isCompact ? 6 : 8),
               child: Icon(
                 icon,
-                size: 20,
-                color: enabled ? Colors.black87 : Colors.white,
+                size: isCompact ? 16 : 20,
+                color: iconColor,
               ),
             ),
           ),

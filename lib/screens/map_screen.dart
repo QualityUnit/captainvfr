@@ -47,7 +47,7 @@ import '../widgets/optimized_marker_layer.dart';
 import '../widgets/optimized_heatmap_layer.dart';
 import '../services/flight_heatmap_processor.dart';
 import '../widgets/airport_info_sheet.dart';
-import '../widgets/flight_dashboard.dart';
+import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
@@ -147,13 +147,7 @@ class MapScreenState extends State<MapScreen>
   int _notamFetchGeneration =
       0; // Track NOTAM fetch generations to cancel outdated requests
 
-  // Flight data panel position state
-  Offset _flightDataPanelPosition = const Offset(
-    8,
-    220,
-  ); // Default to bottom with minimal margin for phones
-  bool _flightDashboardExpanded =
-      true; // Track expanded state of flight dashboard
+  // Flight tracking panel state is now handled internally by FlightTrackingPanel
 
   // Airspace panel visibility and position
   bool _showCurrentAirspacePanel =
@@ -527,36 +521,8 @@ class MapScreenState extends State<MapScreen>
 
   void _handleOrientationChange() {
     final screenSize = MediaQuery.of(context).size;
-    final safeAreaTop = MediaQuery.of(context).padding.top;
     
     setState(() {
-      
-      // Adjust flight data panel position
-      final isPhone = screenSize.width < 600;
-      final panelWidth = isPhone ? screenSize.width - 16 : 600;
-      final panelHeight = _flightDashboardExpanded ? 260 : 60;
-      final minMargin = isPhone ? 8.0 : 16.0;
-      
-      // Check horizontal bounds
-      double newX = _flightDataPanelPosition.dx;
-      if (newX + panelWidth > screenSize.width) {
-        newX = (screenSize.width - panelWidth - minMargin).clamp(minMargin, screenSize.width - panelWidth - minMargin);
-      }
-      
-      // Check vertical bounds (bottom distance)
-      double bottomDistance = _flightDataPanelPosition.dy;
-      // Ensure panel stays within screen bounds
-      // Maximum bottom distance is screen height minus panel height minus top safe area
-      final maxBottomDistance = screenSize.height - panelHeight - safeAreaTop - 50; // 50px minimum from top
-      // Ensure max is at least equal to min to avoid clamp error
-      final clampMax = maxBottomDistance < 16.0 ? 16.0 : maxBottomDistance;
-      bottomDistance = bottomDistance.clamp(16.0, clampMax);
-      
-      _flightDataPanelPosition = Offset(
-        isPhone ? minMargin : newX, // On phones, keep centered
-        bottomDistance
-      );
-      
       // Adjust airspace panel position
       if (_airspacePanelPosition != null) {
         final panelWidth = screenSize.width < 600 ? screenSize.width - 16 : 600;
@@ -570,6 +536,9 @@ class MapScreenState extends State<MapScreen>
       
       // Adjust flight planning panel position
       _adjustFlightPlanningPanelPosition(screenSize);
+      
+      // Note: Flight tracking panel now handles its own positioning (sticks to bottom)
+      // No need to manually adjust its position anymore
     });
   }
 
@@ -3825,85 +3794,8 @@ class MapScreenState extends State<MapScreen>
             ],
           ),
 
-          // Flight dashboard overlay - show when toggle is active
-          if (_mapStateController.showStats)
-            Positioned(
-              left: _flightDataPanelPosition.dx,
-              bottom: _flightDataPanelPosition
-                  .dy, // Use positive value for bottom positioning
-              child: Draggable<String>(
-                data: 'flight_panel',
-                feedback: Material(
-                  color: Colors.transparent,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width < 600
-                        ? MediaQuery.of(context).size.width -
-                              16 // Phone width
-                        : 600, // Tablet/desktop max width
-                    child: FlightDashboard(
-                      isExpanded: _flightDashboardExpanded,
-                      onExpandedChanged: (expanded) {
-                        // Don't update state during drag
-                      },
-                    ),
-                  ),
-                ),
-                childWhenDragging: Container(), // Empty container when dragging
-                onDragEnd: (details) {
-                  setState(() {
-                    // Calculate new position based on drag end position
-                    final screenSize = MediaQuery.of(context).size;
-                    final isPhone = screenSize.width < 600;
-
-                    double newX = details.offset.dx;
-                    double newY = details.offset.dy;
-
-                    // Get panel dimensions
-                    final panelWidth = isPhone ? screenSize.width - 16 : 600;
-                    final panelHeight = _flightDashboardExpanded ? 260 : 60;
-
-                    // Convert screen coordinates to bottom-relative positioning
-                    double bottomDistance =
-                        screenSize.height - newY - panelHeight;
-
-                    // Constrain to screen bounds with margins
-                    final minMargin = isPhone ? 8.0 : 16.0;
-
-                    // Allow full horizontal movement on tablets/desktop
-                    if (!isPhone) {
-                      newX = newX.clamp(
-                        minMargin,
-                        screenSize.width - panelWidth - minMargin,
-                      );
-                    } else {
-                      // On phones, keep centered
-                      newX = minMargin;
-                    }
-
-                    bottomDistance = bottomDistance.clamp(
-                      16.0,
-                      screenSize.height - panelHeight - 100,
-                    );
-
-                    _flightDataPanelPosition = Offset(newX, bottomDistance);
-                  });
-                },
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width < 600
-                      ? MediaQuery.of(context).size.width -
-                            16 // Phone width
-                      : 600, // Tablet/desktop max width
-                  child: FlightDashboard(
-                    isExpanded: _flightDashboardExpanded,
-                    onExpandedChanged: (expanded) {
-                      setState(() {
-                        _flightDashboardExpanded = expanded;
-                      });
-                    },
-                  ),
-                ),
-              ),
-            ),
+          // Flight tracking panel - always visible on bottom right
+          const FlightTrackingPanel(),
 
           // Airspace information panel
           if (_showCurrentAirspacePanel) ...[
@@ -4074,6 +3966,41 @@ class MapScreenState extends State<MapScreen>
             ),
           
           ],
+
+          // OpenStreetMap attribution - centered horizontally, behind all controls
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8, // Same as zoom controls
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5), // More visible
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: InkWell(
+                    onTap: () async {
+                      const url = 'https://openstreetmap.org/copyright';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url));
+                      }
+                    },
+                    child: Text(
+                      '© OpenStreetMap',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.7), // More visible white text
+                        decoration: TextDecoration.none, // Remove underline for cleaner look
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
 
           // Menu button in top-right corner
           Positioned(
@@ -4258,9 +4185,20 @@ class MapScreenState extends State<MapScreen>
                             topRight: Radius.circular(12),
                             bottomRight: Radius.circular(12),
                           ),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            width: 1,
+                          border: Border(
+                            top: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            right: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            // No left border - connected to edge
                           ),
                         ),
                         child: FlightPlanningPanel(
@@ -4277,7 +4215,7 @@ class MapScreenState extends State<MapScreen>
                       ),
                     ),
                   
-                  // Toggle button - always visible, positioned at left edge
+                  // Toggle button - always visible, centered vertically
                   Positioned(
                     left: _showFlightPlanning
                         ? (_flightPlanningExpanded 
@@ -4286,7 +4224,7 @@ class MapScreenState extends State<MapScreen>
                                 : 400.0)
                             : 60.0)
                         : 0,
-                    top: MediaQuery.of(context).padding.top + 100,
+                    top: (MediaQuery.of(context).size.height - 100) / 2, // Center vertically
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
@@ -4306,17 +4244,38 @@ class MapScreenState extends State<MapScreen>
                           color: flightPlanService.isPlanning 
                               ? const Color(0xFFFF6B35) // Orange for edit mode
                               : const Color(0xE6000000), // Black when not editing
-                          borderRadius: BorderRadius.only(
-                            topRight: const Radius.circular(8),
-                            bottomRight: const Radius.circular(8),
-                            topLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
-                            bottomLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(8),
+                            bottomRight: Radius.circular(8),
+                            // No left rounded corners - always connected to edge
                           ),
-                          border: Border.all(
-                            color: flightPlanService.isPlanning 
-                                ? const Color(0xFFFF8C55) // Lighter orange border when editing
-                                : Colors.white.withValues(alpha: 0.2),
-                            width: 1,
+                          border: Border(
+                            top: BorderSide(
+                              color: flightPlanService.isPlanning 
+                                  ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                  : Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            right: BorderSide(
+                              color: flightPlanService.isPlanning 
+                                  ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                  : Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            bottom: BorderSide(
+                              color: flightPlanService.isPlanning 
+                                  ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                  : Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                            left: _showFlightPlanning 
+                              ? BorderSide.none  // No left border when panel is open
+                              : BorderSide(      // Left border when panel is closed
+                                  color: flightPlanService.isPlanning 
+                                      ? const Color(0xFFFF8C55)
+                                      : Colors.white.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
                           ),
                         ),
                         child: Column(
@@ -4398,52 +4357,16 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
           
-          // Zoom control buttons in bottom left corner
+          // Zoom control buttons in top left corner, aligned with menu button
           Positioned(
-            bottom: 16,
-            left: 16,
+            top: MediaQuery.of(context).padding.top + 8, // Same as menu button
+            left: 12,
             child: MapZoomControls(
               mapController: _mapController,
               minZoom: MapConstants.minZoom,
               maxZoom: MapConstants.maxZoom,
               onZoomChanged: _onZoomButtonPressed,
-            ),
-          ),
-          
-          // OpenStreetMap attribution in bottom right corner - always on top
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: AppTheme.smallRadius,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: InkWell(
-                onTap: () async {
-                  const url = 'https://openstreetmap.org/copyright';
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url));
-                  }
-                },
-                child: Text(
-                  'Map data © OpenStreetMap',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color.fromRGBO(0, 0, 0, 0.87),
-                    decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
+              isCompact: true, // Make controls smaller
             ),
           ),
             ],
