@@ -8,6 +8,8 @@ import '../services/aircraft_settings_service.dart';
 import '../services/barometer_service.dart';
 import '../services/heading_service.dart';
 import 'flight_dashboard/components/expanded_view.dart';
+import 'flight_dashboard/components/stop_tracking_dialog.dart';
+import '../screens/flight_detail_screen.dart';
 import '../l10n/app_localizations.dart';
 
 class FlightTrackingPanel extends StatefulWidget {
@@ -336,13 +338,80 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                   ),
                 ),
               ),
-              // Panel content
+              // Panel content with tracking button
               if (_isExpanded)
                 Expanded(
-                  child: ExpandedView(
-                    onCollapse: _toggleExpanded,
-                    flightService: context.read<FlightService>(),
-                    barometerService: context.read<BarometerService>(),
+                  child: Stack(
+                    children: [
+                      // Main content
+                      ExpandedView(
+                        onCollapse: _toggleExpanded,
+                        flightService: context.read<FlightService>(),
+                        barometerService: context.read<BarometerService>(),
+                      ),
+                      // Tracking button in top-right corner
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            border: Border.all(
+                              color: flightService.isTracking
+                                  ? Colors.red.withValues(alpha: 0.8)
+                                  : Colors.green.withValues(alpha: 0.8),
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (flightService.isTracking ? Colors.red : Colors.green)
+                                    .withValues(alpha: 0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () async {
+                                if (flightService.isTracking) {
+                                  // Show confirmation dialog
+                                  final shouldStop = await StopTrackingDialog.show(context);
+                                  if (shouldStop == true) {
+                                    final savedFlight = await flightService.stopTracking();
+                                    
+                                    // Navigate to flight detail if a flight was saved
+                                    if (savedFlight != null && context.mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FlightDetailScreen(flight: savedFlight),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } else {
+                                  flightService.startTracking();
+                                }
+                              },
+                              child: Center(
+                                child: Icon(
+                                  flightService.isTracking ? Icons.stop : Icons.play_arrow,
+                                  color: flightService.isTracking ? Colors.red : Colors.green,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               if (!_isExpanded)

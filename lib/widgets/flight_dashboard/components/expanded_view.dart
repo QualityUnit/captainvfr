@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/flight_service.dart';
 import '../../../services/barometer_service.dart';
-import 'dashboard_header.dart';
 import 'main_indicators.dart';
 import 'secondary_indicators.dart';
 import 'additional_indicators.dart';
@@ -28,14 +27,6 @@ class ExpandedView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with fixed height
-          SizedBox(
-            height: 40,
-            child: DashboardHeader(
-              flightService: flightService,
-            ),
-          ),
-          const SizedBox(height: 8),
           // Main indicators with fixed height
           SizedBox(
             height: 90,
