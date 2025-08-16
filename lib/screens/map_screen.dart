@@ -4220,94 +4220,97 @@ class MapScreenState extends State<MapScreen>
                             ? MediaQuery.of(context).size.width * 0.85
                             : 400.0)
                         : 60.0) + 32, // Panel width + toggle button width
-                    child: SizedBox(
-                      height: double.infinity,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Main panel
-                          Container(
-                            width: _flightPlanningExpanded 
-                                ? (MediaQuery.of(context).size.width < 600 
-                                    ? MediaQuery.of(context).size.width * 0.85
-                                    : 400)
-                                : 60,
-                            height: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xE6000000),
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(12),
-                                bottomRight: Radius.circular(12),
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              child: FlightPlanningPanel(
-                                key: ValueKey(_flightPlanningExpanded),
-                                isExpanded: _flightPlanningExpanded,
-                                onWaypointFocus: _focusOnWaypoint,
-                                onCenterFlightPlan: _centerOnFlightPlan,
-                                onExpandedChanged: (expanded) {
-                                  setState(() {
-                                    _flightPlanningExpanded = expanded;
-                                  });
-                                  // Save the state to SharedPreferences
-                                  _saveFlightPlanningPanelState(expanded);
-                                },
-                                onClose: () {
-                                  setState(() {
-                                    _showFlightPlanning = false;
-                                  });
-                                  // Stop planning mode - check if we need to toggle
-                                  if (_flightPlanService.isPlanning) {
-                                    _flightPlanService.togglePlanningMode();
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                          // Toggle button (always visible)
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _showFlightPlanning = !_showFlightPlanning;
-                                if (_showFlightPlanning && !_flightPlanningExpanded) {
-                                  // Auto-expand when opening from collapsed state
-                                  _flightPlanningExpanded = true;
-                                }
-                              });
-                            },
-                            child: Container(
-                              width: 32,
-                              height: 80,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Main panel
+                            Container(
+                              width: _flightPlanningExpanded 
+                                  ? (MediaQuery.of(context).size.width < 600 
+                                      ? MediaQuery.of(context).size.width * 0.85
+                                      : 400)
+                                  : 60,
+                              height: constraints.maxHeight,
                               decoration: BoxDecoration(
                                 color: const Color(0xE6000000),
                                 borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(8),
-                                  bottomRight: Radius.circular(8),
+                                  topRight: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
                                 ),
                                 border: Border.all(
                                   color: Colors.white.withValues(alpha: 0.2),
                                   width: 1,
                                 ),
                               ),
-                              child: Center(
-                                child: Icon(
-                                  _showFlightPlanning
-                                      ? Icons.chevron_left
-                                      : Icons.chevron_right,
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  size: 20,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
+                                ),
+                                child: FlightPlanningPanel(
+                                  isExpanded: _flightPlanningExpanded,
+                                  onWaypointFocus: _focusOnWaypoint,
+                                  onCenterFlightPlan: _centerOnFlightPlan,
+                                  onExpandedChanged: (expanded) {
+                                    setState(() {
+                                      _flightPlanningExpanded = expanded;
+                                    });
+                                    // Save the state to SharedPreferences
+                                    _saveFlightPlanningPanelState(expanded);
+                                  },
+                                  onClose: () {
+                                    setState(() {
+                                      _showFlightPlanning = false;
+                                    });
+                                    // Stop planning mode - check if we need to toggle
+                                    if (_flightPlanService.isPlanning) {
+                                      _flightPlanService.togglePlanningMode();
+                                    }
+                                  },
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            // Toggle button (always visible)
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showFlightPlanning = !_showFlightPlanning;
+                                  if (_showFlightPlanning && !_flightPlanningExpanded) {
+                                    // Auto-expand when opening from collapsed state
+                                    _flightPlanningExpanded = true;
+                                  }
+                                });
+                              },
+                              child: Container(
+                                width: 32,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xE6000000),
+                                  borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(8),
+                                    bottomRight: Radius.circular(8),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    _showFlightPlanning
+                                        ? Icons.chevron_left
+                                        : Icons.chevron_right,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   // Floating waypoint panel for selected waypoint
