@@ -502,10 +502,9 @@ class MapScreenState extends State<MapScreen>
   void _onFlightPlanUpdated() {
     if (mounted && !_hasInputFocus) {
       setState(() {
-        // Show flight plan panel when a plan is loaded
-        if (_flightPlanService.currentFlightPlan != null) {
-          _showFlightPlanning = true;
-        }
+        // Don't automatically show the panel - let user control panel visibility
+        // Only refresh the UI to show waypoints on map
+        // The panel should remain in its current state (open or closed)
       });
 
       // Prefetch NOTAMs for airports in the flight plan when it changes
@@ -1787,11 +1786,25 @@ class MapScreenState extends State<MapScreen>
       return;
     }
 
-    // If in flight planning mode and panel is visible, add waypoint
-    // Only allow adding waypoints when the flight planning panel is shown and in edit mode
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
+    // Debug output
+    debugPrint('Map tapped - isPlanning: ${_flightPlanService.isPlanning}, currentFlightPlan: ${_flightPlanService.currentFlightPlan?.name}');
+
+    // If in flight planning mode, add waypoint
+    // Allow adding waypoints when in edit mode, regardless of panel visibility
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Planning mode is active, checking for flight plan...');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        // Create a new flight plan if none exists
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
+      debugPrint('Adding waypoint at: ${point.latitude}, ${point.longitude}');
       _flightPlanService.addWaypoint(point);
+      debugPrint('Waypoint added. Total waypoints: ${_flightPlanService.currentFlightPlan?.waypoints.length}');
       return;
+    } else {
+      debugPrint('Not in planning mode, ignoring tap');
     }
 
     // Check if any airspaces contain the tapped point
@@ -2288,6 +2301,7 @@ class MapScreenState extends State<MapScreen>
 
   /// Check if waypoint was dropped on an airport or navaid and update its name/type accordingly
   void _checkAndUpdateWaypointForMarker(int waypointIndex, LatLng dropPosition) {
+    debugPrint('Checking for markers near dropped waypoint at: ${dropPosition.latitude}, ${dropPosition.longitude}');
     try {
       // Calculate search radius based on zoom level
       // At zoom 10: ~1000m radius, at zoom 15: ~31m radius
@@ -2318,6 +2332,7 @@ class MapScreenState extends State<MapScreen>
     );
     
     if (closestAirport != null) {
+      debugPrint('Found airport nearby: ${closestAirport.name} (${closestAirport.icao})');
       // Update waypoint with airport information
       _flightPlanService.updateWaypointName(waypointIndex, closestAirport.name);
       _flightPlanService.updateWaypointNotes(waypointIndex, 
@@ -2326,6 +2341,7 @@ class MapScreenState extends State<MapScreen>
           : (closestAirport.iataCode ?? closestAirport.icao));
       // Update waypoint type to airport
       _flightPlanService.updateWaypointType(waypointIndex, WaypointType.airport);
+      debugPrint('Waypoint renamed to: ${closestAirport.name}');
       return;
     }
     
@@ -2348,11 +2364,13 @@ class MapScreenState extends State<MapScreen>
     );
     
     if (closestNavaid != null) {
+      debugPrint('Found navaid nearby: ${closestNavaid.name} (${closestNavaid.ident})');
       // Update waypoint with navaid information
       _flightPlanService.updateWaypointName(waypointIndex, closestNavaid.name);
       _flightPlanService.updateWaypointNotes(waypointIndex, closestNavaid.ident);
       // Update waypoint type to navaid
       _flightPlanService.updateWaypointType(waypointIndex, WaypointType.navaid);
+      debugPrint('Waypoint renamed to: ${closestNavaid.name}');
       return;
     }
     
@@ -2367,17 +2385,20 @@ class MapScreenState extends State<MapScreen>
       );
       
       if (closestPoint != null) {
+        debugPrint('Found reporting point nearby: ${closestPoint.displayName}');
         // Update waypoint with reporting point information
         _flightPlanService.updateWaypointName(waypointIndex, closestPoint.displayName);
         _flightPlanService.updateWaypointNotes(waypointIndex, closestPoint.type ?? 'Reporting Point');
         // Update waypoint type to reporting point
         _flightPlanService.updateWaypointType(waypointIndex, WaypointType.reportingPoint);
+        debugPrint('Waypoint renamed to: ${closestPoint.displayName}');
         return;
       }
     }
     
     // If no marker found at drop position, keep it as a user waypoint
     // The position has already been updated by updateWaypointPosition
+    debugPrint('No markers found nearby - keeping original waypoint name');
     } catch (e) {
       // Handle cases where map controller is not ready
       // Position update already happened, just skip marker detection
@@ -2421,13 +2442,18 @@ class MapScreenState extends State<MapScreen>
         // Failed to load full data, continue with partial data
       }
     }
-    // debugPrint('_onAirportSelected called for ${airport.icao} - ${airport.name}');
+    debugPrint('_onAirportSelected called for ${airport.icao} - ${airport.name}');
 
-    // If in flight planning mode and panel is visible, add airport as waypoint instead of showing details
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
-      // debugPrint('Flight planning mode active - adding airport as waypoint');
+    // If in flight planning mode, add airport as waypoint instead of showing details
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Flight planning mode active - adding airport as waypoint');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
       _flightPlanService.addAirportWaypoint(fullAirport);
-      // debugPrint('Added airport waypoint: ${airport.icao} - ${airport.name}');
+      debugPrint('Added airport waypoint: ${airport.icao} - ${airport.name}');
       return;
     }
 
@@ -2567,7 +2593,7 @@ class MapScreenState extends State<MapScreen>
     }
     
     // If in flight planning mode, add navaid as waypoint
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
+    if (_flightPlanService.isPlanning) {
       _flightPlanService.addNavaidWaypoint(navaid);
     }
   }
@@ -2755,13 +2781,18 @@ class MapScreenState extends State<MapScreen>
 
   // Handle navaid selection
   Future<void> _onNavaidSelected(Navaid navaid) async {
-    // debugPrint('_onNavaidSelected called for ${navaid.ident} - ${navaid.name}');
+    debugPrint('_onNavaidSelected called for ${navaid.ident} - ${navaid.name}');
 
-    // If in flight planning mode and panel is visible, add navaid as waypoint instead of showing details
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
-      // debugPrint('Flight planning mode active - adding navaid as waypoint');
+    // If in flight planning mode, add navaid as waypoint instead of showing details
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Flight planning mode active - adding navaid as waypoint');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
       _flightPlanService.addNavaidWaypoint(navaid);
-      // debugPrint('Added navaid waypoint: ${navaid.ident} - ${navaid.name}');
+      debugPrint('Added navaid waypoint: ${navaid.ident} - ${navaid.name}');
       return;
     }
 
@@ -2910,9 +2941,18 @@ class MapScreenState extends State<MapScreen>
 
   // Handle reporting point selection
   Future<void> _onReportingPointSelected(ReportingPoint point) async {
-    // If in flight planning mode and panel is visible, add reporting point as waypoint instead of showing details
-    if (_flightPlanService.isPlanning && _showFlightPlanning) {
+    debugPrint('_onReportingPointSelected called for ${point.name}');
+    
+    // If in flight planning mode, add reporting point as waypoint instead of showing details
+    if (_flightPlanService.isPlanning) {
+      debugPrint('Flight planning mode active - adding reporting point as waypoint');
+      // Check if there's a current flight plan
+      if (_flightPlanService.currentFlightPlan == null) {
+        debugPrint('No current flight plan, creating new one...');
+        _flightPlanService.startNewFlightPlan(enablePlanning: true);
+      }
       _flightPlanService.addReportingPointWaypoint(point);
+      debugPrint('Added reporting point waypoint: ${point.name}');
       return;
     }
     
@@ -4195,13 +4235,18 @@ class MapScreenState extends State<MapScreen>
                 children: [
                   // Flight Planning Panel - left-side sliding panel
                   if (_showFlightPlanning)
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+                    Positioned(
                       left: 0,
                       top: MediaQuery.of(context).padding.top + 60,
                       bottom: 60,
-                      child: Container(
+                      width: (_flightPlanningExpanded 
+                          ? (MediaQuery.of(context).size.width < 600 
+                              ? MediaQuery.of(context).size.width * 0.85
+                              : 400.0)
+                          : 60.0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
                         width: (_flightPlanningExpanded 
                             ? (MediaQuery.of(context).size.width < 600 
                                 ? MediaQuery.of(context).size.width * 0.85
@@ -4225,10 +4270,8 @@ class MapScreenState extends State<MapScreen>
                             setState(() {
                               _showFlightPlanning = false;
                             });
-                            // Stop planning mode - check if we need to toggle
-                            if (_flightPlanService.isPlanning) {
-                              _flightPlanService.togglePlanningMode();
-                            }
+                            // Don't stop planning mode - let it persist when panel is hidden
+                            // User can add waypoints on the map even with panel hidden
                           },
                         ),
                       ),
@@ -4259,7 +4302,10 @@ class MapScreenState extends State<MapScreen>
                         width: 36,
                         height: 100,
                         decoration: BoxDecoration(
-                          color: const Color(0xE6000000),
+                          // Show orange background when in edit mode
+                          color: flightPlanService.isPlanning 
+                              ? const Color(0xFFFF6B35) // Orange for edit mode
+                              : const Color(0xE6000000), // Black when not editing
                           borderRadius: BorderRadius.only(
                             topRight: const Radius.circular(8),
                             bottomRight: const Radius.circular(8),
@@ -4267,7 +4313,9 @@ class MapScreenState extends State<MapScreen>
                             bottomLeft: _showFlightPlanning ? Radius.zero : const Radius.circular(8),
                           ),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: flightPlanService.isPlanning 
+                                ? const Color(0xFFFF8C55) // Lighter orange border when editing
+                                : Colors.white.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -4276,10 +4324,12 @@ class MapScreenState extends State<MapScreen>
                           children: [
                             Icon(
                               Icons.route,
-                              color: (flightPlanService.currentFlightPlan != null || 
+                              color: flightPlanService.isPlanning
+                                  ? Colors.white // White icon when in edit mode (orange background)
+                                  : (flightPlanService.currentFlightPlan != null || 
                                       flightPlanService.currentTrip != null)
-                                  ? const Color(0xFF448AFF)
-                                  : Colors.white.withValues(alpha: 0.7),
+                                      ? const Color(0xFF448AFF)
+                                      : Colors.white.withValues(alpha: 0.7),
                               size: 20,
                             ),
                             const SizedBox(height: 4),
@@ -4287,7 +4337,9 @@ class MapScreenState extends State<MapScreen>
                               _showFlightPlanning
                                   ? Icons.chevron_left
                                   : Icons.chevron_right,
-                              color: Colors.white.withValues(alpha: 0.8),
+                              color: flightPlanService.isPlanning
+                                  ? Colors.white // White chevron when in edit mode
+                                  : Colors.white.withValues(alpha: 0.8),
                               size: 16,
                             ),
                           ],

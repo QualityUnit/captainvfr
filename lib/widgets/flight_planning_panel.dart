@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/flight_plan_service.dart';
 import '../services/aircraft_settings_service.dart';
 import '../services/settings_service.dart';
+import '../screens/flight_plans_screen.dart';
 import 'waypoint_table_widget.dart';
 import '../constants/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -45,10 +46,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
       final aircraftService = context.read<AircraftSettingsService>();
       final flightPlan = flightPlanService.currentFlightPlan;
 
-      // Sync edit mode with planning mode - only sync if planning mode is true
-      // This prevents turning off planning mode when the panel is first opened
-      if (flightPlanService.isPlanning &&
-          flightPlanService.isPlanning != _isEditMode) {
+      // Always sync edit mode with planning mode state
+      // This ensures the panel reflects the actual planning state
+      if (flightPlanService.isPlanning != _isEditMode) {
         setState(() {
           _isEditMode = flightPlanService.isPlanning;
         });
@@ -109,37 +109,24 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final isPhone = screenWidth < 600;
-    final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    // Responsive margins and width
+    // Responsive margins
     final horizontalMargin = isPhone ? 8.0 : 16.0;
-    final maxWidth = isPhone ? double.infinity : (isTablet ? 600.0 : 800.0);
 
     return Container(
-      margin: EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: horizontalMargin,
-        vertical: 16.0,
-      ),
-      constraints: BoxConstraints(
-        minHeight: 200,
-        maxHeight: 600,
-        minWidth: 300,
-        maxWidth: maxWidth,
+        vertical: 8.0,
       ),
       child: Material(
         color: Colors.transparent,
         child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               // Header with edit mode toggle
               _buildHeader(context, flightPlanService),
-              Flexible(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxHeight: 550, // Leave some space for header
-                  ),
-                  child: _buildExpandedView(context, flightPlanService),
-                ),
+              // Expanded view takes all available space
+              Expanded(
+                child: _buildExpandedView(context, flightPlanService),
               ),
             ],
         ),
@@ -188,45 +175,6 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    // Center flight plan button
-                    if ((flightPlan != null && flightPlan.waypoints.isNotEmpty) || 
-                        flightPlanService.currentTripPlans.isNotEmpty)
-                      IconButton(
-                        icon: Icon(
-                          Icons.center_focus_strong,
-                          size: 18,
-                          color: Colors.white.withValues(alpha: 0.7),
-                        ),
-                        onPressed: widget.onCenterFlightPlan,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 28,
-                          minHeight: 28,
-                        ),
-                        tooltip: l10n.centerOnFlightPlan,
-                      ),
-                    // Clear flight plan button
-                    if (flightPlan != null || flightPlanService.currentTrip != null)
-                      IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          size: 18,
-                          color: Colors.white.withValues(alpha: 0.7),
-                        ),
-                        onPressed: () {
-                          // Clear the flight plan from the map
-                          final flightPlanService = context.read<FlightPlanService>();
-                          flightPlanService.clearFlightPlan();
-                          // Close the panel if onClose is provided
-                          widget.onClose?.call();
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 28,
-                          minHeight: 28,
-                        ),
-                        tooltip: l10n.clearFlightPlan,
-                      ),
                   ],
                 ),
                 Consumer<SettingsService>(
@@ -282,58 +230,89 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
             ),
           ),
 
-          // Edit mode toggle slider
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Text(
-                  l10n.editMode,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Transform.scale(
-                  scale: 0.8,
-                  child: Switch(
-                    value: _isEditMode,
-                    onChanged: (value) {
-                      setState(() {
-                        _isEditMode = value;
-                      });
-                      if (value && !flightPlanService.isPlanning) {
-                        flightPlanService.togglePlanningMode();
-                      } else if (!value && flightPlanService.isPlanning) {
-                        flightPlanService.togglePlanningMode();
-                      }
-                    },
-                    activeColor: const Color(0xFF448AFF),
-                    activeTrackColor: const Color(0x66448AFF),
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Spacer to push controls to the right
+          const Spacer(),
 
-          // Close button
-          if (widget.onClose != null)
-            IconButton(
-              icon: Icon(
-                Icons.close,
-                size: 20,
-                color: Colors.white.withValues(alpha: 0.7),
+          // Control buttons row
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Center button with label
+              if ((flightPlan != null && flightPlan.waypoints.isNotEmpty) || 
+                  flightPlanService.currentTripPlans.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.center_focus_strong,
+                          size: 20,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                        onPressed: widget.onCenterFlightPlan,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        tooltip: l10n.centerOnFlightPlan,
+                      ),
+                      Text(
+                        'Center',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              
+              // Edit mode toggle with label
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: _isEditMode,
+                        onChanged: (value) {
+                          debugPrint('Edit mode switch changed to: $value');
+                          debugPrint('Current isPlanning: ${flightPlanService.isPlanning}');
+                          setState(() {
+                            _isEditMode = value;
+                          });
+                          if (value && !flightPlanService.isPlanning) {
+                            debugPrint('Enabling planning mode...');
+                            flightPlanService.togglePlanningMode();
+                          } else if (!value && flightPlanService.isPlanning) {
+                            debugPrint('Disabling planning mode...');
+                            flightPlanService.togglePlanningMode();
+                          }
+                          debugPrint('After toggle - isPlanning: ${flightPlanService.isPlanning}');
+                        },
+                        activeColor: const Color(0xFF448AFF),
+                        activeTrackColor: const Color(0x66448AFF),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    Text(
+                      l10n.editMode,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              onPressed: widget.onClose,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                minWidth: 32,
-                minHeight: 32,
-              ),
-            ),
+            ],
+          ),
         ],
       ),
     );
@@ -382,6 +361,27 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                     ),
                   ),
                 ],
+              ),
+            ),
+
+          // Show "Load Flight Plan" button when no waypoints exist
+          if (flightPlan == null && flightPlanService.currentTripPlans.isEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => _openFlightPlansScreen(context),
+                  icon: const Icon(Icons.folder_open, size: 20),
+                  label: Text(l10n.loadToMap),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF448AFF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppTheme.mediumRadius,
+                    ),
+                  ),
+                ),
               ),
             ),
 
@@ -488,8 +488,127 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                 },
               ),
             ),
+            
+          // Add to Trip button - shown when there are waypoints
+          if (flightPlan != null || flightPlanService.currentTripPlans.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => _openFlightPlansForTrip(context, flightPlanService),
+                  icon: const Icon(Icons.add_road, size: 20),
+                  label: Text('Add Flight Plan to Trip'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppTheme.mediumRadius,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+          // Clear flight plan button - placed below waypoint table
+          if (flightPlan != null || flightPlanService.currentTrip != null)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              child: ElevatedButton.icon(
+                onPressed: () => _showClearConfirmationDialog(context, flightPlanService),
+                icon: const Icon(Icons.delete_outline, size: 20),
+                label: Text(l10n.clearFlightPlan),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.withValues(alpha: 0.8),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppTheme.mediumRadius,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
+    );
+  }
+  
+  // Open flight plans screen to load a flight plan
+  void _openFlightPlansScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FlightPlansScreen(),
+      ),
+    );
+  }
+
+  // Open flight plans screen to add another flight plan to the trip
+  void _openFlightPlansForTrip(BuildContext context, FlightPlanService flightPlanService) {
+    // Save current flight plan first if it has waypoints
+    if (flightPlanService.currentFlightPlan != null && 
+        flightPlanService.currentFlightPlan!.waypoints.isNotEmpty) {
+      flightPlanService.saveCurrentFlightPlan();
+    }
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FlightPlansScreen(),
+      ),
+    ).then((_) {
+      // When returning, check if a new flight plan was loaded
+      // If so, we could create a trip from both plans
+      // This is handled by the FlightPlansScreen when user selects a plan
+    });
+  }
+
+  // Show confirmation dialog before clearing flight plan
+  void _showClearConfirmationDialog(BuildContext context, FlightPlanService flightPlanService) {
+    final l10n = AppLocalizations.of(context)!;
+    final planName = flightPlanService.currentTrip != null 
+        ? flightPlanService.currentTrip!.name
+        : (flightPlanService.currentFlightPlan?.name ?? 'flight plan');
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xE6000000),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.largeRadius,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          title: Text(
+            l10n.clearFlightPlan,
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Are you sure you want to clear "$planName" from the map?',
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                l10n.cancel,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                flightPlanService.clearFlightPlan();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(l10n.clear),
+            ),
+          ],
+        );
+      },
     );
   }
 

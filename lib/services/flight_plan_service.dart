@@ -191,6 +191,60 @@ class FlightPlanService extends ChangeNotifier {
     }
   }
 
+  // Add a flight plan to an existing trip or create a new trip
+  Future<void> addFlightPlanToTrip(FlightPlan newFlightPlan) async {
+    if (_currentTrip != null) {
+      // Add to existing trip
+      debugPrint('Adding flight plan ${newFlightPlan.id} to existing trip ${_currentTrip!.id}');
+      
+      // Set trip properties on the new flight plan
+      newFlightPlan.tripId = _currentTrip!.id;
+      newFlightPlan.legNumber = _currentTripPlans.length;
+      newFlightPlan.legColor = TripColors.getColorValueForLeg(_currentTripPlans.length);
+      newFlightPlan.modifiedAt = DateTime.now();
+      
+      // Add to trip's flight plan list
+      _currentTrip!.flightPlanIds.add(newFlightPlan.id);
+      
+      // Save the updated flight plan
+      if (_flightPlanBox != null) {
+        await _flightPlanBox!.put(newFlightPlan.id, newFlightPlan);
+      }
+      
+      // Save the updated trip
+      if (_tripBox != null) {
+        await _tripBox!.put(_currentTrip!.id, _currentTrip!);
+      }
+      
+      // Add to current trip plans
+      _currentTripPlans.add(newFlightPlan);
+      
+      debugPrint('Trip ${_currentTrip!.id} now has ${_currentTripPlans.length} legs');
+      
+      // Reload to refresh the UI
+      _loadSavedTrips();
+      _loadSavedFlightPlans();
+      notifyListeners();
+      
+    } else if (_currentFlightPlan != null && _currentFlightPlan!.waypoints.isNotEmpty) {
+      // Create a new trip from current flight plan and the new one
+      debugPrint('Creating new trip from current flight plan ${_currentFlightPlan!.id} and new flight plan ${newFlightPlan.id}');
+      
+      // Save current flight plan first if it has changes
+      await saveCurrentFlightPlan();
+      
+      // Create trip name from the two flight plan names
+      final tripName = '${_currentFlightPlan!.name} + ${newFlightPlan.name}';
+      
+      // Create a new trip with both flight plans
+      await createTripFromFlightPlans([_currentFlightPlan!, newFlightPlan], tripName);
+    } else {
+      // No current flight plan, just load the new one
+      debugPrint('No current flight plan, loading new flight plan ${newFlightPlan.id}');
+      loadFlightPlan(newFlightPlan.id);
+    }
+  }
+
   // Create trip from multiple flight plans
   Future<Trip> createTripFromFlightPlans(
     List<FlightPlan> flightPlans, 

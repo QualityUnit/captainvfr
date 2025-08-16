@@ -131,6 +131,11 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
           flightPlan,
           flightPlanService,
         ),
+        onLongPress: () => _showFlightPlanOptionsDialog(
+          context,
+          flightPlan,
+          flightPlanService,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -182,14 +187,25 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
                     _handleMenuAction(context, value, flightPlan, flightPlanService),
                 itemBuilder: (context) {
                   final l10n = AppLocalizations.of(context)!;
+                  final hasCurrentFlightPlan = flightPlanService.currentFlightPlan != null && 
+                                               flightPlanService.currentFlightPlan!.waypoints.isNotEmpty;
+                  final hasCurrentTrip = flightPlanService.currentTrip != null;
+                  
                   return [
                     PopupMenuItem(
                       value: 'load',
                       child: Row(
                         children: [
-                          Icon(Icons.map, size: 20, color: AppColors.primaryTextColor),
+                          Icon(
+                            hasCurrentFlightPlan || hasCurrentTrip ? Icons.add_road : Icons.map, 
+                            size: 20, 
+                            color: AppColors.primaryTextColor
+                          ),
                           const SizedBox(width: 8),
-                          Text(l10n.loadToMap, style: TextStyle(color: AppColors.primaryTextColor)),
+                          Text(
+                            hasCurrentFlightPlan || hasCurrentTrip ? 'Add to Trip' : l10n.loadToMap, 
+                            style: TextStyle(color: AppColors.primaryTextColor)
+                          ),
                         ],
                       ),
                     ),
@@ -292,14 +308,32 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
     FlightPlanService flightPlanService,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    flightPlanService.loadFlightPlan(flightPlan.id);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.loadedFlightPlan(flightPlan.name)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    
+    // Check if we have an existing trip or flight plan
+    if (flightPlanService.currentTrip != null || 
+        (flightPlanService.currentFlightPlan != null && 
+         flightPlanService.currentFlightPlan!.waypoints.isNotEmpty)) {
+      // We have an existing trip or flight plan - add this as a new leg
+      debugPrint('Adding flight plan ${flightPlan.id} to existing trip/creating new trip');
+      flightPlanService.addFlightPlanToTrip(flightPlan);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added ${flightPlan.name} to trip'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      // No existing flight plan - just load it normally
+      flightPlanService.loadFlightPlan(flightPlan.id);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.loadedFlightPlan(flightPlan.name)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _showNewFlightPlanDialog(BuildContext context) {
@@ -455,6 +489,81 @@ class _FlightPlansScreenState extends State<FlightPlansScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showFlightPlanOptionsDialog(
+    BuildContext context,
+    FlightPlan flightPlan,
+    FlightPlanService flightPlanService,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final hasCurrentFlightPlan = flightPlanService.currentFlightPlan != null && 
+                                 flightPlanService.currentFlightPlan!.waypoints.isNotEmpty;
+    final hasCurrentTrip = flightPlanService.currentTrip != null;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          backgroundColor: const Color(0xE6000000),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.largeRadius,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          title: Text(
+            flightPlan.name,
+            style: const TextStyle(color: Colors.white),
+          ),
+          children: [
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _loadFlightPlanAndNavigateBack(context, flightPlan, flightPlanService);
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    hasCurrentFlightPlan || hasCurrentTrip ? Icons.add_road : Icons.map, 
+                    size: 20, 
+                    color: AppColors.primaryTextColor
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    hasCurrentFlightPlan || hasCurrentTrip ? 'Add to Trip' : l10n.loadToMap,
+                    style: TextStyle(color: AppColors.primaryTextColor),
+                  ),
+                ],
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Force replace - clear current and load new
+                flightPlanService.clearFlightPlan();
+                flightPlanService.loadFlightPlan(flightPlan.id);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.loadedFlightPlan(flightPlan.name)),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Icon(Icons.replay, size: 20, color: AppColors.primaryTextColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Replace Current',
+                    style: TextStyle(color: AppColors.primaryTextColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
