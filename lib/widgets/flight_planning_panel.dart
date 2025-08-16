@@ -10,16 +10,12 @@ import '../constants/app_theme.dart';
 import '../l10n/app_localizations.dart';
 
 class FlightPlanningPanel extends StatefulWidget {
-  final bool? isExpanded;
-  final Function(bool)? onExpandedChanged;
   final VoidCallback? onClose;
   final Function(int)? onWaypointFocus;
   final VoidCallback? onCenterFlightPlan;
 
   const FlightPlanningPanel({
     super.key,
-    this.isExpanded,
-    this.onExpandedChanged,
     this.onClose,
     this.onWaypointFocus,
     this.onCenterFlightPlan,
@@ -30,7 +26,6 @@ class FlightPlanningPanel extends StatefulWidget {
 }
 
 class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
-  late bool _isExpanded;
   bool _isEditMode = false;
   final TextEditingController _cruiseSpeedController = TextEditingController();
   String? _selectedAircraftId;
@@ -44,7 +39,6 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.isExpanded ?? true;
     _loadWaypointTableState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final flightPlanService = context.read<FlightPlanService>();
@@ -108,13 +102,6 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     super.dispose();
   }
 
-  void _toggleExpanded(bool expanded) {
-    setState(() {
-      _isExpanded = expanded;
-    });
-    widget.onExpandedChanged?.call(expanded);
-  }
-
   @override
   Widget build(BuildContext context) {
     final flightPlanService = Provider.of<FlightPlanService>(context);
@@ -134,8 +121,8 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
         vertical: 16.0,
       ),
       constraints: BoxConstraints(
-        minHeight: _isExpanded ? 200 : 60,
-        maxHeight: _isExpanded ? 600 : 60,
+        minHeight: 200,
+        maxHeight: 600,
         minWidth: 300,
         maxWidth: maxWidth,
       ),
@@ -146,15 +133,14 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
             children: [
               // Header with edit mode toggle
               _buildHeader(context, flightPlanService),
-              if (_isExpanded)
-                Flexible(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: 550, // Leave some space for header
-                    ),
-                    child: _buildExpandedView(context, flightPlanService),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxHeight: 550, // Leave some space for header
                   ),
+                  child: _buildExpandedView(context, flightPlanService),
                 ),
+              ),
             ],
         ),
       ),
@@ -169,27 +155,6 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     final flightPlan = flightPlanService.currentFlightPlan;
     final isPlanning = flightPlanService.isPlanning;
 
-    // If collapsed, show minimal UI
-    if (!_isExpanded) {
-      return GestureDetector(
-        onTap: () => _toggleExpanded(true),
-        child: Container(
-          height: double.infinity,
-          width: double.infinity,
-          color: Colors.transparent,
-          child: Center(
-            child: Icon(
-              Icons.route,
-              color: (flightPlan != null || flightPlanService.currentTrip != null)
-                  ? const Color(0xFF448AFF)
-                  : Colors.white70,
-              size: 24,
-            ),
-          ),
-        ),
-      );
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: _isEditMode ? const Color(0x33448AFF) : Colors.transparent,
@@ -200,32 +165,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
       ),
       child: Row(
         children: [
-          // Collapse button
-          IconButton(
-            icon: const Icon(
-              Icons.chevron_left,
-              color: Color(0xFF448AFF),
-              size: 24,
-            ),
-            onPressed: () => _toggleExpanded(false),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 32,
-              minHeight: 32,
-            ),
-          ),
-
-          // Flight planning icon
-          Icon(
-            isPlanning || _isEditMode ? Icons.flight_takeoff : Icons.map,
-            color: isPlanning || _isEditMode
-                ? const Color(0xFF448AFF)
-                : Colors.white70,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-
-          // Title and stats
+          // Title and stats - now has more space without icons
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -240,9 +180,9 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                             ? flightPlanService.currentTrip!.name
                             : (flightPlan?.name ??
                                 (isPlanning ? l10n.flightPlanningMode : l10n.noFlightPlan)),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
-                          fontSize: _isExpanded ? 14 : 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -289,9 +229,8 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                       ),
                   ],
                 ),
-                if (_isExpanded)
-                  Consumer<SettingsService>(
-                    builder: (context, settings, child) {
+                Consumer<SettingsService>(
+                  builder: (context, settings, child) {
                       final isMetric = settings.units == 'metric';
                       
                       // Calculate total distance and waypoints
@@ -385,14 +324,14 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
             IconButton(
               icon: Icon(
                 Icons.close,
-                size: _isExpanded ? 20 : 18,
+                size: 20,
                 color: Colors.white.withValues(alpha: 0.7),
               ),
               onPressed: widget.onClose,
               padding: EdgeInsets.zero,
-              constraints: BoxConstraints(
-                minWidth: _isExpanded ? 32 : 28,
-                minHeight: _isExpanded ? 32 : 28,
+              constraints: const BoxConstraints(
+                minWidth: 32,
+                minHeight: 32,
               ),
             ),
         ],

@@ -898,15 +898,6 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
-  // Save flight planning panel expanded state to SharedPreferences
-  Future<void> _saveFlightPlanningPanelState(bool isExpanded) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(MapConstants.keyFlightPlanningExpanded, isExpanded);
-    } catch (e) {
-      // Ignore save errors - not critical functionality
-    }
-  }
 
   // Adjust flight planning panel position for screen size changes (orientation)
   void _adjustFlightPlanningPanelPosition(Size newScreenSize) {
@@ -4228,16 +4219,8 @@ class MapScreenState extends State<MapScreen>
                           ),
                         ),
                         child: FlightPlanningPanel(
-                          isExpanded: _flightPlanningExpanded,
                           onWaypointFocus: _focusOnWaypoint,
                           onCenterFlightPlan: _centerOnFlightPlan,
-                          onExpandedChanged: (expanded) {
-                            setState(() {
-                              _flightPlanningExpanded = expanded;
-                            });
-                            // Save the state to SharedPreferences
-                            _saveFlightPlanningPanelState(expanded);
-                          },
                           onClose: () {
                             setState(() {
                               _showFlightPlanning = false;
