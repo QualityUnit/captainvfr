@@ -63,6 +63,7 @@ class MainActivity : FlutterActivity() {
         flutterEngine.plugins.add(NetworkPlugin())
         flutterEngine.plugins.add(VibrationPlugin())
         flutterEngine.plugins.add(WatchConnectivityPlugin())
+        flutterEngine.plugins.add(LocalePlugin())
         
         Log.d(TAG, "Flutter plugins registered")
     }
