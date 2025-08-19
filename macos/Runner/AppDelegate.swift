@@ -10,9 +10,8 @@ class AppDelegate: FlutterAppDelegate {
     
     // Setup locale channel
     if let mainWindow = NSApplication.shared.windows.first,
-       let contentView = mainWindow.contentView,
-       let flutterView = contentView.subviews.first(where: { $0 is FlutterView }) as? FlutterView {
-      setupLocaleChannel(with: flutterView.engine.binaryMessenger)
+       let flutterViewController = mainWindow.contentViewController as? FlutterViewController {
+      setupLocaleChannel(with: flutterViewController.engine.binaryMessenger)
     }
   }
   
