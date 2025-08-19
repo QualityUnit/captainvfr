@@ -219,6 +219,7 @@ import Flutter
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var watchChannel: FlutterMethodChannel?
+  private var localeChannel: FlutterMethodChannel?
   
   override func application(
     _ application: UIApplication,
@@ -242,9 +243,10 @@ import Flutter
         BarometerPlugin.register(with: registrar)
     }
     
-    // Setup Watch Connectivity
+    // Setup Watch Connectivity and Locale Channel
     if let controller = window?.rootViewController as? FlutterViewController {
         setupWatchConnectivity(with: controller.binaryMessenger)
+        setupLocaleChannel(with: controller.binaryMessenger)
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -306,6 +308,43 @@ import Flutter
     if WCSession.default.isReachable {
       WCSession.default.sendMessage(data, replyHandler: nil, errorHandler: nil)
     }
+  }
+  
+  private func setupLocaleChannel(with messenger: FlutterBinaryMessenger) {
+    localeChannel = FlutterMethodChannel(
+      name: "captainvfr/locale",
+      binaryMessenger: messenger
+    )
+    
+    localeChannel?.setMethodCallHandler { call, result in
+      switch call.method {
+      case "getSystemLanguage":
+        let systemLanguage = self.getSystemLanguage()
+        print("🌍 iOS System language detected: \(systemLanguage)")
+        result(systemLanguage)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+  
+  private func getSystemLanguage() -> String {
+    let preferredLanguages = NSLocale.preferredLanguages
+    
+    if let firstLanguage = preferredLanguages.first {
+      // Extract just the language code (e.g., "en-US" becomes "en")
+      let languageCode = String(firstLanguage.prefix(2))
+      return languageCode
+    }
+    
+    // Fallback to system locale
+    let systemLocale = NSLocale.current
+    if let languageCode = systemLocale.languageCode {
+      return languageCode
+    }
+    
+    // Ultimate fallback to English
+    return "en"
   }
 }
 

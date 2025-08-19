@@ -33,6 +33,25 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    // Web language detection for Flutter method channel
+    function getSystemLanguage() {
+      try {
+        // Get browser language preference
+        const language = navigator.language || navigator.userLanguage || 'en';
+        // Extract just the language code (e.g., "en-US" becomes "en")
+        const languageCode = language.split('-')[0];
+        console.log('🌍 Web System language detected:', languageCode);
+        return languageCode;
+      } catch (e) {
+        console.error('Error detecting web language:', e);
+        return 'en'; // Fallback to English
+      }
+    }
+    
+    // Make function available globally for Flutter
+    window.getSystemLanguage = getSystemLanguage;
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
