@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 
 /// Utility functions for converting OpenAIP airspace numeric values to human-readable text
 class AirspaceUtils {
@@ -183,56 +184,63 @@ class AirspaceUtils {
     }
   }
 
-  /// Get color for airspace type and ICAO class
+  /// Get color for airspace type and ICAO class following aviation standards
   static Color getAirspaceColor(int type, int icaoClass) {
-    // Color coding based on airspace type
+    // Color coding based on airspace type first (more specific)
     switch (type) {
       case 0: // CTR - Control Zone
-        return Colors.red;
+        return AppColors.airspaceCTR;
       case 1: // TMA - Terminal Maneuvering Area
-        return Colors.orange;
+        return AppColors.airspaceTMA;
       case 2: // TMZ - Transponder Mandatory Zone
-        return Colors.amber;
+        return AppColors.airspaceTransponderMandatory;
       case 3: // RMZ - Radio Mandatory Zone
-        return Colors.yellow.shade700;
+        return AppColors.airspaceRadioMandatory;
       case 4: // ATZ - Aerodrome Traffic Zone
-        return Colors.blue;
+        return AppColors.airspaceATZ;
       case 5: // DANGER
-        return Colors.red.shade700;
+        return AppColors.airspaceDanger;
       case 6: // PROHIBITED
-        return Colors.red.shade900;
+        return AppColors.airspaceProhibited;
       case 7: // RESTRICTED
-        return Colors.orange.shade700;
+        return AppColors.airspaceRestricted;
       case 8: // GLIDING
-        return Colors.green;
+        return AppColors.airspaceGliderProhibited;
       case 9: // WAVE
-        return Colors.cyan;
+        return AppColors.airspaceWaveWindow;
       case 10: // TSA - Temporary Segregated Area
-        return Colors.purple;
+        return AppColors.airspaceTraining;
       case 11: // TRA - Temporary Reserved Area
-        return Colors.purple.shade700;
+        return AppColors.airspaceTraining;
       case 12: // MATZ - Military Aerodrome Traffic Zone
-        return Colors.blue.shade700;
+        return AppColors.airspaceMATZ;
+      case 13: // AERIAL_SPORTING_RECREATIONAL
+        return AppColors.airspaceGliderProhibited;
+      case 14: // WARNING
+        return AppColors.airspaceDanger;
+      case 15: // TRAINING
+        return AppColors.airspaceTraining;
       default:
         // Check ICAO class if type doesn't match
         switch (icaoClass) {
           case 0: // A
-            return Colors.red.shade800;
+            return AppColors.airspaceClassA;
           case 1: // B
-            return Colors.red.shade600;
+            return AppColors.airspaceClassB;
           case 2: // C
-            return Colors.orange.shade600;
+            return AppColors.airspaceClassC;
           case 3: // D
-            return Colors.blue.shade600;
+            return AppColors.airspaceClassD;
           case 4: // E
-            return Colors.green.shade600;
+            return AppColors.airspaceClassE;
           case 5: // F
-            return Colors.green.shade400;
+            return AppColors.airspaceClassF;
           case 6: // G
-            return Colors.white;
+            return AppColors.airspaceClassG;
           default:
-            return const Color(0x99FFFFFF);
+            return AppColors.airspaceDefault;
         }
     }
   }
+
 }

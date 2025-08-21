@@ -2172,27 +2172,34 @@ class MapScreenState extends State<MapScreen>
 
     switch (type.toUpperCase()) {
       case 'CTR':
+        return AppColors.airspaceCTR;
+      case 'TMA':
+        return AppColors.airspaceTMA;
+      case 'ATZ':
+        return AppColors.airspaceATZ;
+      case 'TMZ':
+        return AppColors.airspaceTransponderMandatory;
+      case 'RMZ':
+        return AppColors.airspaceRadioMandatory;
       case 'D':
       case 'DANGER':
+        return AppColors.airspaceDanger;
       case 'P':
       case 'PROHIBITED':
         return AppColors.airspaceProhibited;
-      case 'TMA':
       case 'R':
       case 'RESTRICTED':
         return AppColors.airspaceRestricted;
-      case 'ATZ':
-        return AppColors.airspaceDanger;
       case 'TSA':
-        return AppColors.airspaceMoa;
       case 'TRA':
+      case 'TRAINING':
         return AppColors.airspaceTraining;
       case 'GLIDING':
         return AppColors.airspaceGliderProhibited;
-      case 'TMZ':
+      case 'WAVE':
         return AppColors.airspaceWaveWindow;
-      case 'RMZ':
-        return AppColors.airspaceTransponderMandatory;
+      case 'MATZ':
+        return AppColors.airspaceMATZ;
       default:
         // Check ICAO class if type doesn't match
         if (icaoClass != null) {
@@ -2208,9 +2215,9 @@ class MapScreenState extends State<MapScreen>
             case 'E':
               return AppColors.airspaceClassE;
             case 'F':
-              return AppColors.airspaceClassG;
+              return AppColors.airspaceClassF;
             case 'G':
-              return AppColors.airspaceDefault;
+              return AppColors.airspaceClassG;
             default:
               return AppColors.airspaceDefault;
           }

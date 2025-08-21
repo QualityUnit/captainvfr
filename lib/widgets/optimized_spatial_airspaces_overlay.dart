@@ -284,10 +284,11 @@ class _OptimizedSpatialAirspacesOverlayState
     
     final color = AirspaceUtils.getAirspaceColor(typeInt, classInt);
     final opacity = _calculateOpacity(airspace, zoom);
+    final fillOpacity = _calculateFillOpacity(airspace);
 
     return Polygon(
       points: airspace.geometry,
-      color: color.withValues(alpha: opacity * 0.2), // 20% opacity for 50% map visibility
+      color: color.withValues(alpha: opacity * fillOpacity), 
       borderColor: color.withValues(alpha: 0.8), // Slightly transparent borders
       borderStrokeWidth: zoom > 12 ? 2.0 : 1.5,
       hitValue: airspace,
@@ -297,5 +298,15 @@ class _OptimizedSpatialAirspacesOverlayState
   double _calculateOpacity(Airspace airspace, double zoom) {
     // Fixed opacity - ensures consistent map visibility at all zoom levels
     return 0.5;
+  }
+
+  double _calculateFillOpacity(Airspace airspace) {
+    // Special handling for Class E airspaces - make them more transparent
+    if (airspace.icaoClass == '4' || airspace.icaoClass?.toUpperCase() == 'E') {
+      return 0.3; // 30% opacity for Class E airspaces
+    }
+    
+    // Regular fill opacity for other airspaces
+    return 0.2; // 20% opacity for better map visibility
   }
 }

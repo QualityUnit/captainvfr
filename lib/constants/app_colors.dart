@@ -29,21 +29,38 @@ class AppColors {
   static const Color successColor = Color(0xFF66BB6A);
   static const Color infoColor = Color(0xFF29B6F6);
   
-  // Airspace colors
-  static const Color airspaceProhibited = Color(0xFFD32F2F); // Red
-  static const Color airspaceRestricted = Color(0xFFF57C00); // Orange
-  static const Color airspaceDanger = Color(0xFF1976D2); // Blue
-  static const Color airspaceMoa = Color(0xFF7B1FA2); // Purple
-  static const Color airspaceTraining = Color(0xFF512DA8); // Deep purple
-  static const Color airspaceGliderProhibited = Color(0xFF388E3C); // Green
-  static const Color airspaceWaveWindow = Color(0xFFFFA000); // Amber
-  static const Color airspaceTransponderMandatory = Color(0xFFF9A825); // Yellow dark
-  static const Color airspaceClassA = Color(0xFFB71C1C); // Red 900
-  static const Color airspaceClassB = Color(0xFFD32F2F); // Red 700
-  static const Color airspaceClassC = Color(0xFFE65100); // Orange 900
-  static const Color airspaceClassD = Color(0xFF1565C0); // Blue 800
-  static const Color airspaceClassE = Color(0xFF2E7D32); // Green 800
-  static const Color airspaceClassG = Color(0xFF43A047); // Green 600
+  // Airspace colors following aviation standards
+  // ICAO Airspace Classes
+  static const Color airspaceClassA = Color(0xFFCC0000); // Dark Red - Most restrictive
+  static const Color airspaceClassB = Color(0xFFFF4444); // Red - Very restrictive
+  static const Color airspaceClassC = Color(0xFF0066CC); // Dark Blue - Controlled airspace
+  static const Color airspaceClassD = Color(0xFF3399FF); // Light Blue - Controlled airspace
+  static const Color airspaceClassE = Color(0xFF4CAF50); // Light Green - Least restrictive controlled
+  static const Color airspaceClassF = Color(0xFF66BB6A); // Green 400 - Uncontrolled
+  static const Color airspaceClassG = Color(0xFF81C784); // Green 300 - Uncontrolled
+  
+  // Special airspace types
+  static const Color airspaceCTR = Color(0xFFFF0000); // Red - Control Zone
+  static const Color airspaceATZ = Color(0xFFFF4500); // Red/Orange - Aerodrome Traffic Zone
+  static const Color airspaceTMA = Color(0xFF1976D2); // Blue - Terminal Maneuvering Area
+  
+  // Restricted/Prohibited areas
+  static const Color airspaceProhibited = Color(0xFF8B0000); // Dark Red/Purple - Prohibited
+  static const Color airspaceDanger = Color(0xFF8B0000); // Dark Red/Purple - Danger
+  static const Color airspaceRestricted = Color(0xFFFF8C00); // Orange - Restricted
+  
+  // Mandatory zones
+  static const Color airspaceTransponderMandatory = Color(0xFFFFA726); // Orange - TMZ
+  static const Color airspaceRadioMandatory = Color(0xFFFFC107); // Amber - RMZ
+  
+  // Special purpose areas
+  static const Color airspaceTraining = Color(0xFF9C27B0); // Purple - Training areas
+  static const Color airspaceMoa = Color(0xFF7B1FA2); // Deep Purple - Military training
+  static const Color airspaceGliderProhibited = Color(0xFF4CAF50); // Green - Gliding areas
+  static const Color airspaceWaveWindow = Color(0xFF00BCD4); // Cyan - Wave areas
+  static const Color airspaceMATZ = Color(0xFF1565C0); // Blue 800 - Military ATZ
+  
+  // Default
   static const Color airspaceDefault = Color(0xFF616161); // Grey 700
   
   // Map feature colors
