@@ -30,13 +30,14 @@ class LocationService {
       return Future.error('Location permissions are permanently denied');
     }
 
-    // Request background location permission for tracking (mobile only)
-    if (!kIsWeb && !Platform.isMacOS && permission == LocationPermission.whileInUse) {
-      // Try to get always permission for background tracking
-      // Note: On iOS, this will show another permission dialog
-      // On Android 10+, this requires separate permission request
-      permission = await _geolocator.requestPermission();
-    }
+    // Don't automatically request background permission - it causes permission loops
+    // Background permission should be requested separately when needed
+    // if (!kIsWeb && !Platform.isMacOS && permission == LocationPermission.whileInUse) {
+    //   // Try to get always permission for background tracking
+    //   // Note: On iOS, this will show another permission dialog
+    //   // On Android 10+, this requires separate permission request
+    //   permission = await _geolocator.requestPermission();
+    // }
 
     return permission;
   }

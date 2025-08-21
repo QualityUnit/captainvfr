@@ -202,7 +202,7 @@ class MapScreenState extends State<MapScreen>
   // Map settings are now in MapConstants
 
   // Auto-centering control
-  bool _autoCenteringEnabled = true;
+  bool _autoCenteringEnabled = false;  // Start with auto-centering disabled
   Timer? _autoCenteringTimer;
   // Auto-centering delay is now in MapConstants
   bool _wasTracking = false;
@@ -492,19 +492,8 @@ class MapScreenState extends State<MapScreen>
         );
       });
       
-      // Read current settings to ensure we use the latest value
-      final settingsService = context.read<SettingsService>();
-      
-      // Update map rotation if position tracking is enabled and auto-centering is on
-      if (_positionTrackingEnabled && _autoCenteringEnabled && !_hasInputFocus) {
-        if (settingsService.mapRotationMode == MapRotationMode.mapRotates) {
-          _mapController.moveAndRotate(
-            LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            _mapController.camera.zoom,
-            -_cachedHeading!,
-          );
-        }
-      }
+      // DON'T move the map here - let position update timer handle it
+      // This prevents the map from jumping every time heading changes
     }
   }
 
