@@ -2719,4 +2719,22 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get analyzeFlightPath => 'Analyzovať letovú trasu';
+
+  @override
+  String get communicationFrequencies => 'Komunikačné frekvencie';
+
+  @override
+  String get groundStation => 'Pozemná stanica';
+
+  @override
+  String get primaryFrequency => 'Primárna frekvencia';
+
+  @override
+  String get secondaryFrequency => 'Sekundárna frekvencia';
+
+  @override
+  String get noFrequencyAvailable => 'Frekvencia nie je k dispozícii';
+
+  @override
+  String get copyFrequency => 'Frekvencia skopírovaná';
 }

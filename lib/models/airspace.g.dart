@@ -34,13 +34,15 @@ class AirspaceAdapter extends TypeAdapter<Airspace> {
       validFrom: fields[14] as DateTime?,
       validTo: fields[15] as DateTime?,
       remarks: fields[16] as String?,
+      frequencies: (fields[17] as List?)?.cast<AirspaceFrequency>(),
+      primaryCallsign: fields[18] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Airspace obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -74,7 +76,11 @@ class AirspaceAdapter extends TypeAdapter<Airspace> {
       ..writeByte(15)
       ..write(obj.validTo)
       ..writeByte(16)
-      ..write(obj.remarks);
+      ..write(obj.remarks)
+      ..writeByte(17)
+      ..write(obj.frequencies)
+      ..writeByte(18)
+      ..write(obj.primaryCallsign);
   }
 
   @override

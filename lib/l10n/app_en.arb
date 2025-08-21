@@ -5301,5 +5301,35 @@
   "noFlightPathDataAvailable": "No flight path data available",
   "@noFlightPathDataAvailable": {
     "description": "Message when no flight path data is available"
+  },
+
+  "communicationFrequencies": "Communication Frequencies",
+  "@communicationFrequencies": {
+    "description": "Title for airspace communication frequencies section"
+  },
+
+  "groundStation": "Ground Station",
+  "@groundStation": {
+    "description": "Label for ground station name"
+  },
+
+  "primaryFrequency": "Primary Frequency",
+  "@primaryFrequency": {
+    "description": "Label for primary communication frequency"
+  },
+
+  "secondaryFrequency": "Secondary Frequency",
+  "@secondaryFrequency": {
+    "description": "Label for secondary communication frequency"
+  },
+
+  "noFrequencyAvailable": "No frequency available",
+  "@noFrequencyAvailable": {
+    "description": "Message when no frequency data is available for an airspace"
+  },
+
+  "copyFrequency": "Copied frequency",
+  "@copyFrequency": {
+    "description": "Confirmation message when frequency is copied to clipboard"
   }
 }

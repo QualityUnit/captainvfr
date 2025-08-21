@@ -28,7 +28,6 @@ class FlightPlanService extends ChangeNotifier {
   final AircraftService? _aircraftService;
   FlightPlanTileDownloadService? _tileDownloadService;
   BuildContext? _context;
-  SpatialAirspaceService? _spatialAirspaceService;
   FlightPathAnalyzer? _flightPathAnalyzer;
   AirspaceProfile? _currentAirspaceProfile;
   bool _isAnalyzingProfile = false;
@@ -509,6 +508,8 @@ class FlightPlanService extends ChangeNotifier {
     _currentFlightPlan!.waypoints.add(waypoint);
     _currentFlightPlan!.modifiedAt = DateTime.now();
     notifyListeners();
+    // Refresh airspace profile when waypoints change
+    _refreshAirspaceProfileIfNeeded();
   }
 
   // Insert a waypoint at a specific index in the flight path
@@ -549,6 +550,8 @@ class FlightPlanService extends ChangeNotifier {
     _currentFlightPlan!.waypoints.insert(clampedIndex, waypoint);
     _currentFlightPlan!.modifiedAt = DateTime.now();
     notifyListeners();
+    // Refresh airspace profile when waypoints change
+    _refreshAirspaceProfileIfNeeded();
   }
 
   // Add waypoint from airport
@@ -573,6 +576,8 @@ class FlightPlanService extends ChangeNotifier {
     _currentFlightPlan!.waypoints.add(waypoint);
     _currentFlightPlan!.modifiedAt = DateTime.now();
     notifyListeners();
+    // Refresh airspace profile when waypoints change
+    _refreshAirspaceProfileIfNeeded();
   }
 
   // Add waypoint from navaid
@@ -595,6 +600,8 @@ class FlightPlanService extends ChangeNotifier {
     _currentFlightPlan!.waypoints.add(waypoint);
     _currentFlightPlan!.modifiedAt = DateTime.now();
     notifyListeners();
+    // Refresh airspace profile when waypoints change
+    _refreshAirspaceProfileIfNeeded();
   }
 
   // Add waypoint from reporting point
@@ -617,6 +624,8 @@ class FlightPlanService extends ChangeNotifier {
     _currentFlightPlan!.waypoints.add(waypoint);
     _currentFlightPlan!.modifiedAt = DateTime.now();
     notifyListeners();
+    // Refresh airspace profile when waypoints change
+    _refreshAirspaceProfileIfNeeded();
   }
 
   // Remove a waypoint by index
@@ -627,6 +636,8 @@ class FlightPlanService extends ChangeNotifier {
       _currentFlightPlan!.waypoints.removeAt(index);
       _currentFlightPlan!.modifiedAt = DateTime.now();
       notifyListeners();
+      // Refresh airspace profile when waypoints change
+      _refreshAirspaceProfileIfNeeded();
     }
   }
 
@@ -648,6 +659,8 @@ class FlightPlanService extends ChangeNotifier {
       _currentFlightPlan!.waypoints[index].altitude = altitude;
       _currentFlightPlan!.modifiedAt = DateTime.now();
       notifyListeners();
+      // Refresh airspace profile when altitude changes
+      _refreshAirspaceProfileIfNeeded();
     }
   }
 
@@ -695,6 +708,8 @@ class FlightPlanService extends ChangeNotifier {
       // Only update modified time when drag is complete
       if (!isDragging) {
         _currentFlightPlan!.modifiedAt = DateTime.now();
+        // Refresh airspace profile when position changes (after drag is complete)
+        _refreshAirspaceProfileIfNeeded();
       }
       
       notifyListeners();
@@ -939,6 +954,8 @@ class FlightPlanService extends ChangeNotifier {
     _currentFlightPlan!.waypoints[index].altitude = validatedAltitude;
     _currentFlightPlan!.modifiedAt = DateTime.now();
     notifyListeners();
+    // Refresh airspace profile when altitude changes
+    _refreshAirspaceProfileIfNeeded();
   }
 
   // Calculate achievable altitudes for all waypoints based on aircraft performance
@@ -1015,7 +1032,6 @@ class FlightPlanService extends ChangeNotifier {
 
   // Set the spatial airspace service for route analysis
   void setSpatialAirspaceService(SpatialAirspaceService service) {
-    _spatialAirspaceService = service;
     _flightPathAnalyzer = FlightPathAnalyzer(service);
   }
 

@@ -2707,4 +2707,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyzeFlightPath => 'Analyze Flight Path';
+
+  @override
+  String get communicationFrequencies => 'Communication Frequencies';
+
+  @override
+  String get groundStation => 'Ground Station';
+
+  @override
+  String get primaryFrequency => 'Primary Frequency';
+
+  @override
+  String get secondaryFrequency => 'Secondary Frequency';
+
+  @override
+  String get noFrequencyAvailable => 'No frequency available';
+
+  @override
+  String get copyFrequency => 'Copied frequency';
 }

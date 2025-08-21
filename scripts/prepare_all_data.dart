@@ -475,7 +475,8 @@ List<String> _getCsvHeaders(String dataType) {
     
     case 'airspaces':
       return ['id', 'name', 'type', 'country', 'top_altitude_ft', 
-              'bottom_altitude_ft', 'geometry_type', 'geometry'];
+              'bottom_altitude_ft', 'geometry_type', 'geometry', 
+              'primary_callsign', 'frequencies'];
     
     // Runways and frequencies would be handled here if needed
     // case 'runways':
@@ -557,11 +558,89 @@ List<dynamic>? _convertToCsvRow(Map<String, dynamic> item, String dataType) {
         final geometryStr = _encodeGeometry(geom);
         
         // FIXED: Properly parse altitude data from OpenAIP format
-        final upperLimit = props['upperLimit'];
-        final lowerLimit = props['lowerLimit'];
+        final upperLimit = props['upperLimit'] ?? item['upperLimit'];
+        final lowerLimit = props['lowerLimit'] ?? item['lowerLimit'];
         
         final upperAltitude = _parseAltitude(upperLimit);
         final lowerAltitude = _parseAltitude(lowerLimit);
+        
+        // Extract frequency data from properties
+        String primaryCallsign = '';
+        String frequenciesJson = '';
+        
+        // Check for frequency data directly on the item (OpenAIP API structure)
+        // The frequencies field is at the item level, not in properties
+        if (item['frequencies'] != null) {
+          final freqList = item['frequencies'];
+          if (freqList is List && freqList.isNotEmpty) {
+            final frequencies = <Map<String, dynamic>>[];
+            for (final freq in freqList) {
+              if (freq is Map) {
+                // Extract frequency value and convert unit if needed
+                double? freqValue;
+                if (freq['value'] != null) {
+                  freqValue = double.tryParse(freq['value'].toString());
+                }
+                
+                // Determine frequency type from available data
+                String freqType = 'COM';
+                String description = '';
+                String callsign = '';
+                
+                // Check if primary frequency
+                if (freq['primary'] == true) {
+                  freqType = 'PRIMARY';
+                }
+                
+                // Try to determine type from airspace name
+                final airspaceName = (props['name'] ?? item['name'] ?? '').toString().toUpperCase();
+                if (airspaceName.contains('CTR')) {
+                  freqType = 'CTR';
+                  callsign = 'CONTROL';
+                  description = 'Control';
+                } else if (airspaceName.contains('TMA')) {
+                  freqType = 'APP';
+                  callsign = 'APPROACH';
+                  description = 'Approach';
+                } else if (airspaceName.contains('FIR') || airspaceName.contains('UIR')) {
+                  freqType = 'CTR';
+                  callsign = 'CENTER';
+                  description = 'Center';
+                }
+                
+                if (freqValue != null && freqValue >= 118.0 && freqValue <= 137.0) {
+                  frequencies.add({
+                    'frequency': freqValue,
+                    'type': freqType,
+                    'description': description.isEmpty ? freqType : description,
+                    'callsign': callsign.isEmpty ? freqType : callsign,
+                  });
+                  
+                  // Set primary callsign from first frequency
+                  if (primaryCallsign.isEmpty) {
+                    primaryCallsign = callsign.isEmpty ? freqType : callsign;
+                  }
+                }
+              }
+            }
+            if (frequencies.isNotEmpty) {
+              frequenciesJson = json.encode(frequencies);
+            }
+          }
+        }
+        
+        // Also check remarks field for frequency information (AF/AG tags in OpenAIR format)
+        if (frequenciesJson.isEmpty && props['remarks'] != null) {
+          final remarks = props['remarks'].toString();
+          final frequencies = _parseFrequenciesFromRemarks(remarks);
+          if (frequencies.isNotEmpty) {
+            frequenciesJson = json.encode(frequencies);
+            // Extract primary callsign from first frequency
+            if (frequencies.isNotEmpty && frequencies[0]['callsign'] != null) {
+              primaryCallsign = frequencies[0]['callsign'];
+            }
+          }
+        }
         
         return [
           props['_id'] ?? '',
@@ -572,6 +651,8 @@ List<dynamic>? _convertToCsvRow(Map<String, dynamic> item, String dataType) {
           lowerAltitude ?? 0,  // Bottom altitude in feet
           geom?['type'] ?? '',
           geometryStr,
+          primaryCallsign,
+          frequenciesJson,
         ];
       
       // Runways and frequencies would be handled here if needed
@@ -709,6 +790,88 @@ Coordinates? _getCoordinates(Map<String, dynamic> item, String dataType) {
   }
   
   return null;
+}
+
+// Parse frequencies from remarks field (OpenAIR format AF/AG tags)
+List<Map<String, dynamic>> _parseFrequenciesFromRemarks(String remarks) {
+  final frequencies = <Map<String, dynamic>>[];
+  
+  // Look for AF (Airspace Frequency) tags in format: AF 123.456
+  final afPattern = RegExp(r'AF\s+(\d{3}(?:\.\d{1,3})?)', multiLine: true);
+  final afMatches = afPattern.allMatches(remarks);
+  
+  for (final match in afMatches) {
+    final freqStr = match.group(1);
+    if (freqStr != null) {
+      final frequency = double.tryParse(freqStr);
+      if (frequency != null && frequency >= 118.0 && frequency <= 137.0) {
+        frequencies.add({
+          'frequency': frequency,
+          'type': 'COM',
+          'description': 'Communication',
+          'callsign': '',
+        });
+      }
+    }
+  }
+  
+  // Look for AG (Airspace Ground station) tags for callsign
+  final agPattern = RegExp(r'AG\s+"([^"]+)"', multiLine: true);
+  final agMatch = agPattern.firstMatch(remarks);
+  if (agMatch != null && frequencies.isNotEmpty) {
+    final callsign = agMatch.group(1);
+    if (callsign != null) {
+      // Update callsign for all frequencies
+      for (final freq in frequencies) {
+        freq['callsign'] = callsign;
+      }
+    }
+  }
+  
+  // Also try to extract from common text patterns
+  if (frequencies.isEmpty) {
+    // Pattern for "XXX.XXX MHz" or "XXX.XXX"
+    final mhzPattern = RegExp(r'(\d{3}(?:\.\d{1,3})?)\s*(?:MHz|MHZ|mhz)?');
+    final mhzMatches = mhzPattern.allMatches(remarks);
+    
+    for (final match in mhzMatches) {
+      final freqStr = match.group(1);
+      if (freqStr != null) {
+        final frequency = double.tryParse(freqStr);
+        // Aviation VHF range
+        if (frequency != null && frequency >= 118.0 && frequency <= 137.0) {
+          // Try to find associated callsign/name
+          String callsign = '';
+          String type = 'COM';
+          
+          // Check for common keywords before the frequency
+          final beforeFreq = remarks.substring(0, match.start).toLowerCase();
+          if (beforeFreq.contains('tower') || beforeFreq.contains('twr')) {
+            type = 'TWR';
+            callsign = 'TOWER';
+          } else if (beforeFreq.contains('approach') || beforeFreq.contains('app')) {
+            type = 'APP';
+            callsign = 'APPROACH';
+          } else if (beforeFreq.contains('ground') || beforeFreq.contains('gnd')) {
+            type = 'GND';
+            callsign = 'GROUND';
+          } else if (beforeFreq.contains('center') || beforeFreq.contains('ctr')) {
+            type = 'CTR';
+            callsign = 'CENTER';
+          }
+          
+          frequencies.add({
+            'frequency': frequency,
+            'type': type,
+            'description': type,
+            'callsign': callsign,
+          });
+        }
+      }
+    }
+  }
+  
+  return frequencies;
 }
 
 // Get tile key for given coordinates
