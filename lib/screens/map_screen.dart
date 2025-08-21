@@ -2089,7 +2089,7 @@ class MapScreenState extends State<MapScreen>
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            airspace.name,
+                                            _getAirspaceDisplayName(airspace),
                                             style: TextStyle(
                                               color: AppColors.primaryTextColor,
                                               fontSize: fontSize,
@@ -2098,7 +2098,7 @@ class MapScreenState extends State<MapScreen>
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${AirspaceUtils.getAirspaceTypeName(airspace.type)} ${AirspaceUtils.getIcaoClassName(airspace.icaoClass)}',
+                                            AirspaceUtils.getAirspaceTypeName(airspace.type),
                                             style: TextStyle(
                                               color: AppColors.secondaryTextColor,
                                               fontSize: isPhone ? 10 : 11,
@@ -2168,55 +2168,16 @@ class MapScreenState extends State<MapScreen>
   }
 
   Color _getAirspaceColor(String? type, String? icaoClass) {
-    if (type == null) return AppColors.airspaceDefault;
-
-    switch (type.toUpperCase()) {
-      case 'CTR':
-      case 'D':
-      case 'DANGER':
-      case 'P':
-      case 'PROHIBITED':
-        return AppColors.airspaceProhibited;
-      case 'TMA':
-      case 'R':
-      case 'RESTRICTED':
-        return AppColors.airspaceRestricted;
-      case 'ATZ':
-        return AppColors.airspaceDanger;
-      case 'TSA':
-        return AppColors.airspaceMoa;
-      case 'TRA':
-        return AppColors.airspaceTraining;
-      case 'GLIDING':
-        return AppColors.airspaceGliderProhibited;
-      case 'TMZ':
-        return AppColors.airspaceWaveWindow;
-      case 'RMZ':
-        return AppColors.airspaceTransponderMandatory;
-      default:
-        // Check ICAO class if type doesn't match
-        if (icaoClass != null) {
-          switch (icaoClass.toUpperCase()) {
-            case 'A':
-              return AppColors.airspaceClassA;
-            case 'B':
-              return AppColors.airspaceClassB;
-            case 'C':
-              return AppColors.airspaceClassC;
-            case 'D':
-              return AppColors.airspaceClassD;
-            case 'E':
-              return AppColors.airspaceClassE;
-            case 'F':
-              return AppColors.airspaceClassG;
-            case 'G':
-              return AppColors.airspaceDefault;
-            default:
-              return AppColors.airspaceDefault;
-          }
-        }
-        return AppColors.airspaceDefault;
+    // Use string-based color mapping since data contains string values
+    return AirspaceUtils.getAirspaceColorByString(type, icaoClass);
+  }
+  
+  String _getAirspaceDisplayName(Airspace airspace) {
+    final icaoClass = AirspaceUtils.getIcaoClassName(airspace.icaoClass);
+    if (airspace.icaoClass != null && icaoClass != 'Unclassified') {
+      return '${airspace.name} (Class $icaoClass)';
     }
+    return airspace.name;
   }
 
   // Handle waypoint tap for selection
@@ -2811,9 +2772,15 @@ class MapScreenState extends State<MapScreen>
     try {
       final l10n = AppLocalizations.of(context)!;
       // Create a themed dialog to show airspace information
+      // Include ICAO class in title if available
+      final icaoClass = AirspaceUtils.getIcaoClassName(airspace.icaoClass);
+      final titleText = airspace.icaoClass != null && icaoClass != 'Unclassified'
+          ? '${airspace.name} (Class $icaoClass)'
+          : airspace.name;
+      
       await ThemedDialog.show(
         context: context,
-        title: airspace.name,
+        title: titleText,
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

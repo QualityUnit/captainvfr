@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 
 /// Utility functions for converting OpenAIP airspace numeric values to human-readable text
 class AirspaceUtils {
@@ -183,56 +184,135 @@ class AirspaceUtils {
     }
   }
 
-  /// Get color for airspace type and ICAO class
-  static Color getAirspaceColor(int type, int icaoClass) {
-    // Color coding based on airspace type
-    switch (type) {
-      case 0: // CTR - Control Zone
-        return Colors.red;
-      case 1: // TMA - Terminal Maneuvering Area
-        return Colors.orange;
-      case 2: // TMZ - Transponder Mandatory Zone
-        return Colors.amber;
-      case 3: // RMZ - Radio Mandatory Zone
-        return Colors.yellow.shade700;
-      case 4: // ATZ - Aerodrome Traffic Zone
-        return Colors.blue;
-      case 5: // DANGER
-        return Colors.red.shade700;
-      case 6: // PROHIBITED
-        return Colors.red.shade900;
-      case 7: // RESTRICTED
-        return Colors.orange.shade700;
-      case 8: // GLIDING
-        return Colors.green;
-      case 9: // WAVE
-        return Colors.cyan;
-      case 10: // TSA - Temporary Segregated Area
-        return Colors.purple;
-      case 11: // TRA - Temporary Reserved Area
-        return Colors.purple.shade700;
-      case 12: // MATZ - Military Aerodrome Traffic Zone
-        return Colors.blue.shade700;
-      default:
-        // Check ICAO class if type doesn't match
-        switch (icaoClass) {
-          case 0: // A
-            return Colors.red.shade800;
-          case 1: // B
-            return Colors.red.shade600;
-          case 2: // C
-            return Colors.orange.shade600;
-          case 3: // D
-            return Colors.blue.shade600;
-          case 4: // E
-            return Colors.green.shade600;
-          case 5: // F
-            return Colors.green.shade400;
-          case 6: // G
-            return Colors.white;
-          default:
-            return const Color(0x99FFFFFF);
-        }
+  /// Get color for airspace type and ICAO class following aviation standards.
+  /// 
+  /// This method handles string-based type values (e.g., "CTR", "ATZ", "DANGER")
+  /// which are commonly used in airspace data sources.
+  /// 
+  /// [type] - The airspace type as a string (e.g., "CTR", "TMA", "ATZ")
+  /// [icaoClass] - The ICAO classification if available (e.g., "A", "B", "C")
+  /// 
+  /// Returns a Color following aviation conventions:
+  /// - Red tones for restrictive airspace (CTR, prohibited, danger)
+  /// - Blue tones for controlled airspace (TMA, Class C/D)
+  /// - Green tones for less restrictive areas (gliding, Class E)
+  /// - Orange/amber for special requirements (TMZ, RMZ, restricted)
+  /// 
+  /// Falls back to light blue for unknown types to maintain visibility.
+  static Color getAirspaceColorByString(String? type, String? icaoClass) {
+    // Handle string type values (like "CTR", "ATZ", "DANGER")
+    if (type != null) {
+      switch (type.toUpperCase()) {
+        case 'CTR': // Control Zone
+          return AppColors.airspaceCTR;
+        case 'TMA': // Terminal Maneuvering Area
+          return AppColors.airspaceTMA;
+        case 'TMZ': // Transponder Mandatory Zone
+          return AppColors.airspaceTransponderMandatory;
+        case 'RMZ': // Radio Mandatory Zone
+          return AppColors.airspaceRadioMandatory;
+        case 'ATZ': // Aerodrome Traffic Zone
+          return AppColors.airspaceATZ;
+        case 'DANGER':
+        case 'D':
+          return AppColors.airspaceDanger;
+        case 'PROHIBITED':
+        case 'P':
+          return AppColors.airspaceProhibited;
+        case 'RESTRICTED':
+        case 'R':
+          return AppColors.airspaceRestricted;
+        case 'GLIDING':
+        case 'GLIDER':
+          return AppColors.airspaceGliderProhibited;
+        case 'WAVE':
+          return AppColors.airspaceWaveWindow;
+        case 'TSA': // Temporary Segregated Area
+        case 'TRA': // Temporary Reserved Area
+        case 'TRAINING':
+          return AppColors.airspaceTraining;
+        case 'MATZ': // Military Aerodrome Traffic Zone
+        case 'MTMA': // Military Terminal Maneuvering Area
+          return AppColors.airspaceMATZ;
+        case 'SPORT':
+        case 'AERIAL_SPORTING':
+        case 'RECREATIONAL':
+          return AppColors.airspaceGliderProhibited;
+        case 'WARNING':
+          return AppColors.airspaceDanger;
+        case 'FIR': // Flight Information Region
+        case 'UIR': // Upper Information Region
+          return AppColors.airspaceClassE; // Light green with transparency
+        case 'OTHER':
+          return AppColors.airspaceClassD; // Light blue for other/unknown
+      }
     }
+    
+    // Check ICAO class if available
+    if (icaoClass != null) {
+      switch (icaoClass.toUpperCase()) {
+        case 'A':
+          return AppColors.airspaceClassA;
+        case 'B':
+          return AppColors.airspaceClassB;
+        case 'C':
+          return AppColors.airspaceClassC;
+        case 'D':
+          return AppColors.airspaceClassD;
+        case 'E':
+          return AppColors.airspaceClassE;
+        case 'F':
+          return AppColors.airspaceClassF;
+        case 'G':
+          return AppColors.airspaceClassG;
+      }
+    }
+    
+    // Default to light blue for unknown types
+    return AppColors.airspaceClassD;
   }
+  
+  /// Get color for airspace type and ICAO class (numeric version).
+  /// 
+  /// This method handles numeric type codes used by some data sources.
+  /// It converts numeric codes to their string equivalents and delegates
+  /// to the string-based method to avoid code duplication.
+  /// 
+  /// [type] - The airspace type as a numeric code (0-16)
+  /// [icaoClass] - The ICAO classification as a numeric code (0-6)
+  /// 
+  /// Returns a Color following aviation conventions.
+  static Color getAirspaceColor(int type, int icaoClass) {
+    // Convert numeric type to string equivalent
+    String? typeString;
+    switch (type) {
+      case 0: typeString = 'CTR'; break;
+      case 1: typeString = 'TMA'; break;
+      case 2: typeString = 'TMZ'; break;
+      case 3: typeString = 'RMZ'; break;
+      case 4: typeString = 'ATZ'; break;
+      case 5: typeString = 'DANGER'; break;
+      case 6: typeString = 'PROHIBITED'; break;
+      case 7: typeString = 'RESTRICTED'; break;
+      case 8: typeString = 'GLIDING'; break;
+      case 9: typeString = 'WAVE'; break;
+      case 10: typeString = 'TSA'; break;
+      case 11: typeString = 'TRA'; break;
+      case 12: typeString = 'MATZ'; break;
+      case 13: typeString = 'SPORT'; break;
+      case 14: typeString = 'WARNING'; break;
+      case 15: typeString = 'TRAINING'; break;
+      case 16: typeString = 'FIR'; break;
+    }
+    
+    // Convert numeric ICAO class to string equivalent
+    String? icaoString;
+    if (icaoClass >= 0 && icaoClass <= 6) {
+      icaoString = String.fromCharCode('A'.codeUnitAt(0) + icaoClass);
+    }
+    
+    // Delegate to string-based method
+    return getAirspaceColorByString(typeString, icaoString);
+  }
+
 }

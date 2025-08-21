@@ -31,10 +31,16 @@ class MetarOverlay extends StatelessWidget {
     final bounds = mapController.camera.visibleBounds;
     final zoom = mapController.camera.zoom;
     
-    // Add padding to bounds
+    // Add padding to bounds with proper longitude wrapping
     final paddedBounds = LatLngBounds(
-      LatLng(bounds.southWest.latitude - 0.1, bounds.southWest.longitude - 0.1),
-      LatLng(bounds.northEast.latitude + 0.1, bounds.northEast.longitude + 0.1),
+      LatLng(
+        bounds.southWest.latitude - 0.1, 
+        (bounds.southWest.longitude - 0.1).clamp(-180.0, 180.0),
+      ),
+      LatLng(
+        bounds.northEast.latitude + 0.1, 
+        (bounds.northEast.longitude + 0.1).clamp(-180.0, 180.0),
+      ),
     );
 
     final visibleAirportsWithMetar = airports

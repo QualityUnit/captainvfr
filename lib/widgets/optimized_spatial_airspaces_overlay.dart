@@ -10,6 +10,12 @@ import '../constants/app_theme.dart';
 
 /// Optimized airspace overlay with proper debouncing and performance improvements
 class OptimizedSpatialAirspacesOverlay extends StatefulWidget {
+  // Constants for altitude-based opacity calculations
+  static const double altitudeChangeThreshold = 100.0; // Rebuild threshold in feet
+  static const double fadeStartDistance = 500.0; // Start fading after this distance
+  static const double fadeEndDistance = 5000.0; // Minimum opacity at this distance
+  static const double minAltitudeOpacity = 0.2; // Minimum 20% opacity for distant airspaces
+  
   final SpatialAirspaceService spatialService;
   final bool showAirspacesLayer;
   final Function(Airspace) onAirspaceTap;
@@ -78,6 +84,15 @@ class _OptimizedSpatialAirspacesOverlayState
     } else if (widget.showAirspacesLayer && !oldWidget.showAirspacesLayer) {
       // Load airspaces when layer is shown
       _checkAndUpdateAirspaces();
+    }
+    
+    // Rebuild polygons if altitude changed significantly
+    if (widget.showAirspacesLayer && 
+        (widget.currentAltitude - oldWidget.currentAltitude).abs() > 
+        OptimizedSpatialAirspacesOverlay.altitudeChangeThreshold) {
+      setState(() {
+        // Triggers rebuild to update altitude-based opacity values
+      });
     }
   }
 
@@ -227,11 +242,17 @@ class _OptimizedSpatialAirspacesOverlayState
     }
 
     try {
-      // Add padding to bounds for smoother scrolling
+      // Add padding to bounds for smoother scrolling with proper longitude wrapping
       final padding = _calculateBoundsPadding(zoom);
       final paddedBounds = LatLngBounds(
-        LatLng(bounds.southWest.latitude - padding, bounds.southWest.longitude - padding),
-        LatLng(bounds.northEast.latitude + padding, bounds.northEast.longitude + padding),
+        LatLng(
+          bounds.southWest.latitude - padding, 
+          (bounds.southWest.longitude - padding).clamp(-180.0, 180.0),
+        ),
+        LatLng(
+          bounds.northEast.latitude + padding, 
+          (bounds.northEast.longitude + padding).clamp(-180.0, 180.0),
+        ),
       );
 
       // Use spatial service for ultra-fast queries
@@ -278,24 +299,98 @@ class _OptimizedSpatialAirspacesOverlayState
   }
 
   Polygon _buildPolygon(Airspace airspace, double zoom) {
-    // Parse type and class to integers for color determination
-    final typeInt = int.tryParse(airspace.type ?? '') ?? 0;
-    final classInt = int.tryParse(airspace.icaoClass ?? '') ?? 0;
-    
-    final color = AirspaceUtils.getAirspaceColor(typeInt, classInt);
-    final opacity = _calculateOpacity(airspace, zoom);
+    // Use string-based color selection since the data contains string type values
+    final color = AirspaceUtils.getAirspaceColorByString(airspace.type, airspace.icaoClass);
+    final baseOpacity = _calculateFillOpacity(airspace);
+    final altitudeOpacity = _calculateAltitudeBasedOpacity(airspace);
+    final finalOpacity = baseOpacity * altitudeOpacity;
+    final borderOpacity = _calculateBorderOpacity(airspace) * (0.5 + altitudeOpacity * 0.5); // Borders also fade but remain visible
 
     return Polygon(
       points: airspace.geometry,
-      color: color.withValues(alpha: opacity * 0.2), // 20% opacity for 50% map visibility
-      borderColor: color.withValues(alpha: 0.8), // Slightly transparent borders
+      color: color.withValues(alpha: finalOpacity), 
+      borderColor: color.withValues(alpha: borderOpacity),
       borderStrokeWidth: zoom > 12 ? 2.0 : 1.5,
       hitValue: airspace,
     );
   }
 
-  double _calculateOpacity(Airspace airspace, double zoom) {
-    // Fixed opacity - ensures consistent map visibility at all zoom levels
-    return 0.5;
+  double _calculateFillOpacity(Airspace airspace) {
+    // Special handling for Class E airspaces - make them more transparent
+    if (airspace.icaoClass == '4' || airspace.icaoClass?.toUpperCase() == 'E') {
+      return 0.15; // 15% opacity for Class E airspaces
+    }
+    
+    // Different opacity based on airspace type (string values)
+    final type = airspace.type?.toUpperCase();
+    if (type == 'CTR' || type == 'ATZ') { // Control zones
+      return 0.35; // 35% opacity for control zones
+    }
+    if (type == 'DANGER' || type == 'PROHIBITED' || type == 'RESTRICTED') { // Danger areas
+      return 0.4; // 40% opacity for danger areas
+    }
+    if (type == 'FIR' || type == 'UIR') { // Flight Information Regions
+      return 0.1; // 10% opacity for FIR (very transparent)
+    }
+    if (type == 'GLIDING' || type == 'SPORT') { // Sporting/recreational areas
+      return 0.25; // 25% opacity
+    }
+    
+    // Regular fill opacity for other airspaces
+    return 0.3; // 30% opacity for better visibility
+  }
+  
+  double _calculateBorderOpacity(Airspace airspace) {
+    // Strong borders for all airspaces to make them clearly visible
+    return 0.9; // 90% opacity for borders
+  }
+  
+  /// Calculates opacity based on vertical distance from the airspace.
+  /// 
+  /// This creates a smooth fade effect where:
+  /// - Airspaces at current altitude are fully visible (100% opacity)
+  /// - Airspaces within 500ft are fully visible
+  /// - Airspaces 500-5000ft away fade gradually
+  /// - Airspaces beyond 5000ft maintain minimum visibility (20% opacity)
+  /// 
+  /// This helps pilots focus on relevant airspaces while maintaining
+  /// situational awareness of all surrounding airspace.
+  double _calculateAltitudeBasedOpacity(Airspace airspace) {
+    // If no altitude limits are defined, show at full opacity
+    if (airspace.lowerLimitFt == null || airspace.upperLimitFt == null) {
+      return 1.0;
+    }
+    
+    final currentAlt = widget.currentAltitude;
+    final lowerLimit = airspace.lowerLimitFt!;
+    final upperLimit = airspace.upperLimitFt!;
+    
+    // If current altitude is within the airspace, full opacity
+    if (currentAlt >= lowerLimit && currentAlt <= upperLimit) {
+      return 1.0;
+    }
+    
+    // Calculate distance from airspace
+    double distanceFromAirspace;
+    if (currentAlt < lowerLimit) {
+      // Below the airspace
+      distanceFromAirspace = lowerLimit - currentAlt;
+    } else {
+      // Above the airspace
+      distanceFromAirspace = currentAlt - upperLimit;
+    }
+    
+    // Calculate opacity based on distance using class constants
+    if (distanceFromAirspace <= OptimizedSpatialAirspacesOverlay.fadeStartDistance) {
+      return 1.0; // Full opacity within fade start distance
+    } else if (distanceFromAirspace >= OptimizedSpatialAirspacesOverlay.fadeEndDistance) {
+      return OptimizedSpatialAirspacesOverlay.minAltitudeOpacity; // Minimum opacity beyond fade end distance
+    } else {
+      // Linear interpolation between fadeStartDistance and fadeEndDistance
+      final fadeRange = OptimizedSpatialAirspacesOverlay.fadeEndDistance - 
+                       OptimizedSpatialAirspacesOverlay.fadeStartDistance;
+      final fadeProgress = (distanceFromAirspace - OptimizedSpatialAirspacesOverlay.fadeStartDistance) / fadeRange;
+      return 1.0 - (fadeProgress * (1.0 - OptimizedSpatialAirspacesOverlay.minAltitudeOpacity));
+    }
   }
 }
