@@ -358,7 +358,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> with SingleTi
       children: [
         // Tab bar
         Container(
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withValues(alpha: 0.8),
           child: TabBar(
             controller: _tabController,
             indicatorColor: Colors.orange,
@@ -676,7 +676,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> with SingleTi
               icon: const Icon(Icons.refresh, size: 20),
               label: Text(l10n.analyzeFlightPath),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange.withOpacity(0.8),
+                backgroundColor: Colors.orange.withValues(alpha: 0.8),
                 foregroundColor: Colors.white,
               ),
             ),
@@ -685,13 +685,10 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> with SingleTi
       );
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // The altitude profile chart
-          AltitudeProfileChart(
-            airspaceProfile: profile,
-            showMetric: settings.altitudeUnit == 'meters',
+    // Use the full available height without scrolling
+    return AltitudeProfileChart(
+      airspaceProfile: profile,
+      showMetric: settings.altitudeUnit == 'meters',
             onPointSelected: (point, airspaces) {
               // Handle point selection and notify map
               debugPrint('Selected point at ${point.distanceNm} nm, ${point.altitudeFt} ft');
@@ -714,90 +711,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> with SingleTi
               debugPrint('Selected airspace: ${airspace.name}');
               // TODO: Highlight airspace on map
             },
-          ),
-          
-          // Removed airspace crossing details table - now visualized in chart
-          if (false)
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${l10n.airspaceCrossings} (${profile.airspaceCrossings.length})',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...profile.airspaceCrossings.take(5).map((crossing) {
-                    final isConflict = crossing.checkAltitudeConflict();
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isConflict 
-                          ? Colors.red.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isConflict 
-                            ? Colors.red.withOpacity(0.5)
-                            : Colors.grey.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              if (isConflict)
-                                const Icon(Icons.warning, color: Colors.red, size: 16),
-                              if (isConflict)
-                                const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  crossing.airspace.name,
-                                  style: TextStyle(
-                                    color: isConflict ? Colors.red : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Entry: ${crossing.entryDistanceNm.toStringAsFixed(1)} nm at ${crossing.entryAltitudeFt.toStringAsFixed(0)} ft',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                          ),
-                          Text(
-                            'Exit: ${crossing.exitDistanceNm.toStringAsFixed(1)} nm at ${crossing.exitAltitudeFt.toStringAsFixed(0)} ft',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                          ),
-                          Text(
-                            'Limits: ${(crossing.airspace.lowerLimitFt ?? 0).toStringAsFixed(0)}-${(crossing.airspace.upperLimitFt ?? 99999).toStringAsFixed(0)} ft',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  if (profile.airspaceCrossings.length > 5)
-                    Center(
-                      child: Text(
-                        '... and ${profile.airspaceCrossings.length - 5} more',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
+          );
   }
   
   // Open flight plans screen to load a flight plan

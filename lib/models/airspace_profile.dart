@@ -1,6 +1,5 @@
 import 'package:latlong2/latlong.dart';
 import 'airspace.dart';
-import 'flight_plan.dart';
 
 /// Represents a point along the flight path with altitude and airspace information
 class ProfilePoint {

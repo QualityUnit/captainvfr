@@ -90,12 +90,8 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
       );
     }
     
-    // Dynamic height based on whether airspaces are selected
-    final hasSelectedAirspaces = _airspacesAtSelectedPoint.isNotEmpty && _selectedPoint != null;
-    final containerHeight = hasSelectedAirspaces ? 500.0 : 350.0;
-    
+    // Remove fixed height container - use full available space from parent
     return Container(
-      height: containerHeight,
       color: Colors.black,
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -126,6 +122,7 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
           
           // The chart with custom paint for airspaces
           Expanded(
+            flex: 3, // Give more space to the chart
             child: Stack(
               children: [
                 // Custom painter for airspace rectangles
@@ -153,7 +150,8 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
           
           // Show all airspaces at selected point
           if (_airspacesAtSelectedPoint.isNotEmpty && _selectedPoint != null)
-            Flexible(
+            Expanded(
+              flex: 2, // Give more space to the airspace list
               child: Container(
                 margin: const EdgeInsets.only(top: 8),
                 padding: const EdgeInsets.all(8),
@@ -167,24 +165,28 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Header row (fixed)
                     Row(
                       children: [
                         Icon(Icons.layers, color: Colors.orange[400], size: 20),
                         const SizedBox(width: 8),
-                        Text(
-                          'Airspaces at ${_selectedPoint!.distanceNm.toStringAsFixed(1)} nm, ${_selectedPoint!.altitudeFt.toStringAsFixed(0)} ft',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                        Expanded(
+                          child: Text(
+                            'Airspaces at ${_selectedPoint!.distanceNm.toStringAsFixed(1)} nm, ${_selectedPoint!.altitudeFt.toStringAsFixed(0)} ft',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Flexible(
+                    // Scrollable list (uses remaining space)
+                    Expanded(
                       child: SingleChildScrollView(
                         child: Column(
                           children: _buildAirspaceList(),

@@ -9,6 +9,7 @@ import 'package:flutter_map/flutter_map.dart';
 import '../models/navaid.dart';
 import '../models/airport.dart';
 import '../models/airspace.dart';
+import '../models/airspace_frequency.dart';
 import '../models/reporting_point.dart';
 import '../models/obstacle.dart';
 import '../models/hotspot.dart';
@@ -775,6 +776,47 @@ class TiledDataLoader {
         }
       }
       
+      // Parse frequency data from CSV if available (columns 8+ would contain frequency data)
+      List<AirspaceFrequency>? frequencies;
+      String? primaryCallsign;
+      
+      // Check if we have frequency data in additional columns
+      if (row.length > 8) {
+        // Column 8: primary callsign
+        // Column 9+: frequency data as JSON strings
+        if (row[8] != null && row[8].toString().isNotEmpty && row[8].toString() != 'null') {
+          primaryCallsign = row[8].toString();
+        }
+        
+        if (row.length > 9 && row[9] != null && row[9].toString().isNotEmpty && row[9].toString() != 'null') {
+          try {
+            // Parse frequency data from JSON string
+            final freqDataStr = row[9].toString();
+            if (freqDataStr.startsWith('[')) {
+              final freqList = json.decode(freqDataStr) as List;
+              frequencies = [];
+              for (final freqData in freqList) {
+                if (freqData is Map<String, dynamic>) {
+                  final freq = AirspaceFrequency(
+                    frequency: (freqData['frequency'] ?? 0).toDouble(),
+                    type: freqData['type'] ?? '',
+                    description: freqData['description'] ?? '',
+                    callsign: freqData['callsign'] ?? '',
+                  );
+                  if (freq.isValidAviationFrequency) {
+                    frequencies.add(freq);
+                  }
+                }
+              }
+              if (frequencies.isEmpty) frequencies = null;
+            }
+          } catch (e) {
+            // Failed to parse frequency data
+            _logger.w('Failed to parse frequency data for airspace ${row[1]}: $e');
+          }
+        }
+      }
+      
       return Airspace(
         id: row[0].toString(),
         name: row[1].toString(),
@@ -786,6 +828,8 @@ class TiledDataLoader {
         // Default references to MSL for CSV data
         upperLimitReference: topAltitude != null ? 'MSL' : null,
         lowerLimitReference: bottomAltitude != null ? 'MSL' : null,
+        frequencies: frequencies,
+        primaryCallsign: primaryCallsign,
       );
     } catch (e) {
       _logger.e('Error parsing airspace row: $e');

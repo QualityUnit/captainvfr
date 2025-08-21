@@ -48,20 +48,24 @@ class AirspaceFrequencyDisplay extends StatelessWidget {
           color: Colors.orange,
         ),
         const SizedBox(width: 6),
-        Text(
-          l10n.communicationFrequencies,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+        Expanded(
+          child: Text(
+            l10n.communicationFrequencies,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         if (showCallsign && airspace.primaryCallsign != null) ...[
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.2),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(3),
               border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
             ),
@@ -72,7 +76,10 @@ class AirspaceFrequencyDisplay extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
+          ),
           ),
         ],
       ],

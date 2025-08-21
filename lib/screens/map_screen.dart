@@ -172,7 +172,10 @@ class MapScreenState extends State<MapScreen>
   // Altitude profile selection state
   LatLng? _profileSelectedPoint;
   double? _profileSelectedAltitude;
-  double? _profileSelectedDistance;
+  // Note: _profileSelectedDistance is stored but not currently used in the UI
+  // It could be used to show distance info on the map in the future
+  // ignore: unused_field
+  double? _profileSelectedDistance; // Distance along the flight path
 
   // Location and map state
   Position? _currentPosition;
