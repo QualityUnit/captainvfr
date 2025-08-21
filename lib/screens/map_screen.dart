@@ -3877,7 +3877,7 @@ class MapScreenState extends State<MapScreen>
                 return Positioned(
                   left: position.dx,
                   bottom: position.dy,
-              child: Draggable<String>(
+                  child: Draggable<String>(
                 data: 'airspace_panel',
                 feedback: Material(
                   color: Colors.transparent,
@@ -3949,28 +3949,23 @@ class MapScreenState extends State<MapScreen>
                     final panelWidth = isPhone
                         ? screenSize.width - 16
                         : (isTablet ? 500 : 600);
-                    final panelHeight = 200; // Approximate panel height
+                    final panelHeight = 250; // Approximate panel height
 
                     // Convert screen coordinates to bottom-relative positioning
                     double bottomDistance =
                         screenSize.height - newY - panelHeight;
 
-                    // Constrain horizontal position based on device type
-                    if (isPhone) {
-                      // On phones, keep it centered
-                      newX = 0;
-                    } else {
-                      // On tablets/desktop, allow horizontal movement
-                      newX = newX.clamp(
-                        0.0,
-                        screenSize.width - panelWidth - 16,
-                      );
-                    }
+                    // Allow free horizontal movement on all devices
+                    // Constrain to keep panel visible on screen
+                    newX = newX.clamp(
+                      -panelWidth + 50, // Allow partial off-screen to the left
+                      screenSize.width - 50, // Allow partial off-screen to the right
+                    );
 
-                    // Constrain vertical position
+                    // Constrain vertical position to keep panel on screen
                     bottomDistance = bottomDistance.clamp(
-                      10.0,
-                      screenSize.height - panelHeight - 100,
+                      -panelHeight + 50, // Allow partial off-screen at bottom
+                      screenSize.height - 100, // Keep some space from top
                     );
 
                     _airspacePanelPosition = Offset(newX, bottomDistance);
@@ -4033,7 +4028,7 @@ class MapScreenState extends State<MapScreen>
                   ),
                 ),
               ),
-            );
+                );
               },
             ),
           
