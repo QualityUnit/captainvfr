@@ -4083,6 +4083,36 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
 
+          // Search button in top-right corner (left of menu)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 76, // 16 (menu margin) + 48 (menu width) + 12 (spacing)
+            child: GestureDetector(
+              onTap: () {
+                debugPrint('Search button tapped');
+                _showAirportSearch();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.9),
+                  borderRadius: AppTheme.largeRadius,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.search,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
           // Menu button in top-right corner
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
@@ -4623,14 +4653,6 @@ class MapScreenState extends State<MapScreen>
           ),
         ),
         const SizedBox(height: 12),
-        _buildMenuItem(
-          icon: Icons.search,
-          label: l10n.search,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _showAirportSearch();
-          },
-        ),
         _buildMenuItem(
           icon: _positionTrackingEnabled ? Icons.my_location : Icons.location_searching,
           label: l10n.center,
