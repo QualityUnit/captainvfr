@@ -279,34 +279,43 @@ class _OptimizedSpatialAirspacesOverlayState
 
   Polygon _buildPolygon(Airspace airspace, double zoom) {
     // Parse type and class to integers for color determination
-    final typeInt = int.tryParse(airspace.type ?? '') ?? 0;
-    final classInt = int.tryParse(airspace.icaoClass ?? '') ?? 0;
+    final typeInt = int.tryParse(airspace.type ?? '') ?? -1;
+    final classInt = int.tryParse(airspace.icaoClass ?? '') ?? -1;
     
     final color = AirspaceUtils.getAirspaceColor(typeInt, classInt);
-    final opacity = _calculateOpacity(airspace, zoom);
     final fillOpacity = _calculateFillOpacity(airspace);
+    final borderOpacity = _calculateBorderOpacity(airspace);
 
     return Polygon(
       points: airspace.geometry,
-      color: color.withValues(alpha: opacity * fillOpacity), 
-      borderColor: color.withValues(alpha: 0.8), // Slightly transparent borders
+      color: color.withValues(alpha: fillOpacity), 
+      borderColor: color.withValues(alpha: borderOpacity),
       borderStrokeWidth: zoom > 12 ? 2.0 : 1.5,
       hitValue: airspace,
     );
   }
 
-  double _calculateOpacity(Airspace airspace, double zoom) {
-    // Fixed opacity - ensures consistent map visibility at all zoom levels
-    return 0.5;
-  }
-
   double _calculateFillOpacity(Airspace airspace) {
     // Special handling for Class E airspaces - make them more transparent
     if (airspace.icaoClass == '4' || airspace.icaoClass?.toUpperCase() == 'E') {
-      return 0.3; // 30% opacity for Class E airspaces
+      return 0.15; // 15% opacity for Class E airspaces
+    }
+    
+    // Different opacity based on airspace type
+    final type = airspace.type;
+    if (type == '0' || type == '4') { // CTR or ATZ
+      return 0.35; // 35% opacity for control zones
+    }
+    if (type == '5' || type == '6' || type == '7') { // Danger, Prohibited, Restricted
+      return 0.4; // 40% opacity for danger areas
     }
     
     // Regular fill opacity for other airspaces
-    return 0.2; // 20% opacity for better map visibility
+    return 0.3; // 30% opacity for better visibility
+  }
+  
+  double _calculateBorderOpacity(Airspace airspace) {
+    // Strong borders for all airspaces to make them clearly visible
+    return 0.9; // 90% opacity for borders
   }
 }

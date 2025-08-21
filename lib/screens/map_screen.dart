@@ -2168,62 +2168,11 @@ class MapScreenState extends State<MapScreen>
   }
 
   Color _getAirspaceColor(String? type, String? icaoClass) {
-    if (type == null) return AppColors.airspaceDefault;
-
-    switch (type.toUpperCase()) {
-      case 'CTR':
-        return AppColors.airspaceCTR;
-      case 'TMA':
-        return AppColors.airspaceTMA;
-      case 'ATZ':
-        return AppColors.airspaceATZ;
-      case 'TMZ':
-        return AppColors.airspaceTransponderMandatory;
-      case 'RMZ':
-        return AppColors.airspaceRadioMandatory;
-      case 'D':
-      case 'DANGER':
-        return AppColors.airspaceDanger;
-      case 'P':
-      case 'PROHIBITED':
-        return AppColors.airspaceProhibited;
-      case 'R':
-      case 'RESTRICTED':
-        return AppColors.airspaceRestricted;
-      case 'TSA':
-      case 'TRA':
-      case 'TRAINING':
-        return AppColors.airspaceTraining;
-      case 'GLIDING':
-        return AppColors.airspaceGliderProhibited;
-      case 'WAVE':
-        return AppColors.airspaceWaveWindow;
-      case 'MATZ':
-        return AppColors.airspaceMATZ;
-      default:
-        // Check ICAO class if type doesn't match
-        if (icaoClass != null) {
-          switch (icaoClass.toUpperCase()) {
-            case 'A':
-              return AppColors.airspaceClassA;
-            case 'B':
-              return AppColors.airspaceClassB;
-            case 'C':
-              return AppColors.airspaceClassC;
-            case 'D':
-              return AppColors.airspaceClassD;
-            case 'E':
-              return AppColors.airspaceClassE;
-            case 'F':
-              return AppColors.airspaceClassF;
-            case 'G':
-              return AppColors.airspaceClassG;
-            default:
-              return AppColors.airspaceDefault;
-          }
-        }
-        return AppColors.airspaceDefault;
-    }
+    // Convert to integers for consistent color mapping
+    final typeInt = int.tryParse(type ?? '') ?? -1;
+    final classInt = int.tryParse(icaoClass ?? '') ?? -1;
+    
+    return AirspaceUtils.getAirspaceColor(typeInt, classInt);
   }
 
   // Handle waypoint tap for selection
