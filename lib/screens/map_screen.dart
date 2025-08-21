@@ -85,6 +85,14 @@ class MapScreen extends StatefulWidget {
 
 class MapScreenState extends State<MapScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+  // UI Constants
+  static const double _airspacePanelHeight = 250.0;
+  static const double _airspacePanelBottomOffset = 350.0;
+  static const double _minPanelVisibility = 50.0;
+  static const double _menuButtonWidth = 48.0;
+  static const double _menuButtonMargin = 16.0;
+  static const double _buttonSpacing = 12.0;
+  
   // Logger
   final Logger _logger = Logger(level: Level.warning);
   
@@ -534,7 +542,7 @@ class MapScreenState extends State<MapScreen>
       // Adjust airspace panel position for screen size changes
       if (_airspacePanelPosition != null) {
         final panelWidth = screenSize.width < 600 ? screenSize.width - 16 : 600;
-        final panelHeight = 250; // Approximate panel height
+        final panelHeight = _airspacePanelHeight;
         
         // Clamp position to keep panel visible after screen resize
         double newX = _airspacePanelPosition!.dx;
@@ -882,6 +890,34 @@ class MapScreenState extends State<MapScreen>
       }
     } catch (e) {
       // If there's an error loading, keep the default state (collapsed)
+    }
+  }
+
+  // Load airspace panel position from SharedPreferences
+  Future<void> _loadAirspacePanelPosition() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final x = prefs.getDouble(MapConstants.keyAirspacePanelPositionX);
+      final y = prefs.getDouble(MapConstants.keyAirspacePanelPositionY);
+      
+      if (x != null && y != null && mounted) {
+        setState(() {
+          _airspacePanelPosition = Offset(x, y);
+        });
+      }
+    } catch (e) {
+      // If there's an error loading, use default position
+    }
+  }
+
+  // Save airspace panel position to SharedPreferences
+  Future<void> _saveAirspacePanelPosition(Offset position) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(MapConstants.keyAirspacePanelPositionX, position.dx);
+      await prefs.setDouble(MapConstants.keyAirspacePanelPositionY, position.dy);
+    } catch (e) {
+      // Silently fail if unable to save
     }
   }
 
@@ -1676,7 +1712,7 @@ class MapScreenState extends State<MapScreen>
     final leftPosition = (screenSize.width - panelWidth) / 2;
     
     // Position from top - place it near bottom of screen
-    final topPosition = screenSize.height - 350; // 350px from bottom
+    final topPosition = screenSize.height - _airspacePanelBottomOffset;
     
     final centeredPosition = Offset(leftPosition, topPosition);
     
@@ -3960,23 +3996,25 @@ class MapScreenState extends State<MapScreen>
                     final panelWidth = isPhone
                         ? screenSize.width - 16
                         : (isTablet ? 500 : 600);
-                    final panelHeight = 250; // Approximate panel height
+                    final panelHeight = _airspacePanelHeight;
 
                     // Allow free horizontal movement on all devices
                     // Constrain to keep panel visible on screen
                     newX = newX.clamp(
-                      -panelWidth + 50, // Allow partial off-screen to the left
-                      screenSize.width - 50, // Allow partial off-screen to the right
+                      -panelWidth + _minPanelVisibility, // Allow partial off-screen to the left
+                      screenSize.width - _minPanelVisibility, // Allow partial off-screen to the right
                     );
 
                     // Allow free vertical movement
                     // Constrain to keep panel visible on screen
                     newY = newY.clamp(
-                      -panelHeight + 50, // Allow partial off-screen at top
-                      screenSize.height - 50, // Allow partial off-screen at bottom
+                      -panelHeight + _minPanelVisibility, // Allow partial off-screen at top
+                      screenSize.height - _minPanelVisibility, // Allow partial off-screen at bottom
                     );
 
                     _airspacePanelPosition = Offset(newX, newY);
+                    // Save position to SharedPreferences
+                    _saveAirspacePanelPosition(_airspacePanelPosition!);
                   });
                 },
                 child: Container(
@@ -4080,10 +4118,9 @@ class MapScreenState extends State<MapScreen>
           // Search button in top-right corner (left of menu)
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
-            right: 76, // 16 (menu margin) + 48 (menu width) + 12 (spacing)
+            right: _menuButtonMargin + _menuButtonWidth + _buttonSpacing,
             child: GestureDetector(
               onTap: () {
-                debugPrint('Search button tapped');
                 _showAirportSearch();
               },
               child: Container(
@@ -4598,7 +4635,8 @@ class MapScreenState extends State<MapScreen>
                 setState(() {
                   _showCurrentAirspacePanel = !_showCurrentAirspacePanel;
                   if (_showCurrentAirspacePanel) {
-                    _airspacePanelPosition = null;
+                    // Load saved position when showing panel
+                    _loadAirspacePanelPosition();
                   }
                 });
               },

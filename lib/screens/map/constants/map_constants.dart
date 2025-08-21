@@ -5,6 +5,8 @@ class MapConstants {
 
   // SharedPreferences keys
   static const String keyFlightPlanningExpanded = 'flight_planning_expanded';
+  static const String keyAirspacePanelPositionX = 'airspace_panel_position_x';
+  static const String keyAirspacePanelPositionY = 'airspace_panel_position_y';
   
   // Map operation constants
   static const double boundsPaddingFactor = 0.1;  // 10% padding for flight plan bounds
