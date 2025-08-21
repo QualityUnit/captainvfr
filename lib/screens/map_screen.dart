@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'flight_log_screen.dart';
-import 'flight_plans_screen.dart';
 import 'aircraft_settings_screen.dart';
 import 'checklist_settings_screen.dart';
 import 'calculators_screen.dart';
@@ -1672,14 +1671,6 @@ class MapScreenState extends State<MapScreen>
     
     return centeredPosition;
   }
-
-  // Toggle flight dashboard visibility
-  void _toggleStats() {
-    setState(() {
-      _mapStateController.toggleStats();
-    });
-  }
-
 
 
   // Toggle heliport visibility
@@ -4609,27 +4600,6 @@ class MapScreenState extends State<MapScreen>
                 });
               },
             ),
-            _buildMenuToggleButton(
-              icon: _showFlightPlanning
-                  ? Icons.route
-                  : Icons.route_outlined,
-              label: l10n.planning,
-              isActive: _showFlightPlanning,
-              onPressed: () {
-                setState(() {
-                  _showFlightPlanning = !_showFlightPlanning;
-                  if (_showFlightPlanning &&
-                      _flightPlanService.currentFlightPlan == null) {
-                    _flightPlanService.createNewFlightPlan(
-                      enablePlanning: false,
-                    );
-                  }
-                  if (_flightPlanService.currentFlightPlan != null) {
-                    _flightPlanService.setFlightPlanVisibility(true);
-                  }
-                });
-              },
-            ),
           ],
         ),
         
@@ -4665,15 +4635,6 @@ class MapScreenState extends State<MapScreen>
           },
         ),
         _buildMenuItem(
-          icon: _mapStateController.showStats ? Icons.dashboard : Icons.dashboard_outlined,
-          label: l10n.flight,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _toggleStats();
-          },
-        ),
-
-        _buildMenuItem(
           icon: Icons.flight_takeoff,
           label: l10n.flightLog,
           onPressed: () {
@@ -4697,20 +4658,6 @@ class MapScreenState extends State<MapScreen>
               context,
               MaterialPageRoute(
                 builder: (context) => const LogBookScreen(),
-              ),
-            ).then((_) => _resumeAllTimers());
-          },
-        ),
-        _buildMenuItem(
-          icon: Icons.route,
-          label: l10n.planning,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _pauseAllTimers();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const FlightPlansScreen(),
               ),
             ).then((_) => _resumeAllTimers());
           },
