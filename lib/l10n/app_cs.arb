@@ -894,5 +894,12 @@
   "skipped": "{skipped}",
   "unit": "{unit}",
   "url": "{url}",
-  "value": "{value}"
+  "value": "{value}",
+
+  "communicationFrequencies": "Komunikační frekvence",
+  "groundStation": "Pozemní stanice",
+  "primaryFrequency": "Primární frekvence",
+  "secondaryFrequency": "Sekundární frekvence",
+  "noFrequencyAvailable": "Frekvence není k dispozici",
+  "copyFrequency": "Frekvence zkopírována"
 }

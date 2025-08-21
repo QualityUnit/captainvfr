@@ -2722,4 +2722,22 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get analyzeFlightPath => 'Analyzovat letovou trasu';
+
+  @override
+  String get communicationFrequencies => 'Komunikační frekvence';
+
+  @override
+  String get groundStation => 'Pozemní stanice';
+
+  @override
+  String get primaryFrequency => 'Primární frekvence';
+
+  @override
+  String get secondaryFrequency => 'Sekundární frekvence';
+
+  @override
+  String get noFrequencyAvailable => 'Frekvence není k dispozici';
+
+  @override
+  String get copyFrequency => 'Frekvence zkopírována';
 }

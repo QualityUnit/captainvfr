@@ -56,6 +56,7 @@ import '../widgets/license_warning_widget.dart';
 import '../widgets/floating_waypoint_panel.dart';
 import '../widgets/optimized_spatial_airspaces_overlay.dart';
 import '../widgets/airspace_flight_info.dart';
+import '../widgets/airspace_frequency_display.dart';
 import '../utils/frame_aware_scheduler.dart';
 import '../widgets/sensor_notification_widget.dart';
 import '../utils/performance_monitor.dart';
@@ -2832,9 +2833,17 @@ class MapScreenState extends State<MapScreen>
             _buildThemedInfoRow(l10n.altitude, airspace.altitudeRange),
             if (airspace.country != null)
               _buildThemedInfoRow(l10n.country, airspace.country!),
-            // Extract and display frequency if available in remarks
-            if (airspace.remarks != null &&
+            // Display frequency information using the new widget
+            if (airspace.hasFrequencyInfo) ...[
+              const SizedBox(height: 8),
+              AirspaceFrequencyDisplay(
+                airspace: airspace,
+                showDetails: true,
+                showCallsign: true,
+              ),
+            ] else if (airspace.remarks != null &&
                 _extractFrequency(airspace.remarks!) != null)
+              // Fallback to old frequency extraction from remarks
               _buildThemedInfoRow(
                 'Frequency',
                 _extractFrequency(airspace.remarks!)!,

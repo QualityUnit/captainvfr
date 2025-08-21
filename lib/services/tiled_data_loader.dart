@@ -653,6 +653,7 @@ class TiledDataLoader {
     try {
       // CSV headers: ['id', 'name', 'type', 'country', 'top_altitude_ft', 
       //               'bottom_altitude_ft', 'geometry_type', 'geometry']
+      // Future: frequency data could be added as additional columns
 
       
       // Parse geometry from encoded string

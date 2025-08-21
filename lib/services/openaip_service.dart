@@ -504,6 +504,29 @@ class OpenAIPService {
   
   // ============== OpenAIP Airport/Runway/Frequency API Methods ==============
   
+  /// Get enhanced airspace data with frequency information (future enhancement)
+  /// Currently uses tiled data, but could be enhanced with API calls for frequency data
+  Future<List<Airspace>> getEnhancedAirspacesForArea({
+    required double minLat,
+    required double maxLat,
+    required double minLon,
+    required double maxLon,
+  }) async {
+    // For now, use the existing tiled data loader
+    // In the future, this could be enhanced with API calls to get frequency data
+    final airspaces = await getAirspacesForArea(
+      minLat: minLat,
+      maxLat: maxLat,
+      minLon: minLon,
+      maxLon: maxLon,
+    );
+    
+    // TODO: When OpenAIP API provides airspace frequency data,
+    // enhance each airspace with frequency information here
+    
+    return airspaces;
+  }
+  
   /// Rate-limited API call helper
   Future<void> _enforceRateLimit() async {
     if (_lastApiCall != null) {

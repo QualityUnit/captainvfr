@@ -5081,6 +5081,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analyze Flight Path'**
   String get analyzeFlightPath;
+
+  /// Title for airspace communication frequencies section
+  ///
+  /// In en, this message translates to:
+  /// **'Communication Frequencies'**
+  String get communicationFrequencies;
+
+  /// Label for ground station name
+  ///
+  /// In en, this message translates to:
+  /// **'Ground Station'**
+  String get groundStation;
+
+  /// Label for primary communication frequency
+  ///
+  /// In en, this message translates to:
+  /// **'Primary Frequency'**
+  String get primaryFrequency;
+
+  /// Label for secondary communication frequency
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary Frequency'**
+  String get secondaryFrequency;
+
+  /// Message when no frequency data is available for an airspace
+  ///
+  /// In en, this message translates to:
+  /// **'No frequency available'**
+  String get noFrequencyAvailable;
+
+  /// Confirmation message when frequency is copied to clipboard
+  ///
+  /// In en, this message translates to:
+  /// **'Copied frequency'**
+  String get copyFrequency;
 }
 
 class _AppLocalizationsDelegate

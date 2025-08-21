@@ -894,5 +894,12 @@
   "skipped": "{skipped}",
   "unit": "{unit}",
   "url": "{url}",
-  "value": "{value}"
+  "value": "{value}",
+
+  "communicationFrequencies": "Frecuencias de comunicación",
+  "groundStation": "Estación terrestre",
+  "primaryFrequency": "Frecuencia primaria",
+  "secondaryFrequency": "Frecuencia secundaria",
+  "noFrequencyAvailable": "No hay frecuencia disponible",
+  "copyFrequency": "Frecuencia copiada"
 }

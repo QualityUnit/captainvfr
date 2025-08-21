@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../utils/spatial_index.dart';
+import 'airspace_frequency.dart';
 
 part 'airspace.g.dart';
 
@@ -61,6 +62,12 @@ class Airspace extends HiveObject implements SpatialIndexable {
   @HiveField(16)
   final String? remarks;
 
+  @HiveField(17)
+  final List<AirspaceFrequency>? frequencies;
+
+  @HiveField(18)
+  final String? primaryCallsign;
+
   Airspace({
     required this.id,
     required this.name,
@@ -79,6 +86,8 @@ class Airspace extends HiveObject implements SpatialIndexable {
     this.validFrom,
     this.validTo,
     this.remarks,
+    this.frequencies,
+    this.primaryCallsign,
   });
 
   factory Airspace.fromJson(Map<String, dynamic> json) {
@@ -162,6 +171,47 @@ class Airspace extends HiveObject implements SpatialIndexable {
       return 'MSL';
     }
 
+    List<AirspaceFrequency>? parseFrequencies(dynamic frequencyData) {
+      final List<AirspaceFrequency> frequencies = [];
+
+      if (frequencyData != null) {
+        if (frequencyData is List) {
+          // Multiple frequencies
+          for (final freq in frequencyData) {
+            if (freq is Map<String, dynamic>) {
+              try {
+                final airspaceFreq = AirspaceFrequency.fromJson(freq);
+                if (airspaceFreq.isValidAviationFrequency) {
+                  frequencies.add(airspaceFreq);
+                }
+              } catch (e) {
+                // Skip invalid frequency data
+              }
+            }
+          }
+        } else if (frequencyData is Map<String, dynamic>) {
+          // Single frequency
+          try {
+            final airspaceFreq = AirspaceFrequency.fromJson(frequencyData);
+            if (airspaceFreq.isValidAviationFrequency) {
+              frequencies.add(airspaceFreq);
+            }
+          } catch (e) {
+            // Skip invalid frequency data
+          }
+        }
+      }
+
+      return frequencies.isEmpty ? null : frequencies;
+    }
+
+    String? parsePrimaryCallsign(dynamic json) {
+      // Look for callsign in various possible fields
+      return json['callsign']?.toString() ?? 
+             json['primaryCallsign']?.toString() ??
+             json['groundStation']?.toString();
+    }
+
     // Generate a unique ID if none provided
     // Check both '_id' and 'id' fields - OpenAIP uses '_id' as the primary identifier
     String airspaceId = json['_id']?.toString() ?? json['id']?.toString() ?? '';
@@ -195,6 +245,8 @@ class Airspace extends HiveObject implements SpatialIndexable {
           ? DateTime.tryParse(json['validTo'])
           : null,
       remarks: json['remarks']?.toString(),
+      frequencies: parseFrequencies(json['frequencies'] ?? json['frequency'] ?? json['AF']),
+      primaryCallsign: parsePrimaryCallsign(json),
     );
   }
 
@@ -224,6 +276,8 @@ class Airspace extends HiveObject implements SpatialIndexable {
       'validFrom': validFrom?.toIso8601String(),
       'validTo': validTo?.toIso8601String(),
       'remarks': remarks,
+      'frequencies': frequencies?.map((f) => f.toJson()).toList(),
+      'primaryCallsign': primaryCallsign,
     };
   }
 
@@ -342,6 +396,8 @@ class Airspace extends HiveObject implements SpatialIndexable {
     DateTime? validFrom,
     DateTime? validTo,
     String? remarks,
+    List<AirspaceFrequency>? frequencies,
+    String? primaryCallsign,
   }) {
     return Airspace(
       id: id ?? this.id,
@@ -361,6 +417,27 @@ class Airspace extends HiveObject implements SpatialIndexable {
       validFrom: validFrom ?? this.validFrom,
       validTo: validTo ?? this.validTo,
       remarks: remarks ?? this.remarks,
+      frequencies: frequencies ?? this.frequencies,
+      primaryCallsign: primaryCallsign ?? this.primaryCallsign,
     );
+  }
+
+  /// Get the primary frequency for this airspace (first CTR, APP, or any frequency)
+  AirspaceFrequency? get primaryFrequency {
+    if (frequencies == null || frequencies!.isEmpty) return null;
+    
+    // Priority: CTR > APP > first available
+    final ctrFreq = frequencies!.where((f) => f.type == 'CTR').firstOrNull;
+    if (ctrFreq != null) return ctrFreq;
+    
+    final appFreq = frequencies!.where((f) => f.type == 'APP').firstOrNull;
+    if (appFreq != null) return appFreq;
+    
+    return frequencies!.first;
+  }
+
+  /// Check if this airspace has frequency information
+  bool get hasFrequencyInfo {
+    return frequencies != null && frequencies!.isNotEmpty;
   }
 }

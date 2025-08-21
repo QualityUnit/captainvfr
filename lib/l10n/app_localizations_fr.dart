@@ -2753,4 +2753,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get analyzeFlightPath => 'Analyser la trajectoire de vol';
+
+  @override
+  String get communicationFrequencies => 'Fréquences de communication';
+
+  @override
+  String get groundStation => 'Station au sol';
+
+  @override
+  String get primaryFrequency => 'Fréquence primaire';
+
+  @override
+  String get secondaryFrequency => 'Fréquence secondaire';
+
+  @override
+  String get noFrequencyAvailable => 'Aucune fréquence disponible';
+
+  @override
+  String get copyFrequency => 'Fréquence copiée';
 }

@@ -6,6 +6,7 @@ import '../models/airspace_profile.dart';
 import '../models/airspace.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/airspace_utils.dart';
+import 'airspace_frequency_display.dart';
 
 class AltitudeProfileChart extends StatefulWidget {
   final AirspaceProfile airspaceProfile;
@@ -647,7 +648,16 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
                         fontSize: 10,
                       ),
                     ),
-                    if (isIntersecting)
+                    if (airspace.hasFrequencyInfo) ...[
+                      const SizedBox(height: 4),
+                      AirspaceFrequencyDisplay(
+                        airspace: airspace,
+                        showDetails: false,
+                        showCallsign: true,
+                      ),
+                    ],
+                    if (isIntersecting) ...[
+                      const SizedBox(height: 2),
                       Text(
                         'Flight at ${flightAltitude.toStringAsFixed(0)} ft',
                         style: TextStyle(
@@ -656,6 +666,7 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
                           fontStyle: FontStyle.italic,
                         ),
                       ),
+                    ],
                   ],
                 ),
               ),
