@@ -184,7 +184,81 @@ class AirspaceUtils {
     }
   }
 
-  /// Get color for airspace type and ICAO class following aviation standards
+  /// Get color for airspace type (string or numeric) and ICAO class following aviation standards
+  static Color getAirspaceColorByString(String? type, String? icaoClass) {
+    // Handle string type values (like "CTR", "ATZ", "DANGER")
+    if (type != null) {
+      switch (type.toUpperCase()) {
+        case 'CTR': // Control Zone
+          return AppColors.airspaceCTR;
+        case 'TMA': // Terminal Maneuvering Area
+          return AppColors.airspaceTMA;
+        case 'TMZ': // Transponder Mandatory Zone
+          return AppColors.airspaceTransponderMandatory;
+        case 'RMZ': // Radio Mandatory Zone
+          return AppColors.airspaceRadioMandatory;
+        case 'ATZ': // Aerodrome Traffic Zone
+          return AppColors.airspaceATZ;
+        case 'DANGER':
+        case 'D':
+          return AppColors.airspaceDanger;
+        case 'PROHIBITED':
+        case 'P':
+          return AppColors.airspaceProhibited;
+        case 'RESTRICTED':
+        case 'R':
+          return AppColors.airspaceRestricted;
+        case 'GLIDING':
+        case 'GLIDER':
+          return AppColors.airspaceGliderProhibited;
+        case 'WAVE':
+          return AppColors.airspaceWaveWindow;
+        case 'TSA': // Temporary Segregated Area
+        case 'TRA': // Temporary Reserved Area
+        case 'TRAINING':
+          return AppColors.airspaceTraining;
+        case 'MATZ': // Military Aerodrome Traffic Zone
+        case 'MTMA': // Military Terminal Maneuvering Area
+          return AppColors.airspaceMATZ;
+        case 'SPORT':
+        case 'AERIAL_SPORTING':
+        case 'RECREATIONAL':
+          return AppColors.airspaceGliderProhibited;
+        case 'WARNING':
+          return AppColors.airspaceDanger;
+        case 'FIR': // Flight Information Region
+        case 'UIR': // Upper Information Region
+          return AppColors.airspaceClassE; // Light green with transparency
+        case 'OTHER':
+          return AppColors.airspaceClassD; // Light blue for other/unknown
+      }
+    }
+    
+    // Check ICAO class if available
+    if (icaoClass != null) {
+      switch (icaoClass.toUpperCase()) {
+        case 'A':
+          return AppColors.airspaceClassA;
+        case 'B':
+          return AppColors.airspaceClassB;
+        case 'C':
+          return AppColors.airspaceClassC;
+        case 'D':
+          return AppColors.airspaceClassD;
+        case 'E':
+          return AppColors.airspaceClassE;
+        case 'F':
+          return AppColors.airspaceClassF;
+        case 'G':
+          return AppColors.airspaceClassG;
+      }
+    }
+    
+    // Default to light blue for unknown types
+    return AppColors.airspaceClassD;
+  }
+  
+  /// Get color for airspace type and ICAO class following aviation standards (numeric version)
   static Color getAirspaceColor(int type, int icaoClass) {
     // Color coding based on airspace type first (more specific)
     switch (type) {

@@ -2168,11 +2168,8 @@ class MapScreenState extends State<MapScreen>
   }
 
   Color _getAirspaceColor(String? type, String? icaoClass) {
-    // Convert to integers for consistent color mapping
-    final typeInt = int.tryParse(type ?? '') ?? -1;
-    final classInt = int.tryParse(icaoClass ?? '') ?? -1;
-    
-    return AirspaceUtils.getAirspaceColor(typeInt, classInt);
+    // Use string-based color mapping since data contains string values
+    return AirspaceUtils.getAirspaceColorByString(type, icaoClass);
   }
   
   String _getAirspaceDisplayName(Airspace airspace) {

@@ -284,17 +284,8 @@ class _OptimizedSpatialAirspacesOverlayState
   }
 
   Polygon _buildPolygon(Airspace airspace, double zoom) {
-    // Parse type and class to integers for color determination
-    // Note: Many airspaces don't have ICAO class, only type
-    final typeInt = int.tryParse(airspace.type ?? '') ?? -1;
-    final classInt = int.tryParse(airspace.icaoClass ?? '') ?? -1;
-    
-    // Debug: Check what values we're getting
-    if (airspace.type != null && airspace.type!.isNotEmpty) {
-      debugPrint('Airspace ${airspace.name}: type="${airspace.type}" (parsed=$typeInt), class="${airspace.icaoClass}" (parsed=$classInt)');
-    }
-    
-    final color = AirspaceUtils.getAirspaceColor(typeInt, classInt);
+    // Use string-based color selection since the data contains string type values
+    final color = AirspaceUtils.getAirspaceColorByString(airspace.type, airspace.icaoClass);
     final fillOpacity = _calculateFillOpacity(airspace);
     final borderOpacity = _calculateBorderOpacity(airspace);
 
@@ -313,13 +304,19 @@ class _OptimizedSpatialAirspacesOverlayState
       return 0.15; // 15% opacity for Class E airspaces
     }
     
-    // Different opacity based on airspace type
-    final type = airspace.type;
-    if (type == '0' || type == '4') { // CTR or ATZ
+    // Different opacity based on airspace type (string values)
+    final type = airspace.type?.toUpperCase();
+    if (type == 'CTR' || type == 'ATZ') { // Control zones
       return 0.35; // 35% opacity for control zones
     }
-    if (type == '5' || type == '6' || type == '7') { // Danger, Prohibited, Restricted
+    if (type == 'DANGER' || type == 'PROHIBITED' || type == 'RESTRICTED') { // Danger areas
       return 0.4; // 40% opacity for danger areas
+    }
+    if (type == 'FIR' || type == 'UIR') { // Flight Information Regions
+      return 0.1; // 10% opacity for FIR (very transparent)
+    }
+    if (type == 'GLIDING' || type == 'SPORT') { // Sporting/recreational areas
+      return 0.25; // 25% opacity
     }
     
     // Regular fill opacity for other airspaces
