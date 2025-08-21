@@ -171,6 +171,18 @@ class SpatialAirspaceService extends ChangeNotifier {
     return candidates;
   }
 
+  /// Get airspaces at a specific position (latitude, longitude)
+  Future<List<Airspace>> getAirspacesAtPosition(
+    double latitude,
+    double longitude, {
+    double? altitudeFt,
+  }) async {
+    return getAirspacesAtPoint(
+      LatLng(latitude, longitude),
+      currentAltitude: altitudeFt,
+    );
+  }
+
   /// Get nearest airspaces to a point within a radius
   Future<List<Airspace>> getNearestAirspaces(LatLng center, double radiusKm, {
     int maxResults = 10,

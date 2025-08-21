@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:latlong2/latlong.dart';
 import '../services/flight_plan_service.dart';
 import '../services/aircraft_settings_service.dart';
 import '../services/settings_service.dart';
 import '../screens/flight_plans_screen.dart';
 import 'waypoint_table_widget.dart';
+import 'altitude_profile_chart.dart';
 import '../constants/app_theme.dart';
 import '../l10n/app_localizations.dart';
 
@@ -14,19 +16,21 @@ class FlightPlanningPanel extends StatefulWidget {
   final VoidCallback? onClose;
   final Function(int)? onWaypointFocus;
   final VoidCallback? onCenterFlightPlan;
+  final Function(LatLng, {double? altitude, double? distance})? onMapFocus;
 
   const FlightPlanningPanel({
     super.key,
     this.onClose,
     this.onWaypointFocus,
     this.onCenterFlightPlan,
+    this.onMapFocus,
   });
 
   @override
   State<FlightPlanningPanel> createState() => _FlightPlanningPanelState();
 }
 
-class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
+class _FlightPlanningPanelState extends State<FlightPlanningPanel> with SingleTickerProviderStateMixin {
   bool _isEditMode = false;
   final TextEditingController _cruiseSpeedController = TextEditingController();
   String? _selectedAircraftId;
@@ -34,12 +38,30 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
   Timer? _autosaveTimer;
   Timer? _cruiseSpeedDebouncer;
   bool _isWaypointTableExpanded = false; // Track waypoint table expanded state - default collapsed
+  late TabController _tabController;
   
   static const String _waypointTableExpandedKey = 'waypoint_table_expanded';
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    
+    // Add listener to analyze flight path only when altitude profile tab is selected
+    _tabController.addListener(() {
+      if (_tabController.index == 1 && !_tabController.indexIsChanging) {
+        // Altitude Profile tab is selected
+        final flightPlanService = context.read<FlightPlanService>();
+        if (flightPlanService.currentAirspaceProfile == null && 
+            !flightPlanService.isAnalyzingProfile &&
+            flightPlanService.currentFlightPlan != null &&
+            flightPlanService.currentFlightPlan!.waypoints.isNotEmpty) {
+          // Analyze the flight path if not already analyzed
+          flightPlanService.analyzeCurrentFlightPath();
+        }
+      }
+    });
+    
     _loadWaypointTableState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final flightPlanService = context.read<FlightPlanService>();
@@ -99,6 +121,7 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
     _cruiseSpeedController.dispose();
     _autosaveTimer?.cancel();
     _cruiseSpeedDebouncer?.cancel();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -319,6 +342,55 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
   }
 
   Widget _buildExpandedView(
+    BuildContext context,
+    FlightPlanService flightPlanService,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final flightPlan = flightPlanService.currentFlightPlan;
+    final hasFlightPlan = flightPlan != null || flightPlanService.currentTripPlans.isNotEmpty;
+
+    // If no flight plan, show the flight plan tab content directly
+    if (!hasFlightPlan) {
+      return _buildFlightPlanTab(context, flightPlanService);
+    }
+
+    return Column(
+      children: [
+        // Tab bar
+        Container(
+          color: Colors.black.withOpacity(0.8),
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.orange,
+            labelColor: Colors.orange,
+            unselectedLabelColor: Colors.grey[400],
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.route, size: 20),
+                text: l10n.flightPlan,
+              ),
+              Tab(
+                icon: const Icon(Icons.terrain, size: 20),
+                text: l10n.altitudeProfile,
+              ),
+            ],
+          ),
+        ),
+        // Tab content
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildFlightPlanTab(context, flightPlanService),
+              _buildAltitudeProfileTab(context, flightPlanService),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlightPlanTab(
     BuildContext context,
     FlightPlanService flightPlanService,
   ) {
@@ -553,6 +625,174 @@ class _FlightPlanningPanelState extends State<FlightPlanningPanel> {
                     borderRadius: AppTheme.mediumRadius,
                   ),
                 ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAltitudeProfileTab(
+    BuildContext context,
+    FlightPlanService flightPlanService,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = Provider.of<SettingsService>(context);
+    final profile = flightPlanService.currentAirspaceProfile;
+    final isAnalyzing = flightPlanService.isAnalyzingProfile;
+
+    if (isAnalyzing) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(color: Colors.orange),
+            const SizedBox(height: 16),
+            Text(
+              l10n.analyzingAirspaceProfile,
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (profile == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.terrain, size: 64, color: Colors.grey[600]),
+            const SizedBox(height: 16),
+            Text(
+              l10n.noAirspaceProfileAvailable,
+              style: TextStyle(color: Colors.grey[400], fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () {
+                flightPlanService.analyzeCurrentFlightPath();
+              },
+              icon: const Icon(Icons.refresh, size: 20),
+              label: Text(l10n.analyzeFlightPath),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.withOpacity(0.8),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // The altitude profile chart
+          AltitudeProfileChart(
+            airspaceProfile: profile,
+            showMetric: settings.altitudeUnit == 'meters',
+            onPointSelected: (point, airspaces) {
+              // Handle point selection and notify map
+              debugPrint('Selected point at ${point.distanceNm} nm, ${point.altitudeFt} ft');
+              if (airspaces.isNotEmpty) {
+                debugPrint('Airspaces at point: ${airspaces.map((a) => a.airspace.name).join(', ')}');
+              }
+              // Pass the selected point to the map with altitude and distance info
+              widget.onMapFocus?.call(
+                point.position,
+                altitude: point.altitudeFt,
+                distance: point.distanceNm,
+              );
+            },
+            onMapFocus: (position) {
+              // Simple map focus without selection
+              widget.onMapFocus?.call(position);
+            },
+            onAirspaceSelected: (airspace) {
+              // Handle airspace selection from chart
+              debugPrint('Selected airspace: ${airspace.name}');
+              // TODO: Highlight airspace on map
+            },
+          ),
+          
+          // Removed airspace crossing details table - now visualized in chart
+          if (false)
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${l10n.airspaceCrossings} (${profile.airspaceCrossings.length})',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...profile.airspaceCrossings.take(5).map((crossing) {
+                    final isConflict = crossing.checkAltitudeConflict();
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isConflict 
+                          ? Colors.red.withOpacity(0.1)
+                          : Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isConflict 
+                            ? Colors.red.withOpacity(0.5)
+                            : Colors.grey.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              if (isConflict)
+                                const Icon(Icons.warning, color: Colors.red, size: 16),
+                              if (isConflict)
+                                const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  crossing.airspace.name,
+                                  style: TextStyle(
+                                    color: isConflict ? Colors.red : Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Entry: ${crossing.entryDistanceNm.toStringAsFixed(1)} nm at ${crossing.entryAltitudeFt.toStringAsFixed(0)} ft',
+                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                          ),
+                          Text(
+                            'Exit: ${crossing.exitDistanceNm.toStringAsFixed(1)} nm at ${crossing.exitAltitudeFt.toStringAsFixed(0)} ft',
+                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                          ),
+                          Text(
+                            'Limits: ${(crossing.airspace.lowerLimitFt ?? 0).toStringAsFixed(0)}-${(crossing.airspace.upperLimitFt ?? 99999).toStringAsFixed(0)} ft',
+                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  if (profile.airspaceCrossings.length > 5)
+                    Center(
+                      child: Text(
+                        '... and ${profile.airspaceCrossings.length - 5} more',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
+                    ),
+                ],
               ),
             ),
         ],

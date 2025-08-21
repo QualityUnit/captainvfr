@@ -45,51 +45,51 @@ class AppLocalizationsFr extends AppLocalizations {
   String get flightPlanning => 'Planification de vol';
 
   @override
-  String get createTrip => 'Create Trip';
+  String get createTrip => 'Créer un voyage';
 
   @override
-  String get tripName => 'Trip Name';
+  String get tripName => 'Nom du voyage';
 
   @override
-  String get enterTripName => 'Enter trip name';
+  String get enterTripName => 'Entrez le nom du voyage';
 
   @override
-  String get selectFlightPlans => 'Select Flight Plans';
+  String get selectFlightPlans => 'Sélectionner les plans de vol';
 
   @override
-  String get noFlightPlansSelected => 'No flight plans selected';
+  String get noFlightPlansSelected => 'Aucun plan de vol sélectionné';
 
   @override
-  String get tripCreated => 'Trip created successfully';
+  String get tripCreated => 'Voyage créé avec succès';
 
   @override
-  String get centerOnFlightPlan => 'Center map on flight plan';
+  String get centerOnFlightPlan => 'Centrer la carte sur le plan de vol';
 
   @override
-  String get clearFlightPlan => 'Remove flight plan from map';
+  String get clearFlightPlan => 'Retirer le plan de vol de la carte';
 
   @override
-  String get deleteLeg => 'Delete Leg';
+  String get deleteLeg => 'Supprimer l\'étape';
 
   @override
   String deleteLegConfirmation(String legName) {
-    return 'Are you sure you want to delete leg \"$legName\" from the trip?';
+    return 'Êtes-vous sûr de vouloir supprimer l\'étape \"$legName\" du voyage?';
   }
 
   @override
-  String get addToTrip => 'Add to Trip';
+  String get addToTrip => 'Ajouter au voyage';
 
   @override
-  String get replaceCurrent => 'Replace Current';
+  String get replaceCurrent => 'Remplacer l\'actuel';
 
   @override
-  String get addFlightPlanToTrip => 'Add Flight Plan to Trip';
+  String get addFlightPlanToTrip => 'Ajouter le plan de vol au voyage';
 
   @override
   String get clear => 'Effacer';
 
   @override
-  String get addedTo => 'Added to trip:';
+  String get addedTo => 'Ajouté au voyage:';
 
   @override
   String get weather => 'Météo';
@@ -2733,4 +2733,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aircrafts => 'Aéronefs';
+
+  @override
+  String get flightPlan => 'Plan de vol';
+
+  @override
+  String get altitudeProfile => 'Profil d\'altitude';
+
+  @override
+  String get airspaceCrossings => 'Traversées d\'espaces aériens';
+
+  @override
+  String get analyzingAirspaceProfile =>
+      'Analyse du profil d\'espace aérien...';
+
+  @override
+  String get noAirspaceProfileAvailable =>
+      'Aucun profil d\'espace aérien disponible';
+
+  @override
+  String get analyzeFlightPath => 'Analyser la trajectoire de vol';
 }

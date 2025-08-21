@@ -45,51 +45,51 @@ class AppLocalizationsDe extends AppLocalizations {
   String get flightPlanning => 'Flugplanung';
 
   @override
-  String get createTrip => 'Create Trip';
+  String get createTrip => 'Reise erstellen';
 
   @override
-  String get tripName => 'Trip Name';
+  String get tripName => 'Reisename';
 
   @override
-  String get enterTripName => 'Enter trip name';
+  String get enterTripName => 'Reisename eingeben';
 
   @override
-  String get selectFlightPlans => 'Select Flight Plans';
+  String get selectFlightPlans => 'Flugpläne auswählen';
 
   @override
-  String get noFlightPlansSelected => 'No flight plans selected';
+  String get noFlightPlansSelected => 'Keine Flugpläne ausgewählt';
 
   @override
-  String get tripCreated => 'Trip created successfully';
+  String get tripCreated => 'Reise erfolgreich erstellt';
 
   @override
-  String get centerOnFlightPlan => 'Center map on flight plan';
+  String get centerOnFlightPlan => 'Karte auf Flugplan zentrieren';
 
   @override
-  String get clearFlightPlan => 'Remove flight plan from map';
+  String get clearFlightPlan => 'Flugplan von Karte entfernen';
 
   @override
-  String get deleteLeg => 'Delete Leg';
+  String get deleteLeg => 'Etappe löschen';
 
   @override
   String deleteLegConfirmation(String legName) {
-    return 'Are you sure you want to delete leg \"$legName\" from the trip?';
+    return 'Möchten Sie die Etappe \"$legName\" wirklich aus der Reise löschen?';
   }
 
   @override
-  String get addToTrip => 'Add to Trip';
+  String get addToTrip => 'Zur Reise hinzufügen';
 
   @override
-  String get replaceCurrent => 'Replace Current';
+  String get replaceCurrent => 'Aktuellen ersetzen';
 
   @override
-  String get addFlightPlanToTrip => 'Add Flight Plan to Trip';
+  String get addFlightPlanToTrip => 'Flugplan zur Reise hinzufügen';
 
   @override
   String get clear => 'Löschen';
 
   @override
-  String get addedTo => 'Added to trip:';
+  String get addedTo => 'Zur Reise hinzugefügt:';
 
   @override
   String get weather => 'Wetter';
@@ -2728,4 +2728,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aircrafts => 'Flugzeuge';
+
+  @override
+  String get flightPlan => 'Flugplan';
+
+  @override
+  String get altitudeProfile => 'Höhenprofil';
+
+  @override
+  String get airspaceCrossings => 'Luftraumdurchquerungen';
+
+  @override
+  String get analyzingAirspaceProfile => 'Luftraumprofil wird analysiert...';
+
+  @override
+  String get noAirspaceProfileAvailable => 'Kein Luftraumprofil verfügbar';
+
+  @override
+  String get analyzeFlightPath => 'Flugweg analysieren';
 }

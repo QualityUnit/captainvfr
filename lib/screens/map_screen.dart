@@ -167,6 +167,11 @@ class MapScreenState extends State<MapScreen>
   // Waypoint selection state
   int? _selectedWaypointIndex;
   bool _isDraggingWaypoint = false;
+  
+  // Altitude profile selection state
+  LatLng? _profileSelectedPoint;
+  double? _profileSelectedAltitude;
+  double? _profileSelectedDistance;
 
   // Location and map state
   Position? _currentPosition;
@@ -3192,6 +3197,11 @@ class MapScreenState extends State<MapScreen>
       
       // Initialize flight heatmap processor
       await FlightHeatmapProcessor.init();
+      
+      // Connect SpatialAirspaceService to FlightPlanService
+      if (_openAIPService != null) {
+        _flightPlanService.setSpatialAirspaceService(spatialAirspaceService);
+      }
 
       // Initialize offline map service only on supported platforms
       if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
@@ -3791,6 +3801,98 @@ class MapScreenState extends State<MapScreen>
                     );
                   },
                 ),
+              
+              // Profile selected point marker - blue marker showing selected point from altitude chart
+              if (_profileSelectedPoint != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _profileSelectedPoint!,
+                      width: 80,
+                      height: 80,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        clipBehavior: Clip.none,
+                        children: [
+                          // Outer pulsing circle for better visibility
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.3),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          // Middle ring
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.3),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.6),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          // Center marker
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade600,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.4),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Altitude label on top
+                          if (_profileSelectedAltitude != null)
+                            Positioned(
+                              top: -10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade800,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.3),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  '${_profileSelectedAltitude!.toStringAsFixed(0)} ft',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
 
@@ -4204,9 +4306,33 @@ class MapScreenState extends State<MapScreen>
                         child: FlightPlanningPanel(
                           onWaypointFocus: _focusOnWaypoint,
                           onCenterFlightPlan: _centerOnFlightPlan,
+                          onMapFocus: (position, {altitude, distance}) {
+                            // Focus on the selected position from altitude profile
+                            _mapController.move(position, _mapController.camera.zoom);
+                            
+                            // If altitude and distance are provided, this is a profile point selection
+                            if (altitude != null && distance != null) {
+                              setState(() {
+                                _profileSelectedPoint = position;
+                                _profileSelectedAltitude = altitude;
+                                _profileSelectedDistance = distance;
+                              });
+                            } else {
+                              // Clear selection if just focusing without selection
+                              setState(() {
+                                _profileSelectedPoint = null;
+                                _profileSelectedAltitude = null;
+                                _profileSelectedDistance = null;
+                              });
+                            }
+                          },
                           onClose: () {
                             setState(() {
                               _showFlightPlanning = false;
+                              // Clear profile selection when panel is closed
+                              _profileSelectedPoint = null;
+                              _profileSelectedAltitude = null;
+                              _profileSelectedDistance = null;
                             });
                             // Don't stop planning mode - let it persist when panel is hidden
                             // User can add waypoints on the map even with panel hidden

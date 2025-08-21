@@ -5266,5 +5266,40 @@
   "aircrafts": "Aircrafts",
   "@aircrafts": {
     "description": "Aircrafts menu item label"
+  },
+
+  "flightPlan": "Flight Plan",
+  "@flightPlan": {
+    "description": "Flight plan tab label"
+  },
+
+  "altitudeProfile": "Altitude Profile",
+  "@altitudeProfile": {
+    "description": "Altitude profile tab label"
+  },
+
+  "airspaceCrossings": "Airspace Crossings",
+  "@airspaceCrossings": {
+    "description": "Airspace crossings section title"
+  },
+
+  "analyzingAirspaceProfile": "Analyzing airspace profile...",
+  "@analyzingAirspaceProfile": {
+    "description": "Loading message when analyzing airspace profile"
+  },
+
+  "noAirspaceProfileAvailable": "No airspace profile available",
+  "@noAirspaceProfileAvailable": {
+    "description": "Message when no airspace profile is available"
+  },
+
+  "analyzeFlightPath": "Analyze Flight Path",
+  "@analyzeFlightPath": {
+    "description": "Button label to analyze flight path"
+  },
+
+  "noFlightPathDataAvailable": "No flight path data available",
+  "@noFlightPathDataAvailable": {
+    "description": "Message when no flight path data is available"
   }
 }

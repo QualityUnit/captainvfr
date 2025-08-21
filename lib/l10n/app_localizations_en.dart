@@ -2689,4 +2689,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aircrafts => 'Aircrafts';
+
+  @override
+  String get flightPlan => 'Flight Plan';
+
+  @override
+  String get altitudeProfile => 'Altitude Profile';
+
+  @override
+  String get airspaceCrossings => 'Airspace Crossings';
+
+  @override
+  String get analyzingAirspaceProfile => 'Analyzing airspace profile...';
+
+  @override
+  String get noAirspaceProfileAvailable => 'No airspace profile available';
+
+  @override
+  String get analyzeFlightPath => 'Analyze Flight Path';
 }

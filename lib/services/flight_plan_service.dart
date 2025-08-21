@@ -7,9 +7,12 @@ import '../models/airport.dart';
 import '../models/navaid.dart';
 import '../models/aircraft.dart';
 import '../models/reporting_point.dart';
+import '../models/airspace_profile.dart';
 import '../constants/trip_colors.dart';
 import '../services/aircraft_service.dart';
 import '../services/flight_plan_tile_download_service.dart';
+import '../services/flight_path_analyzer.dart';
+import '../services/spatial_airspace_service.dart';
 
 class FlightPlanService extends ChangeNotifier {
   FlightPlan? _currentFlightPlan;
@@ -25,6 +28,10 @@ class FlightPlanService extends ChangeNotifier {
   final AircraftService? _aircraftService;
   FlightPlanTileDownloadService? _tileDownloadService;
   BuildContext? _context;
+  SpatialAirspaceService? _spatialAirspaceService;
+  FlightPathAnalyzer? _flightPathAnalyzer;
+  AirspaceProfile? _currentAirspaceProfile;
+  bool _isAnalyzingProfile = false;
   
   // Callback for when a flight plan is loaded
   void Function(FlightPlan)? onFlightPlanLoaded;
@@ -37,6 +44,8 @@ class FlightPlanService extends ChangeNotifier {
   List<Trip> get savedTrips => _savedTrips;
   Trip? get currentTrip => _currentTrip;
   List<FlightPlan> get currentTripPlans => _currentTripPlans;
+  AirspaceProfile? get currentAirspaceProfile => _currentAirspaceProfile;
+  bool get isAnalyzingProfile => _isAnalyzingProfile;
 
   FlightPlanService({AircraftService? aircraftService})
     : _aircraftService = aircraftService;
@@ -129,6 +138,11 @@ class FlightPlanService extends ChangeNotifier {
     if (onFlightPlanLoaded != null) {
       onFlightPlanLoaded!(flightPlan);
     }
+    
+    // Analyze airspace profile in background after a delay to not block UI
+    Future.delayed(const Duration(milliseconds: 500), () {
+      analyzeCurrentFlightPath();
+    });
   }
 
   // Delete a flight plan from storage
@@ -433,6 +447,11 @@ class FlightPlanService extends ChangeNotifier {
       if (onFlightPlanLoaded != null) {
         onFlightPlanLoaded!(_currentTripPlans.first);
       }
+      
+      // Analyze airspace profile in background after a delay to not block UI
+      Future.delayed(const Duration(milliseconds: 500), () {
+        analyzeCurrentFlightPath();
+      });
     }
   }
 
@@ -992,6 +1011,78 @@ class FlightPlanService extends ChangeNotifier {
     recalculateAllWaypointAltitudes();
 
     notifyListeners();
+  }
+
+  // Set the spatial airspace service for route analysis
+  void setSpatialAirspaceService(SpatialAirspaceService service) {
+    _spatialAirspaceService = service;
+    _flightPathAnalyzer = FlightPathAnalyzer(service);
+  }
+
+  // Analyze the current flight path for airspace intersections
+  Future<void> analyzeCurrentFlightPath() async {
+    if (_flightPathAnalyzer == null) {
+      debugPrint('FlightPathAnalyzer not initialized');
+      return;
+    }
+
+    // Determine which flight plans to analyze
+    List<FlightPlan> plansToAnalyze = [];
+    
+    if (_currentTrip != null && _currentTripPlans.isNotEmpty) {
+      // Analyze all legs of the current trip
+      plansToAnalyze = _currentTripPlans;
+    } else if (_currentFlightPlan != null) {
+      // Analyze single flight plan
+      plansToAnalyze = [_currentFlightPlan!];
+    }
+    
+    if (plansToAnalyze.isEmpty) {
+      debugPrint('No flight plans to analyze');
+      return;
+    }
+    
+    // Check if all plans have waypoints
+    bool hasWaypoints = plansToAnalyze.every((plan) => plan.waypoints.isNotEmpty);
+    if (!hasWaypoints) {
+      debugPrint('Some flight plans have no waypoints');
+      return;
+    }
+    
+    _isAnalyzingProfile = true;
+    notifyListeners();
+    
+    try {
+      _currentAirspaceProfile = await _flightPathAnalyzer!.analyzeFlightPath(
+        flightPlans: plansToAnalyze,
+        trip: _currentTrip,
+      );
+      
+      debugPrint('Airspace profile analyzed: '
+          '${_currentAirspaceProfile!.profilePoints.length} points, '
+          '${_currentAirspaceProfile!.airspaceCrossings.length} crossings, '
+          '${_currentAirspaceProfile!.legCount} legs');
+    } catch (e) {
+      debugPrint('Error analyzing flight path: $e');
+      _currentAirspaceProfile = null;
+    } finally {
+      _isAnalyzingProfile = false;
+      notifyListeners();
+    }
+  }
+
+  // Clear the current airspace profile
+  void clearAirspaceProfile() {
+    _currentAirspaceProfile = null;
+    notifyListeners();
+  }
+
+  // Refresh airspace profile when flight plan changes
+  Future<void> _refreshAirspaceProfileIfNeeded() async {
+    if (_currentAirspaceProfile != null && _flightPathAnalyzer != null) {
+      // Re-analyze if we have an existing profile
+      await analyzeCurrentFlightPath();
+    }
   }
 
   @override
