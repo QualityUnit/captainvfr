@@ -220,26 +220,32 @@ class AirspaceUtils {
         return AppColors.airspaceDanger;
       case 15: // TRAINING
         return AppColors.airspaceTraining;
+      case 16: // INFO/FIR - Flight Information Region
+        return AppColors.airspaceClassE; // Use light green for FIR
       default:
-        // Check ICAO class if type doesn't match
-        switch (icaoClass) {
-          case 0: // A
-            return AppColors.airspaceClassA;
-          case 1: // B
-            return AppColors.airspaceClassB;
-          case 2: // C
-            return AppColors.airspaceClassC;
-          case 3: // D
-            return AppColors.airspaceClassD;
-          case 4: // E
-            return AppColors.airspaceClassE;
-          case 5: // F
-            return AppColors.airspaceClassF;
-          case 6: // G
-            return AppColors.airspaceClassG;
-          default:
-            return AppColors.airspaceDefault;
+        // Check ICAO class if type doesn't match or is unknown
+        if (icaoClass >= 0) {
+          switch (icaoClass) {
+            case 0: // A
+              return AppColors.airspaceClassA;
+            case 1: // B
+              return AppColors.airspaceClassB;
+            case 2: // C
+              return AppColors.airspaceClassC;
+            case 3: // D
+              return AppColors.airspaceClassD;
+            case 4: // E
+              return AppColors.airspaceClassE;
+            case 5: // F
+              return AppColors.airspaceClassF;
+            case 6: // G
+              return AppColors.airspaceClassG;
+            default:
+              return AppColors.airspaceClassC; // Default to blue for unknown
+          }
         }
+        // If no valid type or class, default to blue (common for controlled airspace)
+        return AppColors.airspaceClassC;
     }
   }
 

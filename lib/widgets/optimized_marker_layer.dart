@@ -42,15 +42,15 @@ class OptimizedMarkerLayer extends StatelessWidget {
 
     final bounds = mapController.camera.visibleBounds;
 
-    // Add padding to bounds to ensure smooth scrolling
+    // Add padding to bounds to ensure smooth scrolling with proper longitude wrapping
     final paddedBounds = LatLngBounds(
       LatLng(
         bounds.southWest.latitude - boundsPadding,
-        bounds.southWest.longitude - boundsPadding,
+        (bounds.southWest.longitude - boundsPadding).clamp(-180.0, 180.0),
       ),
       LatLng(
         bounds.northEast.latitude + boundsPadding,
-        bounds.northEast.longitude + boundsPadding,
+        (bounds.northEast.longitude + boundsPadding).clamp(-180.0, 180.0),
       ),
     );
 

@@ -227,11 +227,17 @@ class _OptimizedSpatialAirspacesOverlayState
     }
 
     try {
-      // Add padding to bounds for smoother scrolling
+      // Add padding to bounds for smoother scrolling with proper longitude wrapping
       final padding = _calculateBoundsPadding(zoom);
       final paddedBounds = LatLngBounds(
-        LatLng(bounds.southWest.latitude - padding, bounds.southWest.longitude - padding),
-        LatLng(bounds.northEast.latitude + padding, bounds.northEast.longitude + padding),
+        LatLng(
+          bounds.southWest.latitude - padding, 
+          (bounds.southWest.longitude - padding).clamp(-180.0, 180.0),
+        ),
+        LatLng(
+          bounds.northEast.latitude + padding, 
+          (bounds.northEast.longitude + padding).clamp(-180.0, 180.0),
+        ),
       );
 
       // Use spatial service for ultra-fast queries
@@ -279,6 +285,7 @@ class _OptimizedSpatialAirspacesOverlayState
 
   Polygon _buildPolygon(Airspace airspace, double zoom) {
     // Parse type and class to integers for color determination
+    // Note: Many airspaces don't have ICAO class, only type
     final typeInt = int.tryParse(airspace.type ?? '') ?? -1;
     final classInt = int.tryParse(airspace.icaoClass ?? '') ?? -1;
     
