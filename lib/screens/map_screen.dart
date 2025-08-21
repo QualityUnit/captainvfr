@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'flight_log_screen.dart';
-import 'flight_plans_screen.dart';
 import 'aircraft_settings_screen.dart';
 import 'checklist_settings_screen.dart';
 import 'calculators_screen.dart';
@@ -86,6 +85,14 @@ class MapScreen extends StatefulWidget {
 
 class MapScreenState extends State<MapScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+  // UI Constants
+  static const double _airspacePanelHeight = 250.0;
+  static const double _airspacePanelBottomOffset = 350.0;
+  static const double _minPanelVisibility = 50.0;
+  static const double _menuButtonWidth = 48.0;
+  static const double _menuButtonMargin = 16.0;
+  static const double _buttonSpacing = 12.0;
+  
   // Logger
   final Logger _logger = Logger(level: Level.warning);
   
@@ -532,15 +539,26 @@ class MapScreenState extends State<MapScreen>
     final screenSize = MediaQuery.of(context).size;
     
     setState(() {
-      // Adjust airspace panel position
+      // Adjust airspace panel position for screen size changes
       if (_airspacePanelPosition != null) {
         final panelWidth = screenSize.width < 600 ? screenSize.width - 16 : 600;
-        if (_airspacePanelPosition!.dx + panelWidth > screenSize.width) {
-          _airspacePanelPosition = Offset(
-            (screenSize.width - panelWidth).clamp(0, screenSize.width - panelWidth),
-            _airspacePanelPosition!.dy
-          );
+        final panelHeight = _airspacePanelHeight;
+        
+        // Clamp position to keep panel visible after screen resize
+        double newX = _airspacePanelPosition!.dx;
+        double newY = _airspacePanelPosition!.dy;
+        
+        // Adjust horizontal position if needed
+        if (newX + panelWidth > screenSize.width) {
+          newX = (screenSize.width - panelWidth).clamp(0, screenSize.width - panelWidth);
         }
+        
+        // Adjust vertical position if needed
+        if (newY + panelHeight > screenSize.height) {
+          newY = (screenSize.height - panelHeight).clamp(0, screenSize.height - panelHeight);
+        }
+        
+        _airspacePanelPosition = Offset(newX, newY);
       }
       
       // Adjust flight planning panel position
@@ -872,6 +890,34 @@ class MapScreenState extends State<MapScreen>
       }
     } catch (e) {
       // If there's an error loading, keep the default state (collapsed)
+    }
+  }
+
+  // Load airspace panel position from SharedPreferences
+  Future<void> _loadAirspacePanelPosition() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final x = prefs.getDouble(MapConstants.keyAirspacePanelPositionX);
+      final y = prefs.getDouble(MapConstants.keyAirspacePanelPositionY);
+      
+      if (x != null && y != null && mounted) {
+        setState(() {
+          _airspacePanelPosition = Offset(x, y);
+        });
+      }
+    } catch (e) {
+      // If there's an error loading, use default position
+    }
+  }
+
+  // Save airspace panel position to SharedPreferences
+  Future<void> _saveAirspacePanelPosition(Offset position) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(MapConstants.keyAirspacePanelPositionX, position.dx);
+      await prefs.setDouble(MapConstants.keyAirspacePanelPositionY, position.dy);
+    } catch (e) {
+      // Silently fail if unable to save
     }
   }
 
@@ -1665,21 +1711,13 @@ class MapScreenState extends State<MapScreen>
     // Center horizontally
     final leftPosition = (screenSize.width - panelWidth) / 2;
     
-    // Position at bottom with some margin
-    final bottomPosition = 100.0;
+    // Position from top - place it near bottom of screen
+    final topPosition = screenSize.height - _airspacePanelBottomOffset;
     
-    final centeredPosition = Offset(leftPosition, bottomPosition);
+    final centeredPosition = Offset(leftPosition, topPosition);
     
     return centeredPosition;
   }
-
-  // Toggle flight dashboard visibility
-  void _toggleStats() {
-    setState(() {
-      _mapStateController.toggleStats();
-    });
-  }
-
 
 
   // Toggle heliport visibility
@@ -3885,8 +3923,8 @@ class MapScreenState extends State<MapScreen>
                 final position = _airspacePanelPosition ?? _getCenteredAirspacePanelPosition(context);
                 return Positioned(
                   left: position.dx,
-                  bottom: position.dy,
-              child: Draggable<String>(
+                  top: position.dy,
+                  child: Draggable<String>(
                 data: 'airspace_panel',
                 feedback: Material(
                   color: Colors.transparent,
@@ -3958,31 +3996,25 @@ class MapScreenState extends State<MapScreen>
                     final panelWidth = isPhone
                         ? screenSize.width - 16
                         : (isTablet ? 500 : 600);
-                    final panelHeight = 200; // Approximate panel height
+                    final panelHeight = _airspacePanelHeight;
 
-                    // Convert screen coordinates to bottom-relative positioning
-                    double bottomDistance =
-                        screenSize.height - newY - panelHeight;
-
-                    // Constrain horizontal position based on device type
-                    if (isPhone) {
-                      // On phones, keep it centered
-                      newX = 0;
-                    } else {
-                      // On tablets/desktop, allow horizontal movement
-                      newX = newX.clamp(
-                        0.0,
-                        screenSize.width - panelWidth - 16,
-                      );
-                    }
-
-                    // Constrain vertical position
-                    bottomDistance = bottomDistance.clamp(
-                      10.0,
-                      screenSize.height - panelHeight - 100,
+                    // Allow free horizontal movement on all devices
+                    // Constrain to keep panel visible on screen
+                    newX = newX.clamp(
+                      -panelWidth + _minPanelVisibility, // Allow partial off-screen to the left
+                      screenSize.width - _minPanelVisibility, // Allow partial off-screen to the right
                     );
 
-                    _airspacePanelPosition = Offset(newX, bottomDistance);
+                    // Allow free vertical movement
+                    // Constrain to keep panel visible on screen
+                    newY = newY.clamp(
+                      -panelHeight + _minPanelVisibility, // Allow partial off-screen at top
+                      screenSize.height - _minPanelVisibility, // Allow partial off-screen at bottom
+                    );
+
+                    _airspacePanelPosition = Offset(newX, newY);
+                    // Save position to SharedPreferences
+                    _saveAirspacePanelPosition(_airspacePanelPosition!);
                   });
                 },
                 child: Container(
@@ -4042,7 +4074,7 @@ class MapScreenState extends State<MapScreen>
                   ),
                 ),
               ),
-            );
+                );
               },
             ),
           
@@ -4083,6 +4115,35 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
 
+          // Search button in top-right corner (left of menu)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: _menuButtonMargin + _menuButtonWidth + _buttonSpacing,
+            child: GestureDetector(
+              onTap: () {
+                _showAirportSearch();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.9),
+                  borderRadius: AppTheme.largeRadius,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.search,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
           // Menu button in top-right corner
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
@@ -4574,28 +4635,8 @@ class MapScreenState extends State<MapScreen>
                 setState(() {
                   _showCurrentAirspacePanel = !_showCurrentAirspacePanel;
                   if (_showCurrentAirspacePanel) {
-                    _airspacePanelPosition = null;
-                  }
-                });
-              },
-            ),
-            _buildMenuToggleButton(
-              icon: _showFlightPlanning
-                  ? Icons.route
-                  : Icons.route_outlined,
-              label: l10n.planning,
-              isActive: _showFlightPlanning,
-              onPressed: () {
-                setState(() {
-                  _showFlightPlanning = !_showFlightPlanning;
-                  if (_showFlightPlanning &&
-                      _flightPlanService.currentFlightPlan == null) {
-                    _flightPlanService.createNewFlightPlan(
-                      enablePlanning: false,
-                    );
-                  }
-                  if (_flightPlanService.currentFlightPlan != null) {
-                    _flightPlanService.setFlightPlanVisibility(true);
+                    // Load saved position when showing panel
+                    _loadAirspacePanelPosition();
                   }
                 });
               },
@@ -4624,14 +4665,6 @@ class MapScreenState extends State<MapScreen>
         ),
         const SizedBox(height: 12),
         _buildMenuItem(
-          icon: Icons.search,
-          label: l10n.search,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _showAirportSearch();
-          },
-        ),
-        _buildMenuItem(
           icon: _positionTrackingEnabled ? Icons.my_location : Icons.location_searching,
           label: l10n.center,
           subtitle: _autoCenteringCountdown > 0 
@@ -4642,15 +4675,6 @@ class MapScreenState extends State<MapScreen>
             _togglePositionTracking();
           },
         ),
-        _buildMenuItem(
-          icon: _mapStateController.showStats ? Icons.dashboard : Icons.dashboard_outlined,
-          label: l10n.flight,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _toggleStats();
-          },
-        ),
-
         _buildMenuItem(
           icon: Icons.flight_takeoff,
           label: l10n.flightLog,
@@ -4675,20 +4699,6 @@ class MapScreenState extends State<MapScreen>
               context,
               MaterialPageRoute(
                 builder: (context) => const LogBookScreen(),
-              ),
-            ).then((_) => _resumeAllTimers());
-          },
-        ),
-        _buildMenuItem(
-          icon: Icons.route,
-          label: l10n.planning,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _pauseAllTimers();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const FlightPlansScreen(),
               ),
             ).then((_) => _resumeAllTimers());
           },
