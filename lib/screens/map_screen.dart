@@ -2089,7 +2089,7 @@ class MapScreenState extends State<MapScreen>
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            airspace.name,
+                                            _getAirspaceDisplayName(airspace),
                                             style: TextStyle(
                                               color: AppColors.primaryTextColor,
                                               fontSize: fontSize,
@@ -2098,7 +2098,7 @@ class MapScreenState extends State<MapScreen>
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${AirspaceUtils.getAirspaceTypeName(airspace.type)} ${AirspaceUtils.getIcaoClassName(airspace.icaoClass)}',
+                                            AirspaceUtils.getAirspaceTypeName(airspace.type),
                                             style: TextStyle(
                                               color: AppColors.secondaryTextColor,
                                               fontSize: isPhone ? 10 : 11,
@@ -2173,6 +2173,14 @@ class MapScreenState extends State<MapScreen>
     final classInt = int.tryParse(icaoClass ?? '') ?? -1;
     
     return AirspaceUtils.getAirspaceColor(typeInt, classInt);
+  }
+  
+  String _getAirspaceDisplayName(Airspace airspace) {
+    final icaoClass = AirspaceUtils.getIcaoClassName(airspace.icaoClass);
+    if (airspace.icaoClass != null && icaoClass != 'Unclassified') {
+      return '${airspace.name} (Class $icaoClass)';
+    }
+    return airspace.name;
   }
 
   // Handle waypoint tap for selection
@@ -2767,9 +2775,15 @@ class MapScreenState extends State<MapScreen>
     try {
       final l10n = AppLocalizations.of(context)!;
       // Create a themed dialog to show airspace information
+      // Include ICAO class in title if available
+      final icaoClass = AirspaceUtils.getIcaoClassName(airspace.icaoClass);
+      final titleText = airspace.icaoClass != null && icaoClass != 'Unclassified'
+          ? '${airspace.name} (Class $icaoClass)'
+          : airspace.name;
+      
       await ThemedDialog.show(
         context: context,
-        title: airspace.name,
+        title: titleText,
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

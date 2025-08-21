@@ -391,7 +391,7 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          '${airspace.name} (${AirspaceUtils.getAirspaceTypeName(airspace.type)})',
+                          _getAirspaceDisplayText(airspace),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -557,5 +557,19 @@ class _AirspaceFlightInfoState extends State<AirspaceFlightInfo> {
       default:
         return Colors.white;
     }
+  }
+  
+  String _getAirspaceDisplayText(Airspace airspace) {
+    final typeName = AirspaceUtils.getAirspaceTypeName(airspace.type);
+    final icaoClass = AirspaceUtils.getIcaoClassName(airspace.icaoClass);
+    
+    // Build display text with ICAO class if available
+    String displayText = airspace.name;
+    if (airspace.icaoClass != null && icaoClass != 'Unclassified') {
+      displayText += ' (Class $icaoClass)';
+    }
+    displayText += ' - $typeName';
+    
+    return displayText;
   }
 }

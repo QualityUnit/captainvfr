@@ -289,6 +289,11 @@ class _OptimizedSpatialAirspacesOverlayState
     final typeInt = int.tryParse(airspace.type ?? '') ?? -1;
     final classInt = int.tryParse(airspace.icaoClass ?? '') ?? -1;
     
+    // Debug: Check what values we're getting
+    if (airspace.type != null && airspace.type!.isNotEmpty) {
+      debugPrint('Airspace ${airspace.name}: type="${airspace.type}" (parsed=$typeInt), class="${airspace.icaoClass}" (parsed=$classInt)');
+    }
+    
     final color = AirspaceUtils.getAirspaceColor(typeInt, classInt);
     final fillOpacity = _calculateFillOpacity(airspace);
     final borderOpacity = _calculateBorderOpacity(airspace);
