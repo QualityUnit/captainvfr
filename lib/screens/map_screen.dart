@@ -531,15 +531,26 @@ class MapScreenState extends State<MapScreen>
     final screenSize = MediaQuery.of(context).size;
     
     setState(() {
-      // Adjust airspace panel position
+      // Adjust airspace panel position for screen size changes
       if (_airspacePanelPosition != null) {
         final panelWidth = screenSize.width < 600 ? screenSize.width - 16 : 600;
-        if (_airspacePanelPosition!.dx + panelWidth > screenSize.width) {
-          _airspacePanelPosition = Offset(
-            (screenSize.width - panelWidth).clamp(0, screenSize.width - panelWidth),
-            _airspacePanelPosition!.dy
-          );
+        final panelHeight = 250; // Approximate panel height
+        
+        // Clamp position to keep panel visible after screen resize
+        double newX = _airspacePanelPosition!.dx;
+        double newY = _airspacePanelPosition!.dy;
+        
+        // Adjust horizontal position if needed
+        if (newX + panelWidth > screenSize.width) {
+          newX = (screenSize.width - panelWidth).clamp(0, screenSize.width - panelWidth);
         }
+        
+        // Adjust vertical position if needed
+        if (newY + panelHeight > screenSize.height) {
+          newY = (screenSize.height - panelHeight).clamp(0, screenSize.height - panelHeight);
+        }
+        
+        _airspacePanelPosition = Offset(newX, newY);
       }
       
       // Adjust flight planning panel position
@@ -1664,10 +1675,10 @@ class MapScreenState extends State<MapScreen>
     // Center horizontally
     final leftPosition = (screenSize.width - panelWidth) / 2;
     
-    // Position at bottom with some margin
-    final bottomPosition = 100.0;
+    // Position from top - place it near bottom of screen
+    final topPosition = screenSize.height - 350; // 350px from bottom
     
-    final centeredPosition = Offset(leftPosition, bottomPosition);
+    final centeredPosition = Offset(leftPosition, topPosition);
     
     return centeredPosition;
   }
@@ -3876,7 +3887,7 @@ class MapScreenState extends State<MapScreen>
                 final position = _airspacePanelPosition ?? _getCenteredAirspacePanelPosition(context);
                 return Positioned(
                   left: position.dx,
-                  bottom: position.dy,
+                  top: position.dy,
                   child: Draggable<String>(
                 data: 'airspace_panel',
                 feedback: Material(
@@ -3951,10 +3962,6 @@ class MapScreenState extends State<MapScreen>
                         : (isTablet ? 500 : 600);
                     final panelHeight = 250; // Approximate panel height
 
-                    // Convert screen coordinates to bottom-relative positioning
-                    double bottomDistance =
-                        screenSize.height - newY - panelHeight;
-
                     // Allow free horizontal movement on all devices
                     // Constrain to keep panel visible on screen
                     newX = newX.clamp(
@@ -3962,13 +3969,14 @@ class MapScreenState extends State<MapScreen>
                       screenSize.width - 50, // Allow partial off-screen to the right
                     );
 
-                    // Constrain vertical position to keep panel on screen
-                    bottomDistance = bottomDistance.clamp(
-                      -panelHeight + 50, // Allow partial off-screen at bottom
-                      screenSize.height - 100, // Keep some space from top
+                    // Allow free vertical movement
+                    // Constrain to keep panel visible on screen
+                    newY = newY.clamp(
+                      -panelHeight + 50, // Allow partial off-screen at top
+                      screenSize.height - 50, // Allow partial off-screen at bottom
                     );
 
-                    _airspacePanelPosition = Offset(newX, bottomDistance);
+                    _airspacePanelPosition = Offset(newX, newY);
                   });
                 },
                 child: Container(
