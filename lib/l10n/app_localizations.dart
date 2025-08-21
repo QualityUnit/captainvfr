@@ -1206,7 +1206,7 @@ abstract class AppLocalizations {
   /// **'No segments data available'**
   String get noSegmentsDataAvailable;
 
-  /// No flight path data message
+  /// Message when no flight path data is available
   ///
   /// In en, this message translates to:
   /// **'No flight path data available'**
@@ -5045,6 +5045,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Aircrafts'**
   String get aircrafts;
+
+  /// Flight plan tab label
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Plan'**
+  String get flightPlan;
+
+  /// Altitude profile tab label
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Profile'**
+  String get altitudeProfile;
+
+  /// Airspace crossings section title
+  ///
+  /// In en, this message translates to:
+  /// **'Airspace Crossings'**
+  String get airspaceCrossings;
+
+  /// Loading message when analyzing airspace profile
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing airspace profile...'**
+  String get analyzingAirspaceProfile;
+
+  /// Message when no airspace profile is available
+  ///
+  /// In en, this message translates to:
+  /// **'No airspace profile available'**
+  String get noAirspaceProfileAvailable;
+
+  /// Button label to analyze flight path
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze Flight Path'**
+  String get analyzeFlightPath;
 }
 
 class _AppLocalizationsDelegate

@@ -45,51 +45,51 @@ class AppLocalizationsCs extends AppLocalizations {
   String get flightPlanning => 'Plánování letu';
 
   @override
-  String get createTrip => 'Create Trip';
+  String get createTrip => 'Vytvořit cestu';
 
   @override
-  String get tripName => 'Trip Name';
+  String get tripName => 'Název cesty';
 
   @override
-  String get enterTripName => 'Enter trip name';
+  String get enterTripName => 'Zadejte název cesty';
 
   @override
-  String get selectFlightPlans => 'Select Flight Plans';
+  String get selectFlightPlans => 'Vyberte letové plány';
 
   @override
-  String get noFlightPlansSelected => 'No flight plans selected';
+  String get noFlightPlansSelected => 'Nejsou vybrány žádné letové plány';
 
   @override
-  String get tripCreated => 'Trip created successfully';
+  String get tripCreated => 'Cesta byla úspěšně vytvořena';
 
   @override
-  String get centerOnFlightPlan => 'Center map on flight plan';
+  String get centerOnFlightPlan => 'Vycentrovat mapu na letový plán';
 
   @override
-  String get clearFlightPlan => 'Remove flight plan from map';
+  String get clearFlightPlan => 'Odstranit letový plán z mapy';
 
   @override
-  String get deleteLeg => 'Delete Leg';
+  String get deleteLeg => 'Smazat úsek';
 
   @override
   String deleteLegConfirmation(String legName) {
-    return 'Are you sure you want to delete leg \"$legName\" from the trip?';
+    return 'Opravdu chcete smazat úsek \"$legName\" z cesty?';
   }
 
   @override
-  String get addToTrip => 'Add to Trip';
+  String get addToTrip => 'Přidat do cesty';
 
   @override
-  String get replaceCurrent => 'Replace Current';
+  String get replaceCurrent => 'Nahradit aktuální';
 
   @override
-  String get addFlightPlanToTrip => 'Add Flight Plan to Trip';
+  String get addFlightPlanToTrip => 'Přidat letový plán do cesty';
 
   @override
   String get clear => 'Vymazat';
 
   @override
-  String get addedTo => 'Added to trip:';
+  String get addedTo => 'Přidáno do cesty:';
 
   @override
   String get weather => 'Počasí';
@@ -2702,4 +2702,24 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get aircrafts => 'Letadla';
+
+  @override
+  String get flightPlan => 'Letový plán';
+
+  @override
+  String get altitudeProfile => 'Výškový profil';
+
+  @override
+  String get airspaceCrossings => 'Průlety vzdušnými prostory';
+
+  @override
+  String get analyzingAirspaceProfile =>
+      'Analyzování profilu vzdušného prostoru...';
+
+  @override
+  String get noAirspaceProfileAvailable =>
+      'Profil vzdušného prostoru není k dispozici';
+
+  @override
+  String get analyzeFlightPath => 'Analyzovat letovou trasu';
 }
