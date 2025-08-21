@@ -79,6 +79,14 @@ class _OptimizedSpatialAirspacesOverlayState
       // Load airspaces when layer is shown
       _checkAndUpdateAirspaces();
     }
+    
+    // Rebuild polygons if altitude changed significantly (more than 100ft)
+    if (widget.showAirspacesLayer && 
+        (widget.currentAltitude - oldWidget.currentAltitude).abs() > 100) {
+      setState(() {
+        // Force rebuild of polygons with new altitude-based opacity
+      });
+    }
   }
 
   @override
@@ -286,12 +294,14 @@ class _OptimizedSpatialAirspacesOverlayState
   Polygon _buildPolygon(Airspace airspace, double zoom) {
     // Use string-based color selection since the data contains string type values
     final color = AirspaceUtils.getAirspaceColorByString(airspace.type, airspace.icaoClass);
-    final fillOpacity = _calculateFillOpacity(airspace);
-    final borderOpacity = _calculateBorderOpacity(airspace);
+    final baseOpacity = _calculateFillOpacity(airspace);
+    final altitudeOpacity = _calculateAltitudeBasedOpacity(airspace);
+    final finalOpacity = baseOpacity * altitudeOpacity;
+    final borderOpacity = _calculateBorderOpacity(airspace) * (0.5 + altitudeOpacity * 0.5); // Borders also fade but remain visible
 
     return Polygon(
       points: airspace.geometry,
-      color: color.withValues(alpha: fillOpacity), 
+      color: color.withValues(alpha: finalOpacity), 
       borderColor: color.withValues(alpha: borderOpacity),
       borderStrokeWidth: zoom > 12 ? 2.0 : 1.5,
       hitValue: airspace,
@@ -326,5 +336,48 @@ class _OptimizedSpatialAirspacesOverlayState
   double _calculateBorderOpacity(Airspace airspace) {
     // Strong borders for all airspaces to make them clearly visible
     return 0.9; // 90% opacity for borders
+  }
+  
+  double _calculateAltitudeBasedOpacity(Airspace airspace) {
+    // If no altitude limits are defined, show at full opacity
+    if (airspace.lowerLimitFt == null || airspace.upperLimitFt == null) {
+      return 1.0;
+    }
+    
+    final currentAlt = widget.currentAltitude;
+    final lowerLimit = airspace.lowerLimitFt!;
+    final upperLimit = airspace.upperLimitFt!;
+    
+    // If current altitude is within the airspace, full opacity
+    if (currentAlt >= lowerLimit && currentAlt <= upperLimit) {
+      return 1.0;
+    }
+    
+    // Calculate distance from airspace
+    double distanceFromAirspace;
+    if (currentAlt < lowerLimit) {
+      // Below the airspace
+      distanceFromAirspace = lowerLimit - currentAlt;
+    } else {
+      // Above the airspace
+      distanceFromAirspace = currentAlt - upperLimit;
+    }
+    
+    // Calculate opacity based on distance
+    // Full opacity at 0ft distance, minimum opacity at 5000ft or more
+    const double fadeStartDistance = 500.0; // Start fading after 500ft
+    const double fadeEndDistance = 5000.0; // Minimum opacity at 5000ft
+    const double minOpacity = 0.2; // Minimum 20% opacity
+    
+    if (distanceFromAirspace <= fadeStartDistance) {
+      return 1.0; // Full opacity within 500ft
+    } else if (distanceFromAirspace >= fadeEndDistance) {
+      return minOpacity; // Minimum opacity beyond 5000ft
+    } else {
+      // Linear interpolation between fadeStartDistance and fadeEndDistance
+      final fadeRange = fadeEndDistance - fadeStartDistance;
+      final fadeProgress = (distanceFromAirspace - fadeStartDistance) / fadeRange;
+      return 1.0 - (fadeProgress * (1.0 - minOpacity));
+    }
   }
 }
