@@ -17,6 +17,7 @@ import '../../services/media_service.dart';
 import '../../screens/flight_detail_screen.dart';
 import 'logbook_screen.dart';
 import '../../constants/app_theme.dart';
+import '../../constants/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 
 class LogBookEntryForm extends StatefulWidget {
@@ -238,8 +239,14 @@ class _LogBookEntryFormState extends State<LogBookEntryForm> {
     final aircraft = aircraftService.aircrafts;
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
-        title: Text(isEditing ? l10n.editLogBookEntry : l10n.newLogBookEntry),
+        title: Text(
+          isEditing ? l10n.editLogBookEntry : l10n.newLogBookEntry,
+          style: const TextStyle(color: AppColors.primaryTextColor),
+        ),
+        backgroundColor: AppColors.dialogBackgroundColor,
+        foregroundColor: AppColors.primaryTextColor,
         actions: [
           TextButton(
             onPressed: _saveEntry,

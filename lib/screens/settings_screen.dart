@@ -29,9 +29,10 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n?.settings ?? 'Settings'),
-        backgroundColor: const Color(0xE6000000),
+        backgroundColor: AppColors.dialogBackgroundColor,
+        foregroundColor: AppColors.primaryTextColor,
       ),
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.backgroundColor,
       body: Consumer2<SettingsService, LocalizationService>(
         builder: (context, settings, localizationService, child) {
           final l10n = AppLocalizations.of(context);
@@ -489,12 +490,12 @@ class SettingsScreen extends StatelessWidget {
                 title: Text(
                   languageName ?? locale.languageCode,
                   style: TextStyle(
-                    color: isSelected ? const Color(0xFF448AFF) : Colors.white,
+                    color: isSelected ? AppColors.primaryAccent : AppColors.primaryTextColor,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 trailing: isSelected 
-                  ? const Icon(Icons.check, color: Color(0xFF448AFF))
+                  ? const Icon(Icons.check, color: AppColors.primaryAccent)
                   : null,
                 onTap: () async {
                   await localizationService.setLocale(locale);
@@ -1575,12 +1576,12 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                 title: Text(
                   languageName ?? locale.languageCode,
                   style: TextStyle(
-                    color: isSelected ? const Color(0xFF448AFF) : Colors.white,
+                    color: isSelected ? AppColors.primaryAccent : AppColors.primaryTextColor,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 trailing: isSelected 
-                  ? const Icon(Icons.check, color: Color(0xFF448AFF))
+                  ? const Icon(Icons.check, color: AppColors.primaryAccent)
                   : null,
                 onTap: () async {
                   await localizationService.setLocale(locale);
