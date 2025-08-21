@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "format": "json",
+  "dataType": "openaip_runways",
+  "source": "OpenAIP",
+  "tileSize": {
+    "width": 10,
+    "height": 10
+  },
+  "tiles": [],
+  "totalItems": 0,
+  "generated_at": "2025-08-21T10:28:19.627190Z"
+}
