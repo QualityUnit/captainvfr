@@ -4,6 +4,7 @@ import '../models/license.dart';
 import '../services/license_service.dart';
 import 'license_detail_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../constants/app_colors.dart';
 
 class LicensesScreen extends StatefulWidget {
   const LicensesScreen({super.key});
@@ -17,8 +18,14 @@ class _LicensesScreenState extends State<LicensesScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.pilotLicenses),
+        title: Text(
+          l10n.pilotLicenses,
+          style: const TextStyle(color: AppColors.primaryTextColor),
+        ),
+        backgroundColor: AppColors.dialogBackgroundColor,
+        foregroundColor: AppColors.primaryTextColor,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

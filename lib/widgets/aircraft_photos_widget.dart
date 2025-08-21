@@ -6,6 +6,7 @@ import '../services/aircraft_settings_service.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../constants/app_theme.dart';
+import '../constants/app_colors.dart';
 import '../l10n/app_localizations.dart';
 
 class AircraftPhotosWidget extends StatefulWidget {
@@ -364,13 +365,14 @@ class PhotoViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: AppColors.dialogBackgroundColor,
+        foregroundColor: AppColors.primaryTextColor,
+        iconTheme: const IconThemeData(color: AppColors.primaryTextColor),
         title: Text(
           'Photo ${initialIndex + 1} of ${photos.length}',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.primaryTextColor),
         ),
       ),
       body: PageView.builder(
