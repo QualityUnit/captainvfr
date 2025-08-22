@@ -743,6 +743,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get heatmap => 'Tepelná mapa';
 
   @override
+  String get safeSky => 'SafeSky';
+
+  @override
   String get currentAirspace => 'Aktuálny vzdušný priestor';
 
   @override

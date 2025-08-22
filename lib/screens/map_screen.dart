@@ -36,6 +36,7 @@ import '../services/flight_service.dart';
 import '../services/heading_service.dart';
 import '../services/location_service.dart';
 import '../services/weather_service.dart';
+import '../services/safesky_service.dart';
 import '../services/offline_map_service.dart';
 import '../services/offline_tile_provider.dart';
 import '../services/flight_plan_service.dart';
@@ -107,6 +108,7 @@ class MapScreenState extends State<MapScreen>
   late final NavaidService _navaidService;
   late final LocationService _locationService;
   late final WeatherService _weatherService;
+  late final SafeSkyService _safeSkyService;
   OfflineMapService?
   _offlineMapService; // Make nullable to prevent LateInitializationError
   late final FlightPlanService _flightPlanService;
@@ -267,6 +269,9 @@ class MapScreenState extends State<MapScreen>
         _runwayService.initialize();
         _navaidService = Provider.of<NavaidService>(context, listen: false);
         _weatherService = Provider.of<WeatherService>(context, listen: false);
+        _safeSkyService = SafeSkyService();
+        // Initialize SafeSky service
+        _safeSkyService.initialize();
         _flightPlanService = Provider.of<FlightPlanService>(
           context,
           listen: false,
@@ -1770,6 +1775,41 @@ class MapScreenState extends State<MapScreen>
     setState(() {
       _mapStateController.toggleHeatmap();
     });
+  }
+
+  void _toggleSafeSky() {
+    setState(() {
+      _mapStateController.toggleSafeSky();
+    });
+    
+    if (_mapStateController.showSafeSky) {
+      // Start SafeSky tracking if enabled
+      _startSafeSkyTracking();
+    } else {
+      // Stop SafeSky tracking if disabled
+      _stopSafeSkyTracking();
+    }
+  }
+
+  void _startSafeSkyTracking() {
+    if (_servicesInitialized) {
+      final bounds = _mapController.camera.visibleBounds;
+      _safeSkyService.startTracking(bounds);
+    }
+  }
+
+  void _stopSafeSkyTracking() {
+    if (_servicesInitialized) {
+      _safeSkyService.stopTracking();
+    }
+  }
+
+  void _updateSafeSkyViewport() {
+    if (_servicesInitialized && 
+        _mapStateController.showSafeSky) {
+      final bounds = _mapController.camera.visibleBounds;
+      _safeSkyService.updateViewport(bounds);
+    }
   }
   
   // Toggle METAR weather display
@@ -4613,6 +4653,14 @@ class MapScreenState extends State<MapScreen>
               label: l10n.heatmap,
               isActive: _mapStateController.showHeatmap,
               onPressed: _toggleHeatmap,
+            ),
+            _buildMenuToggleButton(
+              icon: _mapStateController.showSafeSky
+                  ? Icons.airplanemode_active
+                  : Icons.airplanemode_inactive,
+              label: l10n.safeSky,
+              isActive: _mapStateController.showSafeSky,
+              onPressed: _toggleSafeSky,
             ),
             _buildMenuToggleButton(
               icon: _showCurrentAirspacePanel

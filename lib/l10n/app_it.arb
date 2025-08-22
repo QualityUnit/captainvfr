@@ -239,6 +239,7 @@
   "obstacles": "Ostacoli",
   "hotspots": "Hotspot",
   "heatmap": "Mappa calore",
+  "safeSky": "SafeSky",
   "currentAirspace": "Spazio aereo attuale",
   "planning": "Pianificazione",
   "noAirspaceAtCurrentPosition": "Nessuno spazio aereo alla posizione attuale",

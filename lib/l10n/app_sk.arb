@@ -336,6 +336,7 @@
   "obstacles": "Prekážky",
   "hotspots": "Hotspoty",
   "heatmap": "Tepelná mapa",
+  "safeSky": "SafeSky",
   "currentAirspace": "Aktuálny vzdušný priestor",
   "planning": "Plánovanie",
   "noAirspaceAtCurrentPosition": "Žiadny vzdušný priestor na aktuálnej pozícii",
