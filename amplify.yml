@@ -5,20 +5,17 @@ env:
     HUGO_VERSION: 0.146.5
     # SafeSky API Key - Set this in Amplify Console Environment Variables
     # SAFESKY_API_KEY: (set in Amplify Console for security)
-backend:
-  phases:
-    preBuild:
-      commands:
-        # Deploy/Update Lambda function for SafeSky proxy
-        - echo "Deploying SafeSky Lambda function..."
-        - export AWS_PROFILE=default
-        - export AWS_REGION=eu-central-1
-        - chmod +x backend/lambda/safesky-proxy/amplify-deploy.sh
-        - ./backend/lambda/safesky-proxy/amplify-deploy.sh
 frontend:
   phases:
     preBuild:
       commands:
+        # Deploy/Update Lambda function for SafeSky proxy (must be in frontend phase for Gen 1)
+        - echo "Deploying SafeSky Lambda function..."
+        - export AWS_REGION=eu-central-1
+        - chmod +x backend/lambda/safesky-proxy/amplify-deploy.sh
+        - ./backend/lambda/safesky-proxy/amplify-deploy.sh || echo "Lambda deployment failed but continuing build"
+        
+        # Continue with regular Hugo build
         # Download and install Git LFS binary directly
         - wget https://github.com/git-lfs/git-lfs/releases/download/v3.4.0/git-lfs-linux-amd64-v3.4.0.tar.gz
         - tar -xzf git-lfs-linux-amd64-v3.4.0.tar.gz
