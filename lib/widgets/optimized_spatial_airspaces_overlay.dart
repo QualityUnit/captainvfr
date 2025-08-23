@@ -291,9 +291,25 @@ class _OptimizedSpatialAirspacesOverlayState
   }
 
   List<Polygon> _buildOptimizedPolygons(double zoom) {
-    // At low zoom levels, we might want to filter out very small airspaces
-    // For now, just build all visible airspaces
-    return _visibleAirspaces
+    // Sort airspaces to render FIS layers below other airspaces
+    // This ensures large FIS polygons don't obscure important airspace information
+    final sortedAirspaces = List<Airspace>.from(_visibleAirspaces);
+    sortedAirspaces.sort((a, b) {
+      final typeA = a.type?.toUpperCase();
+      final typeB = b.type?.toUpperCase();
+      
+      // FIS/INFO airspaces should be rendered first (lower priority)
+      final isFISA = typeA == 'FIS' || typeA == 'INFO' || typeA == 'FIR' || typeA == 'UIR';
+      final isFISB = typeB == 'FIS' || typeB == 'INFO' || typeB == 'FIR' || typeB == 'UIR';
+      
+      if (isFISA && !isFISB) return -1;
+      if (!isFISA && isFISB) return 1;
+      
+      // For non-FIS airspaces, maintain original order
+      return 0;
+    });
+    
+    return sortedAirspaces
         .map((airspace) => _buildPolygon(airspace, zoom))
         .toList();
   }
@@ -329,8 +345,8 @@ class _OptimizedSpatialAirspacesOverlayState
     if (type == 'DANGER' || type == 'PROHIBITED' || type == 'RESTRICTED') { // Danger areas
       return 0.32; // 32% opacity for danger areas (was 40%)
     }
-    if (type == 'FIR' || type == 'UIR') { // Flight Information Regions
-      return 0.08; // 8% opacity for FIR (very transparent, was 10%)
+    if (type == 'FIS' || type == 'FIR' || type == 'UIR' || type == 'INFO') { // Flight Information Service/Regions
+      return 0.03; // 3% opacity for FIS/FIR (ultra-transparent to avoid map obstruction)
     }
     if (type == 'GLIDING' || type == 'SPORT') { // Sporting/recreational areas
       return 0.20; // 20% opacity (was 25%)
