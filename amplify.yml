@@ -3,6 +3,18 @@ env:
   variables:
     # Hugo version - this works with AWS Amplify Live Package Updates
     HUGO_VERSION: 0.146.5
+    # SafeSky API Key - Set this in Amplify Console Environment Variables
+    # SAFESKY_API_KEY: (set in Amplify Console for security)
+backend:
+  phases:
+    preBuild:
+      commands:
+        # Deploy/Update Lambda function for SafeSky proxy
+        - echo "Deploying SafeSky Lambda function..."
+        - export AWS_PROFILE=default
+        - export AWS_REGION=eu-central-1
+        - chmod +x backend/lambda/safesky-proxy/amplify-deploy.sh
+        - ./backend/lambda/safesky-proxy/amplify-deploy.sh
 frontend:
   phases:
     preBuild:

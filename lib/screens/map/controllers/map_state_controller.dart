@@ -2,9 +2,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/map_constants.dart';
 
 class MapStateController extends ChangeNotifier {
+  // Preference keys for layer states
+  static const String _keyShowNavaids = 'map_show_navaids';
+  static const String _keyShowMetar = 'map_show_metar';
+  static const String _keyShowStats = 'map_show_stats';
+  static const String _keyShowHeliports = 'map_show_heliports';
+  static const String _keyShowAirspaces = 'map_show_airspaces';
+  static const String _keyShowObstacles = 'map_show_obstacles';
+  static const String _keyShowHotspots = 'map_show_hotspots';
+  static const String _keyShowHeatmap = 'map_show_heatmap';
+  static const String _keyShowSafeSky = 'map_show_safesky';
+  
+  late SharedPreferences _prefs;
+  bool _prefsInitialized = false;
 
   // Location and map state
   Position? _currentPosition;
@@ -58,6 +72,27 @@ class MapStateController extends ChangeNotifier {
   bool get showHeatmap => _showHeatmap;
   bool get showSafeSky => _showSafeSky;
   bool get isMenuPanelOpen => _isMenuPanelOpen;
+  
+  // Initialize and load saved preferences
+  Future<void> init() async {
+    if (_prefsInitialized) return;
+    
+    _prefs = await SharedPreferences.getInstance();
+    
+    // Load saved states with defaults
+    _showNavaids = _prefs.getBool(_keyShowNavaids) ?? false;
+    _showMetar = _prefs.getBool(_keyShowMetar) ?? true;
+    _showStats = _prefs.getBool(_keyShowStats) ?? false;
+    _showHeliports = _prefs.getBool(_keyShowHeliports) ?? false;
+    _showAirspaces = _prefs.getBool(_keyShowAirspaces) ?? true;
+    _showObstacles = _prefs.getBool(_keyShowObstacles) ?? false;
+    _showHotspots = _prefs.getBool(_keyShowHotspots) ?? false;
+    _showHeatmap = _prefs.getBool(_keyShowHeatmap) ?? false;
+    _showSafeSky = _prefs.getBool(_keyShowSafeSky) ?? false;
+    
+    _prefsInitialized = true;
+    notifyListeners();
+  }
 
   // Update current position
   void updatePosition(Position position) {
@@ -81,46 +116,73 @@ class MapStateController extends ChangeNotifier {
   // Toggle layer visibility
   void toggleNavaids() {
     _showNavaids = !_showNavaids;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowNavaids, _showNavaids);
+    }
     notifyListeners();
   }
 
   void toggleMetar() {
     _showMetar = !_showMetar;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowMetar, _showMetar);
+    }
     notifyListeners();
   }
 
   void toggleStats() {
     _showStats = !_showStats;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowStats, _showStats);
+    }
     notifyListeners();
   }
 
   void toggleHeliports() {
     _showHeliports = !_showHeliports;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowHeliports, _showHeliports);
+    }
     notifyListeners();
   }
 
   void toggleAirspaces() {
     _showAirspaces = !_showAirspaces;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowAirspaces, _showAirspaces);
+    }
     notifyListeners();
   }
 
   void toggleObstacles() {
     _showObstacles = !_showObstacles;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowObstacles, _showObstacles);
+    }
     notifyListeners();
   }
 
   void toggleHotspots() {
     _showHotspots = !_showHotspots;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowHotspots, _showHotspots);
+    }
     notifyListeners();
   }
 
   void toggleHeatmap() {
     _showHeatmap = !_showHeatmap;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowHeatmap, _showHeatmap);
+    }
     notifyListeners();
   }
 
   void toggleSafeSky() {
     _showSafeSky = !_showSafeSky;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowSafeSky, _showSafeSky);
+    }
     notifyListeners();
   }
 

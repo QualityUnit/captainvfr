@@ -37,6 +37,7 @@ import '../services/heading_service.dart';
 import '../services/location_service.dart';
 import '../services/weather_service.dart';
 import '../services/safesky_service.dart';
+import '../models/safesky_beacon.dart';
 import '../services/offline_map_service.dart';
 import '../services/offline_tile_provider.dart';
 import '../services/flight_plan_service.dart';
@@ -50,6 +51,7 @@ import '../widgets/airport_info_sheet.dart';
 import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
+import 'map/overlays/safesky_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
 import '../widgets/flight_planning_panel.dart';
 import '../widgets/license_warning_widget.dart';
@@ -238,6 +240,9 @@ class MapScreenState extends State<MapScreen>
     // Initialize controllers
     _mapController = MapController();
     _mapStateController = MapStateController();
+    
+    // Initialize map state controller preferences
+    _mapStateController.init();
 
     // Load flight planning panel state from SharedPreferences
     _loadFlightPlanningPanelState();
@@ -277,11 +282,6 @@ class MapScreenState extends State<MapScreen>
           listen: false,
         );
         
-        // Sync MapStateController with SettingsService
-        final settings = Provider.of<SettingsService>(context, listen: false);
-        if (settings.showNavaids && !_mapStateController.showNavaids) {
-          _mapStateController.toggleNavaids();
-        }
         
         // Set up callback to fit entire flight plan when loaded
         _flightPlanService.onFlightPlanLoaded = (flightPlan) {
@@ -775,6 +775,7 @@ class MapScreenState extends State<MapScreen>
     _flightService.dispose();
     _spatialAirspaceService?.dispose();
     _offlineDataController?.dispose();
+    _safeSkyService.dispose();
     super.dispose();
   }
 
@@ -2411,6 +2412,84 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
+  // Handle SafeSky beacon selection
+  void _onSafeSkyBeaconTapped(SafeSkyBeacon beacon) {
+    if (!mounted) return;
+    
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Show a simple info dialog for the beacon
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black87,
+        title: Row(
+          children: [
+            Icon(
+              beacon.beaconType == 'HELICOPTER' ? Icons.toys :
+              beacon.beaconType == 'JET' ? Icons.flight :
+              beacon.beaconType == 'GLIDER' ? Icons.sailing :
+              beacon.beaconType == 'PARA_GLIDER' ? Icons.paragliding :
+              Icons.airplanemode_active,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              beacon.callSign ?? beacon.id,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow(l10n.type, beacon.beaconTypeDisplay),
+            _buildInfoRow(l10n.altitude, beacon.altitudeString),
+            _buildInfoRow(l10n.speed, beacon.groundSpeedString),
+            _buildInfoRow(l10n.heading, beacon.courseString),
+            if (beacon.verticalRate != null && beacon.verticalRate != 0)
+              _buildInfoRow(
+                l10n.verticalSpeed,
+                '${(beacon.verticalRate! * 196.85).round()} fpm',
+              ),
+            _buildInfoRow(l10n.state, beacon.statusString),
+            if (beacon.transponderType != null)
+              _buildInfoRow('Transponder', beacon.transponderType!),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.close, style: const TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.grey),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Handle airport selection
   Future<void> _onAirportSelected(Airport airport) async {
     // If the airport doesn't have complete data, try to load it from tiles
@@ -3490,6 +3569,11 @@ class MapScreenState extends State<MapScreen>
                   operation: _schedulePrefetchVisibleAirportNotams,
                   debounce: const Duration(milliseconds: 1500),
                 );
+                
+                // Update SafeSky viewport if active
+                if (_mapStateController.showSafeSky && hasGesture) {
+                  _updateSafeSkyViewport();
+                }
               },
             ),
             children: [
@@ -3575,6 +3659,14 @@ class MapScreenState extends State<MapScreen>
                   airports: _airports,
                   showMetarLayer: _mapStateController.showMetar,
                   onAirportTap: _onAirportSelected,
+                ),
+              // SafeSky overlay for real-time aircraft tracking
+              if (_mapStateController.showSafeSky)
+                SafeSkyOverlay(
+                  safeSkyService: _safeSkyService,
+                  showSafeSkyLayer: _mapStateController.showSafeSky,
+                  onBeaconTap: _onSafeSkyBeaconTapped,
+                  currentPosition: _currentPosition,
                 ),
               // Flight plan overlays - add before current position marker
               Consumer<FlightPlanService>(

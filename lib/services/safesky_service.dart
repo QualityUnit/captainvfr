@@ -8,9 +8,8 @@ import '../models/safesky_beacon.dart';
 
 /// Service for fetching and managing SafeSky beacon data
 class SafeSkyService {
-  // TODO: Replace with actual backend proxy URL once deployed
-  // Example: https://your-api-gateway-id.execute-api.region.amazonaws.com/prod/safesky
-  static const String _baseUrl = 'https://api.captainvfr.com/safesky'; // Placeholder URL
+  // SafeSky backend proxy URL
+  static const String _baseUrl = 'https://imuwdhmbde.execute-api.eu-central-1.amazonaws.com/prod';
   static const Duration _cacheDuration = Duration(seconds: 20);
   static const Duration _refreshInterval = Duration(seconds: 20);
   
@@ -26,6 +25,10 @@ class SafeSkyService {
   Future<void>? _ongoingFetch;
   Timer? _refreshTimer;
   bool _isActive = false;
+  
+  // Stream controller for beacon updates
+  final _beaconsStreamController = StreamController<List<SafeSkyBeacon>>.broadcast();
+  Stream<List<SafeSkyBeacon>> get beaconsStream => _beaconsStreamController.stream;
 
   SafeSkyService();
 
@@ -158,6 +161,9 @@ class SafeSkyService {
           _beaconsCache = beacons;
           _lastFetch = DateTime.now();
           _lastViewport = viewport;
+          
+          // Emit to stream
+          _beaconsStreamController.add(beacons);
 
           _logger.i('✅ Fetched ${beacons.length} SafeSky beacons');
         } else {
@@ -250,6 +256,9 @@ class SafeSkyService {
     _beaconsCache = mockBeacons;
     _lastFetch = DateTime.now();
     _lastViewport = viewport;
+    
+    // Emit to stream
+    _beaconsStreamController.add(mockBeacons);
 
     _logger.i('✅ Created ${mockBeacons.length} mock SafeSky beacons for development');
   }
@@ -269,6 +278,13 @@ class SafeSkyService {
     } catch (e) {
       return null;
     }
+  }
+  
+  /// Dispose of resources
+  void dispose() {
+    stopTracking();
+    _beaconsStreamController.close();
+    _client.close();
   }
 
   /// Filter beacons by type
@@ -320,11 +336,5 @@ class SafeSkyService {
       _lastFetch = null; // Force cache invalidation
       await _fetchBeacons(_lastViewport!);
     }
-  }
-
-  /// Cleanup resources
-  void dispose() {
-    stopTracking();
-    _client.close();
   }
 }
