@@ -371,13 +371,15 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
       point: interpolatedPosition,
       width: markerSize + (showCallsign ? 60 : 20), // Extra width for callsign and labels
       height: totalHeight,
-      child: SizedBox(
-        width: markerSize + (showCallsign ? 60 : 20),
-        height: totalHeight,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
+      child: GestureDetector(
+        onTap: () => widget.onBeaconTap?.call(beacon),
+        child: SizedBox(
+          width: markerSize + (showCallsign ? 60 : 20),
+          height: totalHeight,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
             // Speed trail indicator (positioned behind the icon)
             if (showSpeedTrail)
               Positioned(
@@ -481,7 +483,8 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
