@@ -1506,6 +1506,12 @@ abstract class AppLocalizations {
   /// **'Heatmap'**
   String get heatmap;
 
+  /// SafeSky aircraft tracking layer label
+  ///
+  /// In en, this message translates to:
+  /// **'SafeSky'**
+  String get safeSky;
+
   /// Current airspace label
   ///
   /// In en, this message translates to:

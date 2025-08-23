@@ -36,6 +36,8 @@ import '../services/flight_service.dart';
 import '../services/heading_service.dart';
 import '../services/location_service.dart';
 import '../services/weather_service.dart';
+import '../services/safesky_service.dart';
+import '../models/safesky_beacon.dart';
 import '../services/offline_map_service.dart';
 import '../services/offline_tile_provider.dart';
 import '../services/flight_plan_service.dart';
@@ -46,9 +48,11 @@ import '../widgets/optimized_marker_layer.dart';
 import '../widgets/optimized_heatmap_layer.dart';
 import '../services/flight_heatmap_processor.dart';
 import '../widgets/airport_info_sheet.dart';
+import 'map/components/center_button.dart';
 import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
+import 'map/overlays/animated_safesky_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
 import '../widgets/flight_planning_panel.dart';
 import '../widgets/license_warning_widget.dart';
@@ -107,6 +111,7 @@ class MapScreenState extends State<MapScreen>
   late final NavaidService _navaidService;
   late final LocationService _locationService;
   late final WeatherService _weatherService;
+  late final SafeSkyService _safeSkyService;
   OfflineMapService?
   _offlineMapService; // Make nullable to prevent LateInitializationError
   late final FlightPlanService _flightPlanService;
@@ -236,6 +241,19 @@ class MapScreenState extends State<MapScreen>
     // Initialize controllers
     _mapController = MapController();
     _mapStateController = MapStateController();
+    
+    // Initialize map state controller preferences
+    _mapStateController.init().then((_) {
+      // After preferences are loaded, check if SafeSky should be started
+      if (_mapStateController.showSafeSky) {
+        // Wait for map to be ready before starting SafeSky
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _servicesInitialized) {
+            _startSafeSkyTracking();
+          }
+        });
+      }
+    });
 
     // Load flight planning panel state from SharedPreferences
     _loadFlightPlanningPanelState();
@@ -267,16 +285,14 @@ class MapScreenState extends State<MapScreen>
         _runwayService.initialize();
         _navaidService = Provider.of<NavaidService>(context, listen: false);
         _weatherService = Provider.of<WeatherService>(context, listen: false);
+        _safeSkyService = SafeSkyService();
+        // Initialize SafeSky service
+        _safeSkyService.initialize();
         _flightPlanService = Provider.of<FlightPlanService>(
           context,
           listen: false,
         );
         
-        // Sync MapStateController with SettingsService
-        final settings = Provider.of<SettingsService>(context, listen: false);
-        if (settings.showNavaids && !_mapStateController.showNavaids) {
-          _mapStateController.toggleNavaids();
-        }
         
         // Set up callback to fit entire flight plan when loaded
         _flightPlanService.onFlightPlanLoaded = (flightPlan) {
@@ -584,6 +600,11 @@ class MapScreenState extends State<MapScreen>
     _countdownTimer?.cancel();
     _airspaceDebounceTimer?.cancel();
     _locationStreamSubscription?.pause();
+    
+    // Pause SafeSky updates when app loses focus
+    if (_mapStateController.showSafeSky && _servicesInitialized) {
+      _safeSkyService.stopTracking();
+    }
   }
   
   void _resumeAllTimers() {
@@ -594,6 +615,14 @@ class MapScreenState extends State<MapScreen>
     
     // Resume location stream
     _locationStreamSubscription?.resume();
+    
+    // Resume SafeSky updates when app regains focus
+    if (_mapStateController.showSafeSky && _servicesInitialized) {
+      final bounds = _mapController.camera.visibleBounds;
+      _safeSkyService.startTracking(bounds);
+      // Force immediate refresh when regaining focus
+      _safeSkyService.refreshNow();
+    }
   }
 
   /// Validate flight plan tiles on startup
@@ -770,6 +799,7 @@ class MapScreenState extends State<MapScreen>
     _flightService.dispose();
     _spatialAirspaceService?.dispose();
     _offlineDataController?.dispose();
+    _safeSkyService.dispose();
     super.dispose();
   }
 
@@ -1458,13 +1488,6 @@ class MapScreenState extends State<MapScreen>
     });
   }
 
-  // Format countdown time as MM:SS
-  String _formatCountdownTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
-
   // Start auto-centering countdown
   void _startAutoCenteringCountdown() {
     setState(() {
@@ -1770,6 +1793,41 @@ class MapScreenState extends State<MapScreen>
     setState(() {
       _mapStateController.toggleHeatmap();
     });
+  }
+
+  void _toggleSafeSky() {
+    setState(() {
+      _mapStateController.toggleSafeSky();
+    });
+    
+    if (_mapStateController.showSafeSky) {
+      // Start SafeSky tracking if enabled
+      _startSafeSkyTracking();
+    } else {
+      // Stop SafeSky tracking if disabled
+      _stopSafeSkyTracking();
+    }
+  }
+
+  void _startSafeSkyTracking() {
+    if (_servicesInitialized) {
+      final bounds = _mapController.camera.visibleBounds;
+      _safeSkyService.startTracking(bounds);
+    }
+  }
+
+  void _stopSafeSkyTracking() {
+    if (_servicesInitialized) {
+      _safeSkyService.stopTracking();
+    }
+  }
+
+  void _updateSafeSkyViewport() {
+    if (_servicesInitialized && 
+        _mapStateController.showSafeSky) {
+      final bounds = _mapController.camera.visibleBounds;
+      _safeSkyService.updateViewport(bounds);
+    }
   }
   
   // Toggle METAR weather display
@@ -2369,6 +2427,84 @@ class MapScreenState extends State<MapScreen>
       // Handle cases where map controller is not ready
       // Position update already happened, just skip marker detection
     }
+  }
+
+  // Handle SafeSky beacon selection
+  void _onSafeSkyBeaconTapped(SafeSkyBeacon beacon) {
+    if (!mounted) return;
+    
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Show a simple info dialog for the beacon
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black87,
+        title: Row(
+          children: [
+            Icon(
+              beacon.beaconType == 'HELICOPTER' ? Icons.toys :
+              beacon.beaconType == 'JET' ? Icons.flight :
+              beacon.beaconType == 'GLIDER' ? Icons.sailing :
+              beacon.beaconType == 'PARA_GLIDER' ? Icons.paragliding :
+              Icons.airplanemode_active,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              beacon.callSign ?? beacon.id,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow(l10n.type, beacon.beaconTypeDisplay),
+            _buildInfoRow(l10n.altitude, beacon.altitudeString),
+            _buildInfoRow(l10n.speed, beacon.groundSpeedString),
+            _buildInfoRow(l10n.heading, beacon.courseString),
+            if (beacon.verticalRate != null && beacon.verticalRate != 0)
+              _buildInfoRow(
+                l10n.verticalSpeed,
+                '${(beacon.verticalRate! * 196.85).round()} fpm',
+              ),
+            _buildInfoRow(l10n.state, beacon.statusString),
+            if (beacon.transponderType != null)
+              _buildInfoRow('Transponder', beacon.transponderType!),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.close, style: const TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.grey),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Handle airport selection
@@ -3450,6 +3586,11 @@ class MapScreenState extends State<MapScreen>
                   operation: _schedulePrefetchVisibleAirportNotams,
                   debounce: const Duration(milliseconds: 1500),
                 );
+                
+                // Update SafeSky viewport if active
+                if (_mapStateController.showSafeSky && hasGesture) {
+                  _updateSafeSkyViewport();
+                }
               },
             ),
             children: [
@@ -3535,6 +3676,14 @@ class MapScreenState extends State<MapScreen>
                   airports: _airports,
                   showMetarLayer: _mapStateController.showMetar,
                   onAirportTap: _onAirportSelected,
+                ),
+              // SafeSky overlay for real-time aircraft tracking with animation
+              if (_mapStateController.showSafeSky)
+                AnimatedSafeSkyOverlay(
+                  safeSkyService: _safeSkyService,
+                  showSafeSkyLayer: _mapStateController.showSafeSky,
+                  onBeaconTap: _onSafeSkyBeaconTapped,
+                  currentPosition: _currentPosition,
                 ),
               // Flight plan overlays - add before current position marker
               Consumer<FlightPlanService>(
@@ -4104,6 +4253,17 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
 
+          // Center button - left of search button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: _menuButtonMargin + _menuButtonWidth + _buttonSpacing * 2 + 48,
+            child: CenterButton(
+              positionTrackingEnabled: _positionTrackingEnabled,
+              autoCenteringEnabled: _autoCenteringEnabled,
+              autoCenteringCountdown: _autoCenteringCountdown,
+              onToggle: _togglePositionTracking,
+            ),
+          ),
           // Search button in top-right corner (left of menu)
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
@@ -4615,6 +4775,14 @@ class MapScreenState extends State<MapScreen>
               onPressed: _toggleHeatmap,
             ),
             _buildMenuToggleButton(
+              icon: _mapStateController.showSafeSky
+                  ? Icons.airplanemode_active
+                  : Icons.airplanemode_inactive,
+              label: l10n.safeSky,
+              isActive: _mapStateController.showSafeSky,
+              onPressed: _toggleSafeSky,
+            ),
+            _buildMenuToggleButton(
               icon: _showCurrentAirspacePanel
                   ? Icons.account_tree
                   : Icons.account_tree_outlined,
@@ -4653,17 +4821,6 @@ class MapScreenState extends State<MapScreen>
           ),
         ),
         const SizedBox(height: 12),
-        _buildMenuItem(
-          icon: _positionTrackingEnabled ? Icons.my_location : Icons.location_searching,
-          label: l10n.center,
-          subtitle: _autoCenteringCountdown > 0 
-              ? l10n.autoInTime(_formatCountdownTime(_autoCenteringCountdown))
-              : null,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _togglePositionTracking();
-          },
-        ),
         _buildMenuItem(
           icon: Icons.flight_takeoff,
           label: l10n.flightLog,

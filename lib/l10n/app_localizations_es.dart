@@ -755,6 +755,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get heatmap => 'Mapa de calor';
 
   @override
+  String get safeSky => 'SafeSky';
+
+  @override
   String get currentAirspace => 'Espacio aéreo actual';
 
   @override

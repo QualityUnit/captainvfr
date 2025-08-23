@@ -745,6 +745,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get heatmap => 'Tepelná mapa';
 
   @override
+  String get safeSky => 'SafeSky';
+
+  @override
   String get currentAirspace => 'Aktuální vzdušný prostor';
 
   @override

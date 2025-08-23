@@ -1231,6 +1231,10 @@
   "@heatmap": {
     "description": "Heatmap layer label"
   },
+  "safeSky": "SafeSky",
+  "@safeSky": {
+    "description": "SafeSky aircraft tracking layer label"
+  },
 
   "currentAirspace": "Current Airspace",
   "@currentAirspace": {

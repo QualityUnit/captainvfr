@@ -318,31 +318,31 @@ class _OptimizedSpatialAirspacesOverlayState
   double _calculateFillOpacity(Airspace airspace) {
     // Special handling for Class E airspaces - make them more transparent
     if (airspace.icaoClass == '4' || airspace.icaoClass?.toUpperCase() == 'E') {
-      return 0.15; // 15% opacity for Class E airspaces
+      return 0.12; // 12% opacity for Class E airspaces (was 15%)
     }
     
     // Different opacity based on airspace type (string values)
     final type = airspace.type?.toUpperCase();
     if (type == 'CTR' || type == 'ATZ') { // Control zones
-      return 0.35; // 35% opacity for control zones
+      return 0.28; // 28% opacity for control zones (was 35%)
     }
     if (type == 'DANGER' || type == 'PROHIBITED' || type == 'RESTRICTED') { // Danger areas
-      return 0.4; // 40% opacity for danger areas
+      return 0.32; // 32% opacity for danger areas (was 40%)
     }
     if (type == 'FIR' || type == 'UIR') { // Flight Information Regions
-      return 0.1; // 10% opacity for FIR (very transparent)
+      return 0.08; // 8% opacity for FIR (very transparent, was 10%)
     }
     if (type == 'GLIDING' || type == 'SPORT') { // Sporting/recreational areas
-      return 0.25; // 25% opacity
+      return 0.20; // 20% opacity (was 25%)
     }
     
     // Regular fill opacity for other airspaces
-    return 0.3; // 30% opacity for better visibility
+    return 0.24; // 24% opacity for better visibility (was 30%)
   }
   
   double _calculateBorderOpacity(Airspace airspace) {
-    // Strong borders for all airspaces to make them clearly visible
-    return 0.9; // 90% opacity for borders
+    // Softer borders for all airspaces to reduce visual clutter
+    return 0.7; // 70% opacity for borders (was 90%)
   }
   
   /// Calculates opacity based on vertical distance from the airspace.

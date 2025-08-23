@@ -37,6 +37,47 @@ CaptainVFR prioritizes your safety with intelligent monitoring systems and proac
   - Recurrent training needs
   - Endorsement expirations
 
+## Real-Time Traffic Awareness (SafeSky)
+
+### Live Aircraft Tracking
+- **Multi-Source Data Aggregation**:
+  - ADS-B and Mode-S transponders
+  - FLARM glider tracking
+  - FANET paraglider beacons
+  - OGN (Open Glider Network)
+  - PilotAware devices
+  - Mobile app position sharing
+  - UAV/Drone tracking
+
+- **Intelligent Collision Detection**:
+  - CPA (Closest Point of Approach) calculation
+  - Velocity-based path prediction
+  - Altitude separation monitoring (±1000ft)
+  - 15-minute forward projection
+  - Red warning circles for genuine risks only
+
+### Visual Traffic Display
+- **Dynamic Aircraft Markers**:
+  - Type-specific icons (jets, helicopters, gliders)
+  - Real-time heading/course display
+  - Altitude labels with unit conversion
+  - Callsign display within 50km
+  - Color-coded by aircraft type
+
+- **Altitude-Based Visualization**:
+  - Progressive transparency by vertical distance
+  - Focus on traffic at your altitude
+  - Maintained awareness of all traffic
+  - Smart visual hierarchy
+
+### Performance & Efficiency
+- **Smart Update Management**:
+  - 5-second refresh rate
+  - Automatic pause when app loses focus
+  - Instant resume with fresh data
+  - Battery optimization
+  - Rate limiting with exponential backoff
+
 ## Airspace Awareness
 
 ### Real-Time Alerts
