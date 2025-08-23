@@ -601,6 +601,12 @@ class MapScreenState extends State<MapScreen>
     _countdownTimer?.cancel();
     _airspaceDebounceTimer?.cancel();
     _locationStreamSubscription?.pause();
+    
+    // Pause SafeSky updates when app loses focus
+    if (_mapStateController.showSafeSky && _servicesInitialized) {
+      debugPrint('⏸️ Pausing SafeSky updates - app lost focus');
+      _safeSkyService.stopTracking();
+    }
   }
   
   void _resumeAllTimers() {
@@ -611,6 +617,15 @@ class MapScreenState extends State<MapScreen>
     
     // Resume location stream
     _locationStreamSubscription?.resume();
+    
+    // Resume SafeSky updates when app regains focus
+    if (_mapStateController.showSafeSky && _servicesInitialized) {
+      debugPrint('▶️ Resuming SafeSky updates - app regained focus');
+      final bounds = _mapController.camera.visibleBounds;
+      _safeSkyService.startTracking(bounds);
+      // Force immediate refresh when regaining focus
+      _safeSkyService.refreshNow();
+    }
   }
 
   /// Validate flight plan tiles on startup
