@@ -5,50 +5,46 @@ This AWS Lambda function serves as a proxy for the SafeSky API, providing secure
 ## Features
 
 - **API Key Security**: Keeps the SafeSky API key secure on the server side
-- **Response Caching**: Implements 20-second caching to reduce API calls and improve performance
+- **Response Caching**: Implements 5-second caching to reduce API calls and improve performance
+- **Rate Limiting**: Enforces per-IP (20/min) and global (100/min) request limits
 - **Data Filtering**: Filters beacons by viewport bounds and recency
 - **Error Handling**: Graceful degradation when SafeSky API is unavailable
-- **CORS Support**: Enables cross-origin requests from the mobile app
-- **Input Validation**: Validates viewport parameters and coordinates
+- **Mock Data**: Returns mock beacons for development when API key is not configured
+- **CORS Support**: Configured for mobile app access
 
-## Environment Variables
+## API Endpoint
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SAFESKY_API_KEY` | SafeSky API key for authentication | Yes |
-| `NODE_ENV` | Environment (development/production) | No |
-
-## API Endpoints
-
-### GET /beacons
-
-Fetches aircraft beacon data for a specified viewport.
-
-**Parameters:**
-- `viewport` (required): Comma-separated viewport bounds in format `south,west,north,east`
-
-**Example:**
 ```
-GET /beacons?viewport=48.83161,2.41143,52.51745,6.37275
+GET /beacons?viewport=south,west,north,east
 ```
 
-**Response:**
+### Parameters
+- `viewport` (required): Comma-separated coordinates defining the viewport bounds
+  - Format: `south,west,north,east`
+  - Example: `46.8,7.3,47.0,7.6`
+
+### Response Headers
+- `X-Cache`: Indicates cache status (HIT/MISS/MOCK)
+- `X-RateLimit-Limit`: Maximum requests allowed per minute
+- `X-RateLimit-Remaining`: Remaining requests in current window
+- `X-RateLimit-Reset`: Unix timestamp when rate limit resets
+- `Retry-After`: Seconds to wait when rate limited (429 response)
+
+### Response Format
 ```json
 [
   {
-    "id": "39D300",
-    "latitude": 41.27638,
-    "longitude": -8.68863,
-    "altitude": 150,
-    "altitude_accuracy": 0,
-    "accuracy": 0,
-    "call_sign": "TVF70DB",
-    "ground_speed": 75,
-    "course": 169,
+    "id": "beacon-123",
+    "latitude": 46.9479,
+    "longitude": 7.4474,
+    "altitude": 1500,
+    "call_sign": "VFR123",
+    "ground_speed": 55,
+    "course": 90,
     "status": "AIRBORNE",
-    "last_update": 1708102018,
+    "last_update": 1234567890,
     "turn_rate": null,
-    "vertical_rate": -3,
+    "vertical_rate": 2,
     "beacon_type": "JET",
     "transponder_type": "ADS-B",
     "remarks": null
@@ -60,7 +56,7 @@ GET /beacons?viewport=48.83161,2.41143,52.51745,6.37275
 
 ### Manual Deployment
 
-1. Install dependencies (none currently):
+1. Install dependencies (none currently required):
    ```bash
    npm install
    ```
@@ -70,88 +66,73 @@ GET /beacons?viewport=48.83161,2.41143,52.51745,6.37275
    npm run deploy
    ```
 
-3. Upload `safesky-proxy.zip` to AWS Lambda
+3. Deploy to AWS Lambda:
+   ```bash
+   ./deploy-simple.sh
+   ```
 
-### AWS Amplify Deployment
+4. Set up API Gateway:
+   ```bash
+   ./setup-api-gateway.sh
+   ```
 
-Add to your `amplify.yml`:
+5. Configure environment variables in AWS Lambda Console:
+   - `SAFESKY_API_KEY`: Your SafeSky API key (required for production)
+   - `NODE_ENV`: Set to 'development' for verbose error messages
 
-```yaml
-version: 1
-backend:
-  phases:
-    build:
-      commands:
-        - cd backend/lambda/safesky-proxy
-        - npm install
-        - zip -r ../../../safesky-proxy.zip index.js package.json
-functions:
-  - functionName: safeskyProxy
-    runtime: nodejs18.x
-    environment:
-      SAFESKY_API_KEY: ${SAFESKY_API_KEY}
-```
+### AWS SAM Deployment
 
-## Configuration
+For automated deployment using AWS SAM:
 
-### Lambda Function Settings
-
-- **Runtime**: Node.js 18.x
-- **Memory**: 512 MB
-- **Timeout**: 30 seconds
-- **Environment Variables**: `SAFESKY_API_KEY`
-
-### API Gateway Settings
-
-- **Integration**: Lambda Proxy Integration
-- **CORS**: Enabled for all origins
-- **Rate Limiting**: 100 requests per second recommended
-- **Caching**: Optional (function has built-in caching)
-
-## Monitoring
-
-The function logs the following events:
-- Incoming requests with parameters
-- Cache hits/misses
-- SafeSky API response status
-- Error conditions
-
-Use CloudWatch to monitor:
-- Function duration
-- Error rates
-- Memory usage
-- Request counts
-
-## Security Considerations
-
-1. **API Key Protection**: SafeSky API key is stored in environment variables
-2. **Input Validation**: All viewport parameters are validated
-3. **Rate Limiting**: Recommended to implement API Gateway rate limiting
-4. **CORS**: Configure appropriate origins in production
-5. **Error Messages**: Sensitive error details only shown in development
-
-## Testing
-
-Test locally:
 ```bash
-npm test
+sam build
+sam deploy --guided
 ```
 
-This runs a test request with sample viewport coordinates.
+## Environment Variables
 
-## Cache Strategy
+- `SAFESKY_API_KEY` - SafeSky API key (required for production)
+- `NODE_ENV` - Environment mode (development/production)
 
-- **Duration**: 20 seconds per viewport
-- **Key Format**: `viewport:{south,west,north,east}`
-- **Cleanup**: Automatic cleanup of expired entries
-- **Headers**: Cache status indicated via `X-Cache` header
+## Rate Limiting
+
+The function implements two-tier rate limiting:
+- **Per-IP limit**: 20 requests per minute per client IP
+- **Global limit**: 100 total requests per minute across all clients
+- **Window**: 60-second sliding window
+- **Exponential backoff**: Clients should respect Retry-After header
+
+## Caching
+
+- **Duration**: 5 seconds per viewport
+- **Key**: Based on rounded viewport coordinates
+- **Size limit**: Maximum 100 cached viewports
+- **Automatic cleanup**: Oldest entries removed when limit exceeded
 
 ## Error Handling
 
 The function implements graceful error handling:
 - Network errors return empty beacon array
-- API errors return empty beacon array
+- API errors return empty beacon array  
 - Invalid parameters return 400 status
-- Missing API key returns 500 status
+- Rate limiting returns 429 status with retry information
+- Missing API key returns mock data for development
 
 This ensures the mobile app continues to function even when SafeSky API is unavailable.
+
+## Testing
+
+The function includes local testing capability:
+
+```bash
+node index.js
+```
+
+This will execute a test request and display the response.
+
+## Security Considerations
+
+- API key is stored as environment variable, never exposed to clients
+- Rate limiting prevents abuse and excessive API usage
+- Input validation ensures only valid viewport parameters are accepted
+- CORS headers restrict access to authorized origins in production

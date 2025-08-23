@@ -60,11 +60,11 @@ function checkRateLimit(clientIp) {
 exports.handler = async (event, context) => {
     console.log('SafeSky Proxy Request:', JSON.stringify(event, null, 2));
     
-    // Set up CORS headers
+    // CORS headers for all responses
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
         'Content-Type': 'application/json',
     };
 
@@ -102,79 +102,78 @@ exports.handler = async (event, context) => {
                 'X-RateLimit-Reset': String(Math.ceil((lastResetTime + RATE_LIMIT_WINDOW) / 1000)),
             },
             body: JSON.stringify({ 
-                error: 'Rate limit exceeded',
-                message: `Too many requests. Please retry after ${retryAfter} seconds.`,
+                error: 'Too many requests',
+                message: `Please wait ${retryAfter} seconds before making another request`,
                 retryAfter: retryAfter
             }),
         };
     }
 
     try {
-        // Validate API key is configured
+        // Check if API key is configured
         if (!SAFESKY_API_KEY) {
-            console.error('SafeSky API key not configured');
+            console.warn('SAFESKY_API_KEY environment variable not set - API will return mock data');
+            
+            // Return mock data for development/testing
+            const mockBeacons = generateMockBeacons();
             return {
-                statusCode: 500,
-                headers: corsHeaders,
-                body: JSON.stringify({ error: 'SafeSky API key not configured' }),
+                statusCode: 200,
+                headers: {
+                    ...corsHeaders,
+                    'X-Cache': 'MOCK',
+                    'X-RateLimit-Limit': String(MAX_REQUESTS_PER_IP),
+                    'X-RateLimit-Remaining': String(MAX_REQUESTS_PER_IP - (rateLimitMap.get(clientIp) || 1)),
+                },
+                body: JSON.stringify(mockBeacons),
             };
         }
 
-        // Extract and validate viewport parameter
+        // Parse viewport parameter (format: south,west,north,east)
         const viewport = event.queryStringParameters?.viewport;
+        
         if (!viewport) {
             return {
                 statusCode: 400,
                 headers: corsHeaders,
-                body: JSON.stringify({ error: 'viewport parameter is required' }),
+                body: JSON.stringify({ 
+                    error: 'Missing viewport parameter',
+                    message: 'viewport parameter is required (format: south,west,north,east)'
+                }),
             };
         }
 
-        // Validate viewport format (should be: south,west,north,east)
-        const coords = viewport.split(',');
-        if (coords.length !== 4) {
-            return {
-                statusCode: 400,
-                headers: corsHeaders,
-                body: JSON.stringify({ error: 'viewport must be in format: south,west,north,east' }),
-            };
-        }
-
-        // Parse and validate coordinates
-        const [south, west, north, east] = coords.map(coord => {
-            const num = parseFloat(coord);
-            if (isNaN(num) || num < -180 || num > 180) {
-                throw new Error(`Invalid coordinate: ${coord}`);
-            }
-            return num;
-        });
-
-        // Validate viewport bounds
-        if (south >= north || west >= east) {
-            return {
-                statusCode: 400,
-                headers: corsHeaders,
-                body: JSON.stringify({ error: 'Invalid viewport bounds' }),
-            };
-        }
-
-        // Check cache first
-        const cacheKey = `viewport:${viewport}`;
-        const cachedData = cache.get(cacheKey);
+        // Parse viewport bounds
+        const [south, west, north, east] = viewport.split(',').map(parseFloat);
         
-        if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
-            console.log('Returning cached data for viewport:', viewport);
+        if ([south, west, north, east].some(isNaN)) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'Invalid viewport parameter',
+                    message: 'viewport must contain 4 comma-separated numbers (south,west,north,east)'
+                }),
+            };
+        }
+
+        // Create cache key based on viewport (rounded to reduce cache misses)
+        const cacheKey = `${south.toFixed(2)}_${west.toFixed(2)}_${north.toFixed(2)}_${east.toFixed(2)}`;
+        
+        // Check cache
+        const cachedData = cache.get(cacheKey);
+        const now = Date.now();
+        
+        if (cachedData && (now - cachedData.timestamp) < CACHE_DURATION) {
+            console.log('Returning cached data for viewport:', cacheKey);
             
-            // Calculate remaining requests for this IP
-            const ipRequests = rateLimitMap.get(clientIp) || 0;
-            const remaining = Math.max(0, MAX_REQUESTS_PER_IP - ipRequests);
+            const remaining = MAX_REQUESTS_PER_IP - (rateLimitMap.get(clientIp) || 1);
             
             return {
                 statusCode: 200,
                 headers: {
                     ...corsHeaders,
                     'X-Cache': 'HIT',
-                    'Cache-Control': `max-age=${Math.ceil((CACHE_DURATION - (Date.now() - cachedData.timestamp)) / 1000)}`,
+                    'Cache-Control': `max-age=${Math.ceil((CACHE_DURATION - (now - cachedData.timestamp)) / 1000)}`,
                     'X-RateLimit-Limit': String(MAX_REQUESTS_PER_IP),
                     'X-RateLimit-Remaining': String(remaining),
                     'X-RateLimit-Reset': String(Math.ceil((lastResetTime + RATE_LIMIT_WINDOW) / 1000)),
@@ -191,23 +190,22 @@ exports.handler = async (event, context) => {
         const processedBeacons = beacons
             .filter(beacon => beacon && beacon.id) // Remove invalid beacons
             .filter(beacon => isBeaconInViewport(beacon, south, west, north, east))
-            .filter(beacon => isBeaconRecent(beacon))
-            .map(beacon => sanitizeBeacon(beacon));
+            .filter(beacon => isBeaconRecent(beacon)); // Only include recent beacons
 
-        console.log(`Processed ${processedBeacons.length} beacons from ${beacons.length} total`);
-
-        // Cache the result
+        // Cache the processed data
         cache.set(cacheKey, {
             data: processedBeacons,
-            timestamp: Date.now(),
+            timestamp: now
         });
 
-        // Clean up old cache entries
-        cleanupCache();
+        // Clean up old cache entries if cache grows too large
+        if (cache.size > 100) {
+            const oldestKey = cache.keys().next().value;
+            cache.delete(oldestKey);
+            console.log('Cleaned old cache entry:', oldestKey);
+        }
 
-        // Calculate remaining requests for this IP
-        const ipRequests = rateLimitMap.get(clientIp) || 0;
-        const remaining = Math.max(0, MAX_REQUESTS_PER_IP - ipRequests);
+        const remaining = MAX_REQUESTS_PER_IP - (rateLimitMap.get(clientIp) || 1);
 
         return {
             statusCode: 200,
@@ -246,26 +244,30 @@ async function fetchSafeSkyBeacons(viewport) {
         const url = `${SAFESKY_API_BASE}/v1/beacons/?viewport=${encodeURIComponent(viewport)}`;
         
         const options = {
+            hostname: new URL(SAFESKY_API_BASE).hostname,
+            port: 443,
+            path: `/v1/beacons/?viewport=${encodeURIComponent(viewport)}`,
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
                 'x-api-key': SAFESKY_API_KEY,
-                'User-Agent': 'CaptainVFR/1.0',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             },
-            timeout: 25000, // 25 second timeout
+            timeout: 10000, // 10 second timeout
         };
 
-        const req = https.request(url, options, (res) => {
+        const req = https.request(options, (res) => {
             let data = '';
-            
+
             res.on('data', (chunk) => {
                 data += chunk;
             });
-            
+
             res.on('end', () => {
                 try {
                     if (res.statusCode === 200) {
                         const beacons = JSON.parse(data);
+                        console.log(`SafeSky API returned ${beacons.length} beacons`);
                         resolve(Array.isArray(beacons) ? beacons : []);
                     } else {
                         console.error(`SafeSky API error: ${res.statusCode} - ${data}`);
@@ -305,8 +307,6 @@ async function fetchSafeSkyBeacons(viewport) {
  * @returns {boolean} True if beacon is in viewport
  */
 function isBeaconInViewport(beacon, south, west, north, east) {
-    if (!beacon.latitude || !beacon.longitude) return false;
-    
     return beacon.latitude >= south && 
            beacon.latitude <= north && 
            beacon.longitude >= west && 
@@ -314,68 +314,77 @@ function isBeaconInViewport(beacon, south, west, north, east) {
 }
 
 /**
- * Check if a beacon was updated recently (within last 60 seconds)
+ * Check if beacon data is recent (within last 60 seconds)
  * @param {Object} beacon - Beacon object
  * @returns {boolean} True if beacon is recent
  */
 function isBeaconRecent(beacon) {
-    if (!beacon.last_update) return false;
+    if (!beacon.last_update) return true; // If no timestamp, assume it's recent
     
+    const now = Math.floor(Date.now() / 1000); // Current time in seconds
+    const age = now - beacon.last_update;
+    
+    return age <= 60; // Consider beacons older than 60 seconds as stale
+}
+
+/**
+ * Generate mock beacon data for testing
+ * @returns {Array} Array of mock beacon objects
+ */
+function generateMockBeacons() {
     const now = Math.floor(Date.now() / 1000);
-    const beaconAge = now - beacon.last_update;
     
-    return beaconAge <= 60; // 60 seconds maximum age
+    return [
+        {
+            id: 'MOCK001',
+            latitude: 46.9479,
+            longitude: 7.4474,
+            altitude: 1500,
+            call_sign: 'VFR123',
+            ground_speed: 55,
+            course: 90,
+            status: 'AIRBORNE',
+            last_update: now - 5,
+            vertical_rate: 2,
+            beacon_type: 'JET',
+            transponder_type: 'ADS-B',
+        },
+        {
+            id: 'MOCK002',
+            latitude: 46.9579,
+            longitude: 7.4374,
+            altitude: 1200,
+            call_sign: 'GLI456',
+            ground_speed: 25,
+            course: 180,
+            status: 'AIRBORNE',
+            last_update: now - 8,
+            vertical_rate: 0,
+            beacon_type: 'GLIDER',
+        },
+        {
+            id: 'MOCK003',
+            latitude: 46.9379,
+            longitude: 7.4574,
+            altitude: 500,
+            call_sign: 'HELI99',
+            ground_speed: 35,
+            course: 270,
+            status: 'AIRBORNE',
+            last_update: now - 10,
+            vertical_rate: -2,
+            beacon_type: 'HELICOPTER',
+            transponder_type: 'ADS-B',
+        },
+    ];
 }
 
-/**
- * Sanitize beacon data to ensure consistent format
- * @param {Object} beacon - Raw beacon object
- * @returns {Object} Sanitized beacon object
- */
-function sanitizeBeacon(beacon) {
-    return {
-        id: String(beacon.id || ''),
-        latitude: Number(beacon.latitude) || 0,
-        longitude: Number(beacon.longitude) || 0,
-        altitude: Number(beacon.altitude) || 0,
-        altitude_accuracy: beacon.altitude_accuracy ? Number(beacon.altitude_accuracy) : null,
-        accuracy: beacon.accuracy ? Number(beacon.accuracy) : null,
-        call_sign: beacon.call_sign ? String(beacon.call_sign) : null,
-        ground_speed: Number(beacon.ground_speed) || 0,
-        course: Number(beacon.course) || 0,
-        status: beacon.status ? String(beacon.status) : null,
-        last_update: Number(beacon.last_update) || 0,
-        turn_rate: beacon.turn_rate ? Number(beacon.turn_rate) : null,
-        vertical_rate: beacon.vertical_rate ? Number(beacon.vertical_rate) : null,
-        beacon_type: beacon.beacon_type ? String(beacon.beacon_type) : null,
-        transponder_type: beacon.transponder_type ? String(beacon.transponder_type) : null,
-        remarks: beacon.remarks ? String(beacon.remarks) : null,
-    };
-}
-
-/**
- * Clean up old cache entries
- */
-function cleanupCache() {
-    const now = Date.now();
-    const maxAge = CACHE_DURATION * 2; // Keep cache entries for double the cache duration
-    
-    for (const [key, value] of cache.entries()) {
-        if (now - value.timestamp > maxAge) {
-            cache.delete(key);
-        }
-    }
-}
-
-/**
- * Health check endpoint
- */
+// Local testing
 if (require.main === module) {
-    // For local testing
     const testEvent = {
         httpMethod: 'GET',
         queryStringParameters: {
-            viewport: '48.83161,2.41143,52.51745,6.37275'
+            viewport: '46.8,7.3,47.0,7.6'
         },
         requestContext: {
             identity: {

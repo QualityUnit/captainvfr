@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SafeSky Proxy API for CaptainVFR
+
+Parameters:
+  SafeSkyApiKey:
+    Type: String
+    Description: SafeSky API Key
+    NoEcho: true
+    Default: ""
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs20.x
+    Environment:
+      Variables:
+        CACHE_TTL: "20"
+        ALLOWED_ORIGIN: "*"
+
+Resources:
+  SafeSkyProxyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: captainvfr-safesky-proxy
+      CodeUri: .
+      Handler: index.handler
+      Description: Proxy for SafeSky beacon API requests
+      Environment:
+        Variables:
+          SAFESKY_API_KEY: !Ref SafeSkyApiKey
+      Events:
+        GetBeacons:
+          Type: Api
+          Properties:
+            Path: /beacons
+            Method: GET
+            RestApiId: !Ref SafeSkyApi
+        OptionsBeacons:
+          Type: Api
+          Properties:
+            Path: /beacons
+            Method: OPTIONS
+            RestApiId: !Ref SafeSkyApi
+
+  SafeSkyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: CaptainVFR-SafeSky-API
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      TracingEnabled: true
+
+Outputs:
+  ApiEndpoint:
+    Description: SafeSky API Gateway endpoint URL
+    Value: !Sub 'https://${SafeSkyApi}.execute-api.${AWS::Region}.amazonaws.com/prod/beacons'
+    Export:
+      Name: CaptainVFR-SafeSky-API-Endpoint
+  FunctionArn:
+    Description: SafeSky Lambda Function ARN
+    Value: !GetAtt SafeSkyProxyFunction.Arn
+    Export:
+      Name: CaptainVFR-SafeSky-Function-ARN
