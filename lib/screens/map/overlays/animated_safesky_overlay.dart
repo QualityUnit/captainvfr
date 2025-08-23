@@ -359,47 +359,52 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
         ? AnimatedSafeSkyOverlay.iconSizeCollision 
         : AnimatedSafeSkyOverlay.iconSizeDefault;
     
-    // Calculate marker height
-    final markerHeight = showCallsign ? markerSize + 20 : markerSize;
-    
     // Add speed indicator trail if moving fast enough
     final showSpeedTrail = beacon.groundSpeed > 10 && mapZoom > 10;
+    // Cap trail length to prevent overflow
+    final trailLength = showSpeedTrail ? math.min(beacon.groundSpeed * 0.3, 30.0) : 0.0;
+    
+    // Calculate total height needed including trail
+    final totalHeight = markerSize + (showCallsign ? 20 : 0) + trailLength;
     
     return Marker(
       point: interpolatedPosition,
-      width: markerSize + (showCallsign ? 40 : 0),
-      height: markerHeight,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: [
-              // Speed trail indicator
-              if (showSpeedTrail)
-                Positioned(
-                  child: Transform.rotate(
-                    angle: beacon.course * math.pi / 180,
-                    child: Container(
-                      width: 2,
-                      height: beacon.groundSpeed * 0.5, // Trail length based on speed
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            _getBeaconColor(beacon.beaconType).withValues(alpha: 0),
-                            _getBeaconColor(beacon.beaconType).withValues(alpha: opacity * 0.5),
-                          ],
-                        ),
+      width: markerSize + (showCallsign ? 60 : 20), // Extra width for callsign and labels
+      height: totalHeight,
+      child: SizedBox(
+        width: markerSize + (showCallsign ? 60 : 20),
+        height: totalHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            // Speed trail indicator (positioned behind the icon)
+            if (showSpeedTrail)
+              Positioned(
+                top: (totalHeight - markerSize) / 2 - trailLength,
+                child: Transform.rotate(
+                  angle: (beacon.course - 180) * math.pi / 180, // Trail behind aircraft
+                  child: Container(
+                    width: 2,
+                    height: trailLength,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          _getBeaconColor(beacon.beaconType).withValues(alpha: 0),
+                          _getBeaconColor(beacon.beaconType).withValues(alpha: opacity * 0.5),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              // Warning ring
-              if (hasCollisionRisk)
-                Container(
+              ),
+            // Warning ring - positioned at center
+            if (hasCollisionRisk)
+              Positioned(
+                top: (totalHeight - markerSize) / 2,
+                child: Container(
                   width: markerSize,
                   height: markerSize,
                   decoration: BoxDecoration(
@@ -410,63 +415,74 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                     ),
                   ),
                 ),
-              // Aircraft icon
-              Opacity(
-                opacity: opacity,
-                child: Transform.rotate(
-                  angle: _getRotationAngle(beacon.beaconType, beacon.course.toDouble()),
-                  child: Icon(
-                    _getBeaconIcon(beacon.beaconType),
-                    color: hasCollisionRisk ? Colors.red : _getBeaconColor(beacon.beaconType),
-                    size: iconSize,
-                  ),
-                ),
               ),
-              // Altitude label
-              Positioned(
-                right: -8,
-                top: -4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(3),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 0.5,
+            // Aircraft icon - positioned at center
+            Positioned(
+              top: (totalHeight - markerSize) / 2,
+              child: SizedBox(
+                width: markerSize,
+                height: markerSize,
+                child: Center(
+                  child: Opacity(
+                    opacity: opacity,
+                    child: Transform.rotate(
+                      angle: _getRotationAngle(beacon.beaconType, beacon.course.toDouble()),
+                      child: Icon(
+                        _getBeaconIcon(beacon.beaconType),
+                        color: hasCollisionRisk ? Colors.red : _getBeaconColor(beacon.beaconType),
+                        size: iconSize,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    _formatAltitude(beacon.altitudeFt, altitudeUnit),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          // Callsign label
-          if (showCallsign && beacon.callSign != null)
-            Container(
-              margin: const EdgeInsets.only(top: 2),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: Text(
-                beacon.callSign!,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-        ],
+            // Altitude label - positioned top-right of icon
+            Positioned(
+              top: (totalHeight - markerSize) / 2 - 4,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                decoration: BoxDecoration(
+                  color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(3),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 0.5,
+                  ),
+                ),
+                child: Text(
+                  _formatAltitude(beacon.altitudeFt, altitudeUnit),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            // Callsign label - positioned below icon
+            if (showCallsign && beacon.callSign != null)
+              Positioned(
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    beacon.callSign!,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
