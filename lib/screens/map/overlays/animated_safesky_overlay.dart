@@ -23,7 +23,7 @@ class AnimatedBeaconData {
        targetPosition = position,
        lastUpdate = DateTime.now();
        
-  void updateTarget(SafeSkyBeacon newBeacon) {
+  void updateWithNewBeacon(SafeSkyBeacon newBeacon) {
     // Start from current interpolated position
     currentPosition = getCurrentInterpolatedPosition();
     targetPosition = LatLng(newBeacon.latitude, newBeacon.longitude);
@@ -157,31 +157,46 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
     if (!mounted) return;
     
     setState(() {
-      // Update existing beacons or add new ones
-      for (final beacon in newBeacons) {
-        final existing = _animatedBeacons[beacon.id];
-        if (existing != null) {
-          // Update existing beacon with new target position
-          existing.updateTarget(beacon);
-          // Update beacon data
-          _animatedBeacons[beacon.id] = AnimatedBeaconData(
-            beacon: beacon,
-            position: existing.currentPosition,
-          )..currentPosition = existing.currentPosition
-           ..targetPosition = LatLng(beacon.latitude, beacon.longitude)
-           ..lastUpdate = existing.lastUpdate;
+      // Create a map of new beacons for quick lookup
+      final newBeaconsMap = {for (var b in newBeacons) b.id: b};
+      
+      // Update existing beacons
+      final beaconsToRemove = <String>[];
+      for (final entry in _animatedBeacons.entries) {
+        final id = entry.key;
+        final animatedData = entry.value;
+        
+        if (newBeaconsMap.containsKey(id)) {
+          // Update existing beacon - keep the animated data, just update the target
+          final newBeacon = newBeaconsMap[id]!;
+          animatedData.updateWithNewBeacon(newBeacon);
+          // Update the beacon data itself
+          _animatedBeacons[id] = AnimatedBeaconData(
+            beacon: newBeacon,
+            position: animatedData.currentPosition,
+          )..currentPosition = animatedData.currentPosition
+           ..targetPosition = LatLng(newBeacon.latitude, newBeacon.longitude)
+           ..lastUpdate = animatedData.lastUpdate;
         } else {
-          // Add new beacon
+          // Mark for removal if not in new update
+          beaconsToRemove.add(id);
+        }
+      }
+      
+      // Remove old beacons
+      for (final id in beaconsToRemove) {
+        _animatedBeacons.remove(id);
+      }
+      
+      // Add new beacons
+      for (final beacon in newBeacons) {
+        if (!_animatedBeacons.containsKey(beacon.id)) {
           _animatedBeacons[beacon.id] = AnimatedBeaconData(
             beacon: beacon,
             position: LatLng(beacon.latitude, beacon.longitude),
           );
         }
       }
-      
-      // Remove beacons that are no longer in the update
-      final currentIds = newBeacons.map((b) => b.id).toSet();
-      _animatedBeacons.removeWhere((id, _) => !currentIds.contains(id));
     });
   }
   
