@@ -1,0 +1,29 @@
+{
+  "name": "safesky-proxy",
+  "version": "1.0.0",
+  "description": "AWS Lambda function to proxy SafeSky API requests for CaptainVFR",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js",
+    "deploy": "zip -r safesky-proxy.zip index.js package.json",
+    "clean": "rm -f safesky-proxy.zip"
+  },
+  "keywords": [
+    "aws-lambda",
+    "safesky",
+    "aviation",
+    "proxy",
+    "captainvfr"
+  ],
+  "author": "CaptainVFR Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QualityUnit/captainvfr.git"
+  }
+}
