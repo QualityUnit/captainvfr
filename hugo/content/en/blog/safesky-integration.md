@@ -60,6 +60,14 @@ Our implementation goes beyond simple proximity warnings. The system:
 
 Your SafeSky layer preference is automatically saved. When you restart CaptainVFR, the traffic layer will be in the same state you left it, ready to provide immediate awareness.
 
+### 🔋 Smart Battery Management
+
+CaptainVFR intelligently manages SafeSky updates to preserve battery life:
+- **Auto-pause**: Updates automatically pause when you switch to another app or lock your device
+- **Instant resume**: Fresh traffic data loads immediately when you return to CaptainVFR
+- **Background optimization**: No unnecessary API calls or processing when app is not in use
+- **Seamless experience**: The transition is automatic and requires no user intervention
+
 ## How to Activate SafeSky in CaptainVFR
 
 Activating the SafeSky traffic layer is simple:
@@ -70,6 +78,8 @@ Activating the SafeSky traffic layer is simple:
 4. **View Traffic** - Aircraft will appear on your map with appropriate icons and labels
 
 The toggle button will turn blue when active, and the layer state is automatically saved for your next session.
+
+**Pro tip**: The GPS/Center button is now conveniently located in the main map view (no longer hidden in the menu) for quick access to position tracking while monitoring traffic.
 
 ## Understanding the Display
 

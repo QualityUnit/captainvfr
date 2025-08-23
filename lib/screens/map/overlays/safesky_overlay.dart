@@ -3,8 +3,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart' show Position;
 import 'dart:math' as math;
+import 'package:provider/provider.dart';
 import '../../../models/safesky_beacon.dart';
 import '../../../services/safesky_service.dart';
+import '../../../services/settings_service.dart';
 
 class SafeSkyOverlay extends StatelessWidget {
   final SafeSkyService safeSkyService;
@@ -25,6 +27,10 @@ class SafeSkyOverlay extends StatelessWidget {
     if (!showSafeSkyLayer) {
       return const SizedBox.shrink();
     }
+
+    // Get user's unit preferences
+    final settingsService = Provider.of<SettingsService>(context, listen: false);
+    final altitudeUnit = settingsService.altitudeUnit;
 
     return StreamBuilder<List<SafeSkyBeacon>>(
       stream: safeSkyService.beaconsStream,
@@ -49,7 +55,7 @@ class SafeSkyOverlay extends StatelessWidget {
             warningCircles.add(_buildWarningCircle(beacon));
           }
           
-          markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign));
+          markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign, altitudeUnit));
         }
         
         return Stack(
@@ -147,7 +153,7 @@ class SafeSkyOverlay extends StatelessWidget {
     );
   }
 
-  Marker _buildBeaconMarker(SafeSkyBeacon beacon, bool hasCollisionRisk, bool showCallsign) {
+  Marker _buildBeaconMarker(SafeSkyBeacon beacon, bool hasCollisionRisk, bool showCallsign, String altitudeUnit) {
     // Calculate opacity based on altitude difference
     final opacity = _calculateOpacity(beacon);
     
@@ -214,7 +220,7 @@ class SafeSkyOverlay extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      '${beacon.altitudeFt}',
+                      _formatAltitude(beacon.altitudeFt, altitudeUnit),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 9,
@@ -382,6 +388,17 @@ class SafeSkyOverlay extends StatelessWidget {
       case 'UNKNOWN':
       default:
         return Colors.white;
+    }
+  }
+  
+  String _formatAltitude(int altitudeFt, String altitudeUnit) {
+    if (altitudeUnit == 'm') {
+      // Convert feet to meters
+      final altitudeM = (altitudeFt * 0.3048).round();
+      return '${altitudeM}m';
+    } else {
+      // Display in feet
+      return '${altitudeFt}ft';
     }
   }
 }
