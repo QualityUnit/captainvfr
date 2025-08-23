@@ -590,32 +590,8 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
   }
   
   Color _getBeaconColor(String? beaconType) {
-    switch (beaconType?.toUpperCase()) {
-      case 'JET':
-      case 'MOTORPLANE':
-        return Colors.blue;
-      case 'HELICOPTER':
-      case 'GYROCOPTER':
-        return Colors.orange;
-      case 'GLIDER':
-      case 'HAND_GLIDER':
-        return Colors.cyan;
-      case 'BALLOON':
-      case 'AIRSHIP':
-        return Colors.pink;
-      case 'PARA_GLIDER':
-      case 'PARA_MOTOR':
-        return Colors.green;
-      case 'UAV':
-      case 'PAV':
-        return Colors.purple;
-      case 'STATIC_OBJECT':
-        return Colors.grey;
-      case 'MILITARY':
-        return Colors.red;
-      default:
-        return Colors.white;
-    }
+    // All beacons are black (except when collision risk - then red)
+    return Colors.black;
   }
   
   String _formatAltitude(int altitudeFt, String altitudeUnit) {
