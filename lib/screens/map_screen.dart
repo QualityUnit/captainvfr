@@ -246,7 +246,6 @@ class MapScreenState extends State<MapScreen>
     _mapStateController.init().then((_) {
       // After preferences are loaded, check if SafeSky should be started
       if (_mapStateController.showSafeSky) {
-        debugPrint('🛩️ SafeSky was enabled in preferences, starting tracking...');
         // Wait for map to be ready before starting SafeSky
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _servicesInitialized) {
@@ -604,7 +603,6 @@ class MapScreenState extends State<MapScreen>
     
     // Pause SafeSky updates when app loses focus
     if (_mapStateController.showSafeSky && _servicesInitialized) {
-      debugPrint('⏸️ Pausing SafeSky updates - app lost focus');
       _safeSkyService.stopTracking();
     }
   }
@@ -620,7 +618,6 @@ class MapScreenState extends State<MapScreen>
     
     // Resume SafeSky updates when app regains focus
     if (_mapStateController.showSafeSky && _servicesInitialized) {
-      debugPrint('▶️ Resuming SafeSky updates - app regained focus');
       final bounds = _mapController.camera.visibleBounds;
       _safeSkyService.startTracking(bounds);
       // Force immediate refresh when regaining focus
@@ -1491,13 +1488,6 @@ class MapScreenState extends State<MapScreen>
     });
   }
 
-  // Format countdown time as MM:SS
-  String _formatCountdownTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
-
   // Start auto-centering countdown
   void _startAutoCenteringCountdown() {
     setState(() {
@@ -1822,10 +1812,7 @@ class MapScreenState extends State<MapScreen>
   void _startSafeSkyTracking() {
     if (_servicesInitialized) {
       final bounds = _mapController.camera.visibleBounds;
-      debugPrint('🛩️ Starting SafeSky tracking with bounds: $bounds');
       _safeSkyService.startTracking(bounds);
-    } else {
-      debugPrint('⚠️ Cannot start SafeSky - services not initialized');
     }
   }
 

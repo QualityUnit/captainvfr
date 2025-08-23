@@ -16,7 +16,7 @@ class SafeSkyService {
   static const Duration _cacheDuration = Duration(seconds: 5);
   
   final _logger = Logger(
-    level: Level.debug, // Temporarily set to debug for troubleshooting
+    level: Level.warning, // Production logging level
   );
   final _client = http.Client();
 
@@ -31,7 +31,6 @@ class SafeSkyService {
   // Rate limiting management
   Duration _currentRefreshInterval = _minRefreshInterval;
   int _consecutiveRateLimits = 0;
-  DateTime? _lastRateLimitTime;
   
   // Stream controller for beacon updates
   final _beaconsStreamController = StreamController<List<SafeSkyBeacon>>.broadcast();
@@ -134,7 +133,6 @@ class SafeSkyService {
   /// Handle rate limiting with exponential backoff
   void _handleRateLimit(int? retryAfterSeconds) {
     _consecutiveRateLimits++;
-    _lastRateLimitTime = DateTime.now();
     
     // Calculate new interval with exponential backoff
     final backoffMultiplier = math.min(_consecutiveRateLimits, 4); // Cap at 4x
@@ -212,7 +210,16 @@ class SafeSkyService {
         
         if (jsonData is List) {
           final beacons = jsonData
-              .map((json) => SafeSkyBeacon.fromJson(json))
+              .map((json) {
+                try {
+                  return SafeSkyBeacon.fromJson(json);
+                } catch (e) {
+                  _logger.w('⚠️ Invalid beacon data: $e');
+                  return null;
+                }
+              })
+              .whereType<SafeSkyBeacon>() // Filter out null values
+              .where((beacon) => _isValidBeacon(beacon))
               .where((beacon) => beacon.isRecent) // Filter old data
               .toList();
 
@@ -401,5 +408,40 @@ class SafeSkyService {
       _lastFetch = null; // Force cache invalidation
       await _fetchBeacons(_lastViewport!);
     }
+  }
+  
+  /// Validate beacon data for safety
+  bool _isValidBeacon(SafeSkyBeacon beacon) {
+    // Check latitude is valid (-90 to 90)
+    if (beacon.latitude < -90 || beacon.latitude > 90) {
+      _logger.w('Invalid latitude: ${beacon.latitude}');
+      return false;
+    }
+    
+    // Check longitude is valid (-180 to 180)
+    if (beacon.longitude < -180 || beacon.longitude > 180) {
+      _logger.w('Invalid longitude: ${beacon.longitude}');
+      return false;
+    }
+    
+    // Check altitude is reasonable (below 60,000 feet / ~18,000 meters)
+    if (beacon.altitude < -500 || beacon.altitude > 18000) {
+      _logger.w('Invalid altitude: ${beacon.altitude}m');
+      return false;
+    }
+    
+    // Check ground speed is reasonable (below 700 m/s / ~1400 knots)
+    if (beacon.groundSpeed < 0 || beacon.groundSpeed > 700) {
+      _logger.w('Invalid ground speed: ${beacon.groundSpeed} m/s');
+      return false;
+    }
+    
+    // Check course is valid (0-360)
+    if (beacon.course < 0 || beacon.course > 360) {
+      _logger.w('Invalid course: ${beacon.course}');
+      return false;
+    }
+    
+    return true;
   }
 }

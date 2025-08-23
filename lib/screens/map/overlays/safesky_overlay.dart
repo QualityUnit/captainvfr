@@ -9,6 +9,22 @@ import '../../../services/safesky_service.dart';
 import '../../../services/settings_service.dart';
 
 class SafeSkyOverlay extends StatelessWidget {
+  // Constants for collision detection
+  static const double collisionDistanceKm = 2.0; // Horizontal collision threshold
+  static const double collisionAltitudeFt = 1000.0; // Vertical collision threshold
+  static const double collisionTimeMinutes = 15.0; // Time horizon for collision detection
+  static const double callsignDisplayRangeKm = 50.0; // Maximum range for callsign display
+  
+  // Constants for visual display
+  static const double iconSizeDefault = 24.0;
+  static const double iconSizeCollision = 28.0;
+  static const double markerSizeDefault = 48.0;
+  static const double markerSizeCollision = 60.0;
+  static const double opacityNear = 1.0;
+  static const double opacityFar = 0.3;
+  static const double altitudeFadeStartFt = 2000.0;
+  static const double altitudeFadeEndFt = 5000.0;
+  
   final SafeSkyService safeSkyService;
   final bool showSafeSkyLayer;
   final Function(SafeSkyBeacon)? onBeaconTap;
@@ -28,46 +44,67 @@ class SafeSkyOverlay extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Get user's unit preferences
-    final settingsService = Provider.of<SettingsService>(context, listen: false);
-    final altitudeUnit = settingsService.altitudeUnit;
+    try {
+      // Get user's unit preferences
+      final settingsService = Provider.of<SettingsService>(context, listen: false);
+      final altitudeUnit = settingsService.altitudeUnit;
 
-    return StreamBuilder<List<SafeSkyBeacon>>(
-      stream: safeSkyService.beaconsStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        final beacons = snapshot.data!;
-        
-        // Build warning circles first (behind markers)
-        final warningCircles = <CircleMarker>[];
-        final markers = <Marker>[];
-        
-        for (final beacon in beacons) {
-          final hasCollisionRisk = _checkCollisionRisk(beacon);
-          final distanceKm = _getDistanceKm(beacon);
-          // Show callsign only for airborne aircraft (altitude > 0) within 50km
-          final showCallsign = beacon.altitude > 0 && distanceKm != null && distanceKm <= 50;
-          
-          if (hasCollisionRisk) {
-            warningCircles.add(_buildWarningCircle(beacon));
+      return StreamBuilder<List<SafeSkyBeacon>>(
+        stream: safeSkyService.beaconsStream,
+        builder: (context, snapshot) {
+          // Handle stream errors gracefully
+          if (snapshot.hasError) {
+            // Log error but don't crash the overlay
+            return const SizedBox.shrink();
           }
           
-          markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign, altitudeUnit));
-        }
-        
-        return Stack(
-          children: [
-            // Warning circles layer (behind markers)
-            CircleLayer(circles: warningCircles),
-            // Aircraft markers layer
-            MarkerLayer(markers: markers),
-          ],
-        );
-      },
-    );
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          try {
+            final beacons = snapshot.data!;
+            
+            // Build warning circles first (behind markers)
+            final warningCircles = <CircleMarker>[];
+            final markers = <Marker>[];
+            
+            for (final beacon in beacons) {
+              try {
+                final hasCollisionRisk = _checkCollisionRisk(beacon);
+                final distanceKm = _getDistanceKm(beacon);
+                // Show callsign only for airborne aircraft (altitude > 0) within display range
+                final showCallsign = beacon.altitude > 0 && distanceKm != null && distanceKm <= callsignDisplayRangeKm;
+                
+                if (hasCollisionRisk) {
+                  warningCircles.add(_buildWarningCircle(beacon));
+                }
+                
+                markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign, altitudeUnit));
+              } catch (e) {
+                // Skip problematic beacon but continue with others
+                continue;
+              }
+            }
+            
+            return Stack(
+              children: [
+                // Warning circles layer (behind markers)
+                CircleLayer(circles: warningCircles),
+                // Aircraft markers layer
+                MarkerLayer(markers: markers),
+              ],
+            );
+          } catch (e) {
+            // If processing fails, return empty widget
+            return const SizedBox.shrink();
+          }
+        },
+      );
+    } catch (e) {
+      // If any error occurs in the overlay, return empty widget instead of crashing
+      return const SizedBox.shrink();
+    }
   }
   
   // Get distance to beacon in kilometers
@@ -85,12 +122,12 @@ class SafeSkyOverlay extends StatelessWidget {
   bool _checkCollisionRisk(SafeSkyBeacon beacon) {
     if (currentPosition == null) return false;
     
-    // Check altitude difference (within 1000 feet)
+    // Check altitude difference (within collision altitude threshold)
     final myAltitudeFt = currentPosition!.altitude * 3.28084;
     final beaconAltitudeFt = beacon.altitude * 3.28084;
     final altDifference = (myAltitudeFt - beaconAltitudeFt).abs();
     
-    if (altDifference > 1000) return false;
+    if (altDifference > collisionAltitudeFt) return false;
     
     // Get current positions
     final myLat = currentPosition!.latitude;
@@ -103,7 +140,8 @@ class SafeSkyOverlay extends StatelessWidget {
     final beaconSpeed = beacon.groundSpeed;
     
     // Skip if either aircraft is not moving significantly (< 5 m/s or ~10 knots)
-    if (mySpeed < 5 || beaconSpeed < 5) return false;
+    const double minSpeedThreshold = 5.0; // m/s
+    if (mySpeed < minSpeedThreshold || beaconSpeed < minSpeedThreshold) return false;
     
     // Get headings in radians
     final myHeading = (currentPosition?.heading ?? 0) * math.pi / 180;
@@ -130,16 +168,17 @@ class SafeSkyOverlay extends StatelessWidget {
     // Time to closest point of approach
     final tcpa = -(deltaLat * deltaVelLat + deltaLon * deltaVelLon) / relVelSquared;
     
-    // Only consider future collisions (positive time)
-    if (tcpa < 0 || tcpa > 900) return false; // Ignore past or > 15 minutes future
+    // Only consider future collisions (positive time) within time horizon
+    final collisionTimeSeconds = collisionTimeMinutes * 60;
+    if (tcpa < 0 || tcpa > collisionTimeSeconds) return false;
     
     // Calculate distance at CPA
     final cpaLat = deltaLat + deltaVelLat * tcpa;
     final cpaLon = deltaLon + deltaVelLon * tcpa;
     final cpaDistanceKm = math.sqrt(cpaLat * cpaLat + cpaLon * cpaLon) * 111.32; // Convert to km
     
-    // Collision risk if CPA is within 2km horizontally
-    return cpaDistanceKm < 2.0;
+    // Collision risk if CPA is within threshold horizontally
+    return cpaDistanceKm < collisionDistanceKm;
   }
   
   // Build warning circle around beacon
@@ -158,8 +197,8 @@ class SafeSkyOverlay extends StatelessWidget {
     final opacity = _calculateOpacity(beacon);
     
     // Determine marker size based on collision risk
-    final markerSize = hasCollisionRisk ? 64.0 : 48.0;
-    final iconSize = hasCollisionRisk ? 36.0 : 28.0;
+    final markerSize = hasCollisionRisk ? markerSizeCollision : markerSizeDefault;
+    final iconSize = hasCollisionRisk ? iconSizeCollision : iconSizeDefault;
     
     // Calculate height to accommodate callsign label
     final markerHeight = showCallsign ? markerSize + 20 : markerSize;
@@ -265,21 +304,25 @@ class SafeSkyOverlay extends StatelessWidget {
     final beaconAltitudeFt = beacon.altitude * 3.28084;
     final altDifference = (myAltitudeFt - beaconAltitudeFt).abs();
     
-    // Within 1000 feet: full opacity
-    if (altDifference <= 1000) return 1.0;
+    // Within collision altitude threshold: full opacity
+    if (altDifference <= collisionAltitudeFt) return opacityNear;
     
-    // 1000-3000 feet: gradual fade from 1.0 to 0.5
-    if (altDifference <= 3000) {
-      return 1.0 - ((altDifference - 1000) / 2000) * 0.5;
+    // Between threshold and fade start: gradual fade
+    if (altDifference <= altitudeFadeStartFt) {
+      final fadeRange = altitudeFadeStartFt - collisionAltitudeFt;
+      final fadeProgress = (altDifference - collisionAltitudeFt) / fadeRange;
+      return opacityNear - (fadeProgress * (opacityNear - 0.5));
     }
     
-    // 3000-5000 feet: gradual fade from 0.5 to 0.3
-    if (altDifference <= 5000) {
-      return 0.5 - ((altDifference - 3000) / 2000) * 0.2;
+    // Between fade start and fade end: continue fading
+    if (altDifference <= altitudeFadeEndFt) {
+      final fadeRange = altitudeFadeEndFt - altitudeFadeStartFt;
+      final fadeProgress = (altDifference - altitudeFadeStartFt) / fadeRange;
+      return 0.5 - (fadeProgress * (0.5 - opacityFar));
     }
     
-    // Beyond 5000 feet: minimum opacity
-    return 0.3;
+    // Beyond fade end: minimum opacity
+    return opacityFar;
   }
 
   IconData _getBeaconIcon(String? beaconType) {
