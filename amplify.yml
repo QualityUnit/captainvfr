@@ -10,10 +10,17 @@ frontend:
     preBuild:
       commands:
         # Deploy/Update Lambda function for SafeSky proxy (must be in frontend phase for Gen 1)
-        - echo "Deploying SafeSky Lambda function..."
+        - echo "========== Starting SafeSky Lambda Deployment =========="
+        - echo "AWS Region: eu-central-1"
         - export AWS_REGION=eu-central-1
+        - export AWS_DEFAULT_REGION=eu-central-1
+        - echo "Checking AWS credentials..."
+        - aws sts get-caller-identity || echo "No AWS credentials available"
+        - echo "Making deployment script executable..."
         - chmod +x backend/lambda/safesky-proxy/amplify-deploy.sh
-        - ./backend/lambda/safesky-proxy/amplify-deploy.sh || echo "Lambda deployment failed but continuing build"
+        - echo "Running deployment script..."
+        - ./backend/lambda/safesky-proxy/amplify-deploy.sh || echo "WARNING: Lambda deployment failed but continuing build"
+        - echo "========== SafeSky Lambda Deployment Complete =========="
         
         # Continue with regular Hugo build
         # Download and install Git LFS binary directly

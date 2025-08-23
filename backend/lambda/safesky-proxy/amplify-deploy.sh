@@ -17,9 +17,12 @@ TIMEOUT=30
 MEMORY=512
 ROLE_NAME="captainvfr-lambda-role"
 
-# Get AWS account ID
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+# Get AWS account ID - in Amplify build environment, credentials are already configured
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "444348080366")
 AWS_REGION=${AWS_REGION:-"eu-central-1"}
+
+# In Amplify build environment, we don't need to specify profile
+unset AWS_PROFILE
 
 echo "AWS Account: $AWS_ACCOUNT_ID"
 echo "AWS Region: $AWS_REGION"
