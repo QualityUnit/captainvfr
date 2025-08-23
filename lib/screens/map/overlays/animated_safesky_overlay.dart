@@ -459,8 +459,8 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                 ),
               ),
             ),
-            // Altitude label - positioned top-right of icon (only visible when zoomed in)
-            if (mapZoom >= 10)
+            // Altitude label - positioned top-right of icon (only visible when zoomed in and altitude > 0)
+            if (mapZoom >= 10 && beacon.altitudeFt > 0)
               Positioned(
                 top: (totalHeight - markerSize) / 2 - 4,
                 right: 0,
