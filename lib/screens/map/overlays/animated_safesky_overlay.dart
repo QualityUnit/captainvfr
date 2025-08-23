@@ -226,6 +226,9 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
         return const SizedBox.shrink();
       }
       
+      // Check if we should hide labels when there are too many beacons
+      final hideLabels = _animatedBeacons.length > 50;
+      
       // Build warning circles and markers
       final warningCircles = <CircleMarker>[];
       final markers = <Marker>[];
@@ -240,7 +243,8 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
           // Check collision risk using interpolated position
           final hasCollisionRisk = _checkCollisionRisk(beacon, interpolatedPosition);
           final distanceKm = _getDistanceKm(interpolatedPosition);
-          final showCallsign = beacon.altitude > 0 && 
+          // Hide labels when there are more than 50 beacons to optimize UI
+          final showCallsign = !hideLabels && beacon.altitude > 0 && 
                               distanceKm != null && 
                               distanceKm <= AnimatedSafeSkyOverlay.callsignDisplayRangeKm;
           
@@ -255,6 +259,7 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
             showCallsign, 
             altitudeUnit,
             mapCamera.zoom,
+            hideLabels,
           ));
         } catch (e) {
           // Skip problematic beacon but continue with others
@@ -363,6 +368,7 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
     bool showCallsign,
     String altitudeUnit,
     double mapZoom,
+    bool hideLabels,
   ) {
     // Calculate opacity based on altitude
     final opacity = _calculateOpacity(beacon);
@@ -460,7 +466,8 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
               ),
             ),
             // Altitude label - positioned top-right of icon (only visible when zoomed in and altitude > 0)
-            if (mapZoom >= 10 && beacon.altitudeFt > 0)
+            // Hidden when there are more than 50 beacons to optimize UI
+            if (!hideLabels && mapZoom >= 10 && beacon.altitudeFt > 0)
               Positioned(
                 top: (totalHeight - markerSize) / 2 - 4,
                 right: 0,
@@ -485,7 +492,8 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                 ),
               ),
             // Callsign label - positioned below icon
-            if (showCallsign && beacon.callSign != null)
+            // Hidden when there are more than 50 beacons to optimize UI
+            if (!hideLabels && showCallsign && beacon.callSign != null)
               Positioned(
                 bottom: 0,
                 child: Container(

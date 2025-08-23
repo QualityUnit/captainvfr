@@ -60,6 +60,9 @@ class AppColors {
   static const Color airspaceWaveWindow = Color(0xFF00BCD4); // Cyan - Wave areas
   static const Color airspaceMATZ = Color(0xFF1565C0); // Blue 800 - Military ATZ
   
+  // Information services
+  static const Color airspaceFIS = Color(0xFF81C784); // Light Green - Flight Information Service
+  
   // Default
   static const Color airspaceDefault = Color(0xFF616161); // Grey 700
   

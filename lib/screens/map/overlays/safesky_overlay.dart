@@ -65,6 +65,9 @@ class SafeSkyOverlay extends StatelessWidget {
           try {
             final beacons = snapshot.data!;
             
+            // Check if we should hide labels when there are too many beacons
+            final hideLabels = beacons.length > 50;
+            
             // Build warning circles first (behind markers)
             final warningCircles = <CircleMarker>[];
             final markers = <Marker>[];
@@ -74,13 +77,14 @@ class SafeSkyOverlay extends StatelessWidget {
                 final hasCollisionRisk = _checkCollisionRisk(beacon);
                 final distanceKm = _getDistanceKm(beacon);
                 // Show callsign only for airborne aircraft (altitude > 0) within display range
-                final showCallsign = beacon.altitude > 0 && distanceKm != null && distanceKm <= callsignDisplayRangeKm;
+                // Hide labels when there are more than 50 beacons to optimize UI
+                final showCallsign = !hideLabels && beacon.altitude > 0 && distanceKm != null && distanceKm <= callsignDisplayRangeKm;
                 
                 if (hasCollisionRisk) {
                   warningCircles.add(_buildWarningCircle(beacon));
                 }
                 
-                markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign, altitudeUnit));
+                markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign, altitudeUnit, hideLabels));
               } catch (e) {
                 // Skip problematic beacon but continue with others
                 continue;
@@ -192,7 +196,7 @@ class SafeSkyOverlay extends StatelessWidget {
     );
   }
 
-  Marker _buildBeaconMarker(SafeSkyBeacon beacon, bool hasCollisionRisk, bool showCallsign, String altitudeUnit) {
+  Marker _buildBeaconMarker(SafeSkyBeacon beacon, bool hasCollisionRisk, bool showCallsign, String altitudeUnit, bool hideLabels) {
     // Calculate opacity based on altitude difference
     final opacity = _calculateOpacity(beacon);
     
@@ -244,34 +248,36 @@ class SafeSkyOverlay extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Altitude label (top right corner)
-                Positioned(
-                  right: -8,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(3),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 0.5,
+                // Altitude label (top right corner) - hide when there are too many beacons
+                if (!hideLabels)
+                  Positioned(
+                    right: -8,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(3),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 0.5,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      _formatAltitude(beacon.altitudeFt, altitudeUnit),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        _formatAltitude(beacon.altitudeFt, altitudeUnit),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
             // Callsign label (shown for airborne beacons within 50km or with collision risk)
-            if (showCallsign || (hasCollisionRisk && beacon.altitude > 0))
+            // Hidden when there are more than 50 beacons to optimize UI
+            if (!hideLabels && (showCallsign || (hasCollisionRisk && beacon.altitude > 0)))
               Container(
                 margin: const EdgeInsets.only(top: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),

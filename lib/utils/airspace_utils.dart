@@ -49,7 +49,7 @@ class AirspaceUtils {
       case '15':
         return 'TRAINING';
       case '16':
-        return 'INFO'; // Flight Information Region
+        return 'FIS'; // Flight Information Service
       default:
         return 'Type $type';
     }
@@ -159,6 +159,10 @@ class AirspaceUtils {
         return 'Temporary Reserved Area';
       case 'MATZ':
         return 'Military Aerodrome Traffic Zone';
+      case 'FIS':
+        return 'Flight Information Service - Information and alerting service';
+      case 'INFO':
+        return 'Flight Information Region - Information service area';
       default:
         return typeName;
     }
@@ -240,6 +244,9 @@ class AirspaceUtils {
           return AppColors.airspaceGliderProhibited;
         case 'WARNING':
           return AppColors.airspaceDanger;
+        case 'FIS': // Flight Information Service
+        case 'INFO': // Info/FIR airspaces
+          return AppColors.airspaceFIS; // Specific FIS color with ultra-low opacity
         case 'FIR': // Flight Information Region
         case 'UIR': // Upper Information Region
           return AppColors.airspaceClassE; // Light green with transparency
@@ -302,7 +309,7 @@ class AirspaceUtils {
       case 13: typeString = 'SPORT'; break;
       case 14: typeString = 'WARNING'; break;
       case 15: typeString = 'TRAINING'; break;
-      case 16: typeString = 'FIR'; break;
+      case 16: typeString = 'FIS'; break;
     }
     
     // Convert numeric ICAO class to string equivalent
