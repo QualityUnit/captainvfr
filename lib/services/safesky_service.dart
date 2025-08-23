@@ -10,8 +10,8 @@ import '../models/safesky_beacon.dart';
 class SafeSkyService {
   // SafeSky backend proxy URL
   static const String _baseUrl = 'https://imuwdhmbde.execute-api.eu-central-1.amazonaws.com/prod';
-  static const Duration _cacheDuration = Duration(seconds: 20);
-  static const Duration _refreshInterval = Duration(seconds: 20);
+  static const Duration _cacheDuration = Duration(seconds: 5);
+  static const Duration _refreshInterval = Duration(seconds: 5);
   
   final _logger = Logger(
     level: Level.warning, // Only log warnings and errors in production

@@ -2,7 +2,7 @@ const https = require('https');
 const querystring = require('querystring');
 
 // Cache configuration
-const CACHE_DURATION = 20000; // 20 seconds in milliseconds
+const CACHE_DURATION = 5000; // 5 seconds in milliseconds
 const cache = new Map();
 
 // SafeSky API configuration
