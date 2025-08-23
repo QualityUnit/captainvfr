@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,11 +11,12 @@ import '../models/safesky_beacon.dart';
 class SafeSkyService {
   // SafeSky backend proxy URL
   static const String _baseUrl = 'https://imuwdhmbde.execute-api.eu-central-1.amazonaws.com/prod';
+  static const Duration _minRefreshInterval = Duration(seconds: 5);
+  static const Duration _maxRefreshInterval = Duration(seconds: 30);
   static const Duration _cacheDuration = Duration(seconds: 5);
-  static const Duration _refreshInterval = Duration(seconds: 5);
   
   final _logger = Logger(
-    level: Level.warning, // Only log warnings and errors in production
+    level: Level.debug, // Temporarily set to debug for troubleshooting
   );
   final _client = http.Client();
 
@@ -25,6 +27,11 @@ class SafeSkyService {
   Future<void>? _ongoingFetch;
   Timer? _refreshTimer;
   bool _isActive = false;
+  
+  // Rate limiting management
+  Duration _currentRefreshInterval = _minRefreshInterval;
+  int _consecutiveRateLimits = 0;
+  DateTime? _lastRateLimitTime;
   
   // Stream controller for beacon updates
   final _beaconsStreamController = StreamController<List<SafeSkyBeacon>>.broadcast();
@@ -42,14 +49,31 @@ class SafeSkyService {
     _isActive = true;
     _lastViewport = viewport;
     
+    // Reset rate limiting on new tracking session
+    _currentRefreshInterval = _minRefreshInterval;
+    _consecutiveRateLimits = 0;
+    
     // Initial fetch
     await _fetchBeacons(viewport);
     
-    // Set up periodic refresh
+    // Set up periodic refresh with dynamic interval
+    _scheduleNextRefresh();
+  }
+  
+  /// Schedule the next refresh based on current interval
+  void _scheduleNextRefresh() {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(_refreshInterval, (timer) {
+    
+    if (!_isActive) return;
+    
+    _logger.d('🔄 Scheduling next refresh in ${_currentRefreshInterval.inSeconds} seconds');
+    
+    _refreshTimer = Timer(_currentRefreshInterval, () {
       if (_isActive && _lastViewport != null) {
-        _fetchBeacons(_lastViewport!);
+        _fetchBeacons(_lastViewport!).then((_) {
+          // Schedule next refresh after fetch completes
+          _scheduleNextRefresh();
+        });
       }
     });
   }
@@ -105,6 +129,40 @@ class SafeSkyService {
            newNorth > (oldNorth + tolerance) ||
            newWest < (oldWest - tolerance) ||
            newEast > (oldEast + tolerance);
+  }
+  
+  /// Handle rate limiting with exponential backoff
+  void _handleRateLimit(int? retryAfterSeconds) {
+    _consecutiveRateLimits++;
+    _lastRateLimitTime = DateTime.now();
+    
+    // Calculate new interval with exponential backoff
+    final backoffMultiplier = math.min(_consecutiveRateLimits, 4); // Cap at 4x
+    var newInterval = _minRefreshInterval * math.pow(2, backoffMultiplier);
+    
+    // If server provided Retry-After header, use it as minimum
+    if (retryAfterSeconds != null) {
+      newInterval = Duration(seconds: math.max(
+        newInterval.inSeconds, 
+        retryAfterSeconds
+      ));
+    }
+    
+    // Cap at maximum interval
+    _currentRefreshInterval = Duration(
+      seconds: math.min(newInterval.inSeconds, _maxRefreshInterval.inSeconds)
+    );
+    
+    _logger.w('⚠️ Rate limited. Backing off to ${_currentRefreshInterval.inSeconds}s refresh interval');
+  }
+  
+  /// Reset rate limiting after successful request
+  void _resetRateLimiting() {
+    if (_consecutiveRateLimits > 0) {
+      _logger.i('✅ Rate limit cleared. Resetting to normal refresh interval');
+    }
+    _consecutiveRateLimits = 0;
+    _currentRefreshInterval = _minRefreshInterval;
   }
 
   /// Fetch beacon data from SafeSky API
@@ -164,10 +222,29 @@ class SafeSkyService {
           
           // Emit to stream
           _beaconsStreamController.add(beacons);
+          
+          // Reset rate limiting on successful request
+          _resetRateLimiting();
 
           _logger.i('✅ Fetched ${beacons.length} SafeSky beacons');
         } else {
           _logger.w('⚠️ Unexpected response format from SafeSky API');
+        }
+      } else if (response.statusCode == 429) {
+        // Rate limited - extract retry-after if provided
+        final retryAfterHeader = response.headers['retry-after'];
+        final retryAfterSeconds = retryAfterHeader != null 
+            ? int.tryParse(retryAfterHeader) 
+            : null;
+        
+        _handleRateLimit(retryAfterSeconds);
+        
+        // Try to parse error message
+        try {
+          final errorData = json.decode(response.body);
+          _logger.w('⚠️ Rate limited: ${errorData['message'] ?? 'Too many requests'}');
+        } catch (e) {
+          _logger.w('⚠️ Rate limited (429)');
         }
       } else if (response.statusCode == 404) {
         // API endpoint not found - likely backend not deployed yet
@@ -206,27 +283,27 @@ class SafeSkyService {
         groundSpeed: 55, // m/s (≈110 knots)
         course: 90,
         status: 'AIRBORNE',
-        lastUpdate: now,
-        verticalRate: 3, // climbing
-        beaconType: 'MOTORPLANE',
+        lastUpdate: now - 5,
+        verticalRate: 2, // climbing
+        beaconType: 'JET',
         transponderType: 'ADS-B',
       ),
       SafeSkyBeacon(
         id: 'MOCK002',
-        latitude: center.latitude - 0.015,
-        longitude: center.longitude + 0.005,
-        altitude: 2000,
-        callSign: 'GLIDER1',
+        latitude: center.latitude + 0.015,
+        longitude: center.longitude - 0.015,
+        altitude: 1200,
+        callSign: 'GLI456',
         groundSpeed: 25,
         course: 180,
         status: 'AIRBORNE',
-        lastUpdate: now - 5,
-        verticalRate: 1,
+        lastUpdate: now - 8,
+        verticalRate: 0,
         beaconType: 'GLIDER',
       ),
       SafeSkyBeacon(
         id: 'MOCK003',
-        latitude: center.latitude + 0.005,
+        latitude: center.latitude - 0.01,
         longitude: center.longitude - 0.02,
         altitude: 500,
         callSign: 'HELI99',
@@ -290,48 +367,36 @@ class SafeSkyService {
   /// Filter beacons by type
   List<SafeSkyBeacon> getBeaconsByType(String beaconType) {
     return _beaconsCache
-        .where((beacon) => beacon.beaconType?.toUpperCase() == beaconType.toUpperCase())
+        .where((beacon) => beacon.beaconType == beaconType)
         .toList();
   }
 
-  /// Filter beacons by status
-  List<SafeSkyBeacon> getBeaconsByStatus(String status) {
-    return _beaconsCache
-        .where((beacon) => beacon.status?.toUpperCase() == status.toUpperCase())
-        .toList();
-  }
-
-  /// Get only airborne beacons
-  List<SafeSkyBeacon> get airborneBeacons {
-    return _beaconsCache.where((beacon) => beacon.isAirborne).toList();
-  }
-
-  /// Get statistics about current beacon data
-  Map<String, dynamic> get statistics {
-    final total = _beaconsCache.length;
-    final airborne = airborneBeacons.length;
-    final grounded = _beaconsCache.where((b) => b.isGrounded).length;
-    final inactive = _beaconsCache.where((b) => b.isInactive).length;
-    
-    final typeStats = <String, int>{};
-    for (final beacon in _beaconsCache) {
-      final type = beacon.beaconType ?? 'UNKNOWN';
-      typeStats[type] = (typeStats[type] ?? 0) + 1;
-    }
-
+  /// Get statistics about current beacons
+  Map<String, dynamic> getStatistics() {
     return {
-      'total': total,
-      'airborne': airborne,
-      'grounded': grounded,
-      'inactive': inactive,
-      'types': typeStats,
-      'lastUpdate': _lastFetch,
-      'isActive': _isActive,
+      'total': _beaconsCache.length,
+      'airborne': _beaconsCache.where((b) => b.status == 'AIRBORNE').length,
+      'grounded': _beaconsCache.where((b) => b.status == 'GROUNDED').length,
+      'byType': {
+        'jets': getBeaconsByType('JET').length,
+        'helicopters': getBeaconsByType('HELICOPTER').length,
+        'gliders': getBeaconsByType('GLIDER').length,
+        'paragliders': getBeaconsByType('PARA_GLIDER').length,
+        'other': _beaconsCache.where((b) => 
+          b.beaconType != 'JET' && 
+          b.beaconType != 'HELICOPTER' && 
+          b.beaconType != 'GLIDER' && 
+          b.beaconType != 'PARA_GLIDER'
+        ).length,
+      },
+      'lastUpdate': _lastFetch?.toIso8601String(),
+      'refreshInterval': _currentRefreshInterval.inSeconds,
+      'rateLimited': _consecutiveRateLimits > 0,
     };
   }
 
-  /// Force refresh beacon data
-  Future<void> forceRefresh() async {
+  /// Force an immediate refresh
+  Future<void> refreshNow() async {
     if (_lastViewport != null) {
       _lastFetch = null; // Force cache invalidation
       await _fetchBeacons(_lastViewport!);

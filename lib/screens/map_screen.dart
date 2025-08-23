@@ -48,6 +48,7 @@ import '../widgets/optimized_marker_layer.dart';
 import '../widgets/optimized_heatmap_layer.dart';
 import '../services/flight_heatmap_processor.dart';
 import '../widgets/airport_info_sheet.dart';
+import 'map/components/center_button.dart';
 import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
@@ -242,7 +243,18 @@ class MapScreenState extends State<MapScreen>
     _mapStateController = MapStateController();
     
     // Initialize map state controller preferences
-    _mapStateController.init();
+    _mapStateController.init().then((_) {
+      // After preferences are loaded, check if SafeSky should be started
+      if (_mapStateController.showSafeSky) {
+        debugPrint('🛩️ SafeSky was enabled in preferences, starting tracking...');
+        // Wait for map to be ready before starting SafeSky
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _servicesInitialized) {
+            _startSafeSkyTracking();
+          }
+        });
+      }
+    });
 
     // Load flight planning panel state from SharedPreferences
     _loadFlightPlanningPanelState();
@@ -1795,7 +1807,10 @@ class MapScreenState extends State<MapScreen>
   void _startSafeSkyTracking() {
     if (_servicesInitialized) {
       final bounds = _mapController.camera.visibleBounds;
+      debugPrint('🛩️ Starting SafeSky tracking with bounds: $bounds');
       _safeSkyService.startTracking(bounds);
+    } else {
+      debugPrint('⚠️ Cannot start SafeSky - services not initialized');
     }
   }
 
@@ -4236,6 +4251,17 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
 
+          // Center button - left of search button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: _menuButtonMargin + _menuButtonWidth + _buttonSpacing * 2 + 48,
+            child: CenterButton(
+              positionTrackingEnabled: _positionTrackingEnabled,
+              autoCenteringEnabled: _autoCenteringEnabled,
+              autoCenteringCountdown: _autoCenteringCountdown,
+              onToggle: _togglePositionTracking,
+            ),
+          ),
           // Search button in top-right corner (left of menu)
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
@@ -4793,17 +4819,6 @@ class MapScreenState extends State<MapScreen>
           ),
         ),
         const SizedBox(height: 12),
-        _buildMenuItem(
-          icon: _positionTrackingEnabled ? Icons.my_location : Icons.location_searching,
-          label: l10n.center,
-          subtitle: _autoCenteringCountdown > 0 
-              ? l10n.autoInTime(_formatCountdownTime(_autoCenteringCountdown))
-              : null,
-          onPressed: () {
-            _mapStateController.closeMenuPanel();
-            _togglePositionTracking();
-          },
-        ),
         _buildMenuItem(
           icon: Icons.flight_takeoff,
           label: l10n.flightLog,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart' show Position;
+import 'dart:math' as math;
 import '../../../models/safesky_beacon.dart';
 import '../../../services/safesky_service.dart';
 
@@ -39,11 +40,16 @@ class SafeSkyOverlay extends StatelessWidget {
         final markers = <Marker>[];
         
         for (final beacon in beacons) {
-          final warning = _checkCollisionWarning(beacon);
-          if (warning) {
+          final hasCollisionRisk = _checkCollisionRisk(beacon);
+          final distanceKm = _getDistanceKm(beacon);
+          // Show callsign only for airborne aircraft (altitude > 0) within 50km
+          final showCallsign = beacon.altitude > 0 && distanceKm != null && distanceKm <= 50;
+          
+          if (hasCollisionRisk) {
             warningCircles.add(_buildWarningCircle(beacon));
           }
-          markers.add(_buildBeaconMarker(beacon, warning));
+          
+          markers.add(_buildBeaconMarker(beacon, hasCollisionRisk, showCallsign));
         }
         
         return Stack(
@@ -58,8 +64,19 @@ class SafeSkyOverlay extends StatelessWidget {
     );
   }
   
-  // Check if aircraft poses collision risk
-  bool _checkCollisionWarning(SafeSkyBeacon beacon) {
+  // Get distance to beacon in kilometers
+  double? _getDistanceKm(SafeSkyBeacon beacon) {
+    if (currentPosition == null) return null;
+    
+    return const Distance().as(
+      LengthUnit.Kilometer,
+      LatLng(currentPosition!.latitude, currentPosition!.longitude),
+      LatLng(beacon.latitude, beacon.longitude),
+    );
+  }
+  
+  // Check if aircraft poses real collision risk based on converging paths
+  bool _checkCollisionRisk(SafeSkyBeacon beacon) {
     if (currentPosition == null) return false;
     
     // Check altitude difference (within 1000 feet)
@@ -69,96 +86,165 @@ class SafeSkyOverlay extends StatelessWidget {
     
     if (altDifference > 1000) return false;
     
-    // Calculate distance in km
-    final distance = const Distance().as(
-      LengthUnit.Kilometer,
-      LatLng(currentPosition!.latitude, currentPosition!.longitude),
-      LatLng(beacon.latitude, beacon.longitude),
-    );
+    // Get current positions
+    final myLat = currentPosition!.latitude;
+    final myLon = currentPosition!.longitude;
+    final beaconLat = beacon.latitude;
+    final beaconLon = beacon.longitude;
     
-    // Calculate time to intercept (assuming both aircraft maintain current speeds)
-    final mySpeedKmh = (currentPosition?.speed ?? 0) * 3.6; // m/s to km/h
-    final beaconSpeedKmh = beacon.groundSpeed * 3.6; // m/s to km/h
+    // Get speeds in m/s
+    final mySpeed = currentPosition?.speed ?? 0;
+    final beaconSpeed = beacon.groundSpeed;
     
-    // Simple calculation: if aircraft are getting closer
-    // More sophisticated calculation would consider heading vectors
-    final relativeSpeed = mySpeedKmh + beaconSpeedKmh; // Worst case scenario
-    if (relativeSpeed <= 0) return false;
+    // Skip if either aircraft is not moving significantly (< 5 m/s or ~10 knots)
+    if (mySpeed < 5 || beaconSpeed < 5) return false;
     
-    final timeToIntercept = (distance / relativeSpeed) * 60; // Convert to minutes
+    // Get headings in radians
+    final myHeading = (currentPosition?.heading ?? 0) * math.pi / 180;
+    final beaconHeading = beacon.course * math.pi / 180;
     
-    // Warning if within 15 minutes of potential intercept
-    return timeToIntercept <= 15;
+    // Calculate velocity vectors (m/s in lat/lon approximately)
+    // Note: This is simplified and assumes small distances
+    final myVelLat = mySpeed * math.cos(myHeading) / 111320; // degrees/second
+    final myVelLon = mySpeed * math.sin(myHeading) / (111320 * math.cos(myLat * math.pi / 180));
+    final beaconVelLat = beaconSpeed * math.cos(beaconHeading) / 111320;
+    final beaconVelLon = beaconSpeed * math.sin(beaconHeading) / (111320 * math.cos(beaconLat * math.pi / 180));
+    
+    // Calculate closest point of approach (CPA) time
+    // Using simplified 2D vector math
+    final deltaLat = beaconLat - myLat;
+    final deltaLon = beaconLon - myLon;
+    final deltaVelLat = beaconVelLat - myVelLat;
+    final deltaVelLon = beaconVelLon - myVelLon;
+    
+    // If relative velocity is near zero, aircraft are moving in parallel
+    final relVelSquared = deltaVelLat * deltaVelLat + deltaVelLon * deltaVelLon;
+    if (relVelSquared < 0.0000001) return false; // Nearly parallel paths
+    
+    // Time to closest point of approach
+    final tcpa = -(deltaLat * deltaVelLat + deltaLon * deltaVelLon) / relVelSquared;
+    
+    // Only consider future collisions (positive time)
+    if (tcpa < 0 || tcpa > 900) return false; // Ignore past or > 15 minutes future
+    
+    // Calculate distance at CPA
+    final cpaLat = deltaLat + deltaVelLat * tcpa;
+    final cpaLon = deltaLon + deltaVelLon * tcpa;
+    final cpaDistanceKm = math.sqrt(cpaLat * cpaLat + cpaLon * cpaLon) * 111.32; // Convert to km
+    
+    // Collision risk if CPA is within 2km horizontally
+    return cpaDistanceKm < 2.0;
   }
   
   // Build warning circle around beacon
   CircleMarker _buildWarningCircle(SafeSkyBeacon beacon) {
     return CircleMarker(
       point: LatLng(beacon.latitude, beacon.longitude),
-      radius: 50, // 50 pixel radius for warning circle
-      color: Colors.red.withValues(alpha: 0.2),
-      borderColor: Colors.red.withValues(alpha: 0.6),
-      borderStrokeWidth: 2,
+      radius: 60, // Slightly larger radius for better visibility
+      color: Colors.red.withValues(alpha: 0.15),
+      borderColor: Colors.red.withValues(alpha: 0.8),
+      borderStrokeWidth: 3,
     );
   }
 
-  Marker _buildBeaconMarker(SafeSkyBeacon beacon, bool hasWarning) {
+  Marker _buildBeaconMarker(SafeSkyBeacon beacon, bool hasCollisionRisk, bool showCallsign) {
     // Calculate opacity based on altitude difference
     final opacity = _calculateOpacity(beacon);
     
+    // Determine marker size based on collision risk
+    final markerSize = hasCollisionRisk ? 64.0 : 48.0;
+    final iconSize = hasCollisionRisk ? 36.0 : 28.0;
+    
+    // Calculate height to accommodate callsign label
+    final markerHeight = showCallsign ? markerSize + 20 : markerSize;
+    
     return Marker(
       point: LatLng(beacon.latitude, beacon.longitude),
-      width: hasWarning ? 56 : 48,
-      height: hasWarning ? 56 : 48,
+      width: markerSize + (showCallsign ? 40 : 0), // Extra width for callsign
+      height: markerHeight,
       child: GestureDetector(
         onTap: () => onBeaconTap?.call(beacon),
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Warning pulse animation for collision risk
-            if (hasWarning)
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.red.withValues(alpha: 0.8),
-                    width: 3,
+            Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                // Warning ring for collision risk
+                if (hasCollisionRisk)
+                  Container(
+                    width: markerSize,
+                    height: markerSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.red,
+                        width: 3,
+                      ),
+                    ),
+                  ),
+                // Aircraft icon with rotation based on heading/course
+                Opacity(
+                  opacity: opacity,
+                  child: Transform.rotate(
+                    // Rotate icon to show aircraft heading
+                    // Most icons point up (north) by default, which is 0°
+                    // Heading is in degrees clockwise from north
+                    angle: _getRotationAngle(beacon.beaconType, beacon.course.toDouble()),
+                    child: Icon(
+                      _getBeaconIcon(beacon.beaconType),
+                      color: hasCollisionRisk ? Colors.red : _getBeaconColor(beacon.beaconType),
+                      size: iconSize,
+                    ),
                   ),
                 ),
-              ),
-            // Aircraft icon with rotation
-            Opacity(
-              opacity: opacity,
-              child: Transform.rotate(
-                angle: beacon.course * (3.14159 / 180), // Convert degrees to radians
-                child: Icon(
-                  _getBeaconIcon(beacon.beaconType),
-                  color: hasWarning ? Colors.red : _getBeaconColor(beacon.beaconType),
-                  size: hasWarning ? 36 : 32,
+                // Altitude label (top right corner)
+                Positioned(
+                  right: -8,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Text(
+                      '${beacon.altitudeFt}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-            // Altitude label
-            Positioned(
-              bottom: hasWarning ? 4 : 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+            // Callsign label (shown for airborne beacons within 50km or with collision risk)
+            if (showCallsign || (hasCollisionRisk && beacon.altitude > 0))
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: (hasWarning ? Colors.red : Colors.black).withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(2),
+                  color: hasCollisionRisk 
+                    ? Colors.red.withValues(alpha: 0.9)
+                    : Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
-                  '${beacon.altitudeFt}ft',
+                  beacon.callSign ?? beacon.id,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: hasWarning ? 10 : 9,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                    fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -219,6 +305,51 @@ class SafeSkyOverlay extends StatelessWidget {
       case 'UNKNOWN':
       default:
         return Icons.airplanemode_active;
+    }
+  }
+  
+  // Get rotation angle for beacon based on type and course
+  double _getRotationAngle(String? beaconType, double course) {
+    // Convert course to radians
+    final courseRadians = course * (math.pi / 180);
+    
+    switch (beaconType?.toUpperCase()) {
+      case 'JET':
+      case 'MOTORPLANE':
+      case 'THREE_AXES_LIGHT_PLANE':
+        // Icons.flight points up-right by default, needs adjustment
+        return courseRadians + (math.pi / 4); // Add 45° to align properly
+      case 'HELICOPTER':
+      case 'GYROCOPTER':
+        // Icons.toys helicopter already points up
+        return courseRadians;
+      case 'GLIDER':
+      case 'HAND_GLIDER':
+        // Icons.sailing points right by default
+        return courseRadians - (math.pi / 2); // Subtract 90° to align
+      case 'BALLOON':
+      case 'AIRSHIP':
+        // Balloons don't really have heading, keep them upright
+        return 0.0;
+      case 'PARA_GLIDER':
+      case 'PARA_MOTOR':
+      case 'PARACHUTE':
+        // Icons.paragliding points up
+        return courseRadians;
+      case 'UAV':
+      case 'PAV':
+        // Drones - rotate based on heading
+        return courseRadians;
+      case 'STATIC_OBJECT':
+        // Static objects don't rotate
+        return 0.0;
+      case 'MILITARY':
+        // Military aircraft - rotate based on heading
+        return courseRadians;
+      case 'UNKNOWN':
+      default:
+        // Icons.airplanemode_active points up-right by default
+        return courseRadians + (math.pi / 4); // Add 45° to align
     }
   }
 

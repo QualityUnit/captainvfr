@@ -5,9 +5,50 @@ const querystring = require('querystring');
 const CACHE_DURATION = 5000; // 5 seconds in milliseconds
 const cache = new Map();
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW = 60000; // 1 minute window
+const MAX_REQUESTS_PER_IP = 20; // 20 requests per minute per IP
+const MAX_TOTAL_REQUESTS = 100; // 100 total requests per minute
+const rateLimitMap = new Map();
+let totalRequestCount = 0;
+let lastResetTime = Date.now();
+
 // SafeSky API configuration
-const SAFESKY_API_BASE = 'https://sandbox-public-api.safesky.app'; // Start with sandbox
+const SAFESKY_API_BASE = 'https://sandbox-public-api.safesky.app'; // Sandbox API
 const SAFESKY_API_KEY = process.env.SAFESKY_API_KEY;
+
+/**
+ * Check and update rate limits
+ * @param {string} clientIp - Client IP address
+ * @returns {boolean} True if request is allowed, false if rate limited
+ */
+function checkRateLimit(clientIp) {
+    const now = Date.now();
+    
+    // Reset counters if window has passed
+    if (now - lastResetTime > RATE_LIMIT_WINDOW) {
+        rateLimitMap.clear();
+        totalRequestCount = 0;
+        lastResetTime = now;
+    }
+    
+    // Check global rate limit
+    if (totalRequestCount >= MAX_TOTAL_REQUESTS) {
+        return false;
+    }
+    
+    // Check per-IP rate limit
+    const ipRequests = rateLimitMap.get(clientIp) || 0;
+    if (ipRequests >= MAX_REQUESTS_PER_IP) {
+        return false;
+    }
+    
+    // Update counters
+    rateLimitMap.set(clientIp, ipRequests + 1);
+    totalRequestCount++;
+    
+    return true;
+}
 
 /**
  * AWS Lambda handler for SafeSky beacon data proxy
@@ -42,6 +83,29 @@ exports.handler = async (event, context) => {
             statusCode: 405,
             headers: corsHeaders,
             body: JSON.stringify({ error: 'Method not allowed' }),
+        };
+    }
+
+    // Extract client IP (from API Gateway)
+    const clientIp = event.requestContext?.identity?.sourceIp || 'unknown';
+    
+    // Check rate limit
+    if (!checkRateLimit(clientIp)) {
+        const retryAfter = Math.ceil(RATE_LIMIT_WINDOW / 1000); // Convert to seconds
+        return {
+            statusCode: 429,
+            headers: {
+                ...corsHeaders,
+                'Retry-After': String(retryAfter),
+                'X-RateLimit-Limit': String(MAX_REQUESTS_PER_IP),
+                'X-RateLimit-Remaining': '0',
+                'X-RateLimit-Reset': String(Math.ceil((lastResetTime + RATE_LIMIT_WINDOW) / 1000)),
+            },
+            body: JSON.stringify({ 
+                error: 'Rate limit exceeded',
+                message: `Too many requests. Please retry after ${retryAfter} seconds.`,
+                retryAfter: retryAfter
+            }),
         };
     }
 
@@ -100,12 +164,20 @@ exports.handler = async (event, context) => {
         
         if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
             console.log('Returning cached data for viewport:', viewport);
+            
+            // Calculate remaining requests for this IP
+            const ipRequests = rateLimitMap.get(clientIp) || 0;
+            const remaining = Math.max(0, MAX_REQUESTS_PER_IP - ipRequests);
+            
             return {
                 statusCode: 200,
                 headers: {
                     ...corsHeaders,
                     'X-Cache': 'HIT',
                     'Cache-Control': `max-age=${Math.ceil((CACHE_DURATION - (Date.now() - cachedData.timestamp)) / 1000)}`,
+                    'X-RateLimit-Limit': String(MAX_REQUESTS_PER_IP),
+                    'X-RateLimit-Remaining': String(remaining),
+                    'X-RateLimit-Reset': String(Math.ceil((lastResetTime + RATE_LIMIT_WINDOW) / 1000)),
                 },
                 body: JSON.stringify(cachedData.data),
             };
@@ -133,12 +205,19 @@ exports.handler = async (event, context) => {
         // Clean up old cache entries
         cleanupCache();
 
+        // Calculate remaining requests for this IP
+        const ipRequests = rateLimitMap.get(clientIp) || 0;
+        const remaining = Math.max(0, MAX_REQUESTS_PER_IP - ipRequests);
+
         return {
             statusCode: 200,
             headers: {
                 ...corsHeaders,
                 'X-Cache': 'MISS',
                 'Cache-Control': `max-age=${Math.ceil(CACHE_DURATION / 1000)}`,
+                'X-RateLimit-Limit': String(MAX_REQUESTS_PER_IP),
+                'X-RateLimit-Remaining': String(remaining),
+                'X-RateLimit-Reset': String(Math.ceil((lastResetTime + RATE_LIMIT_WINDOW) / 1000)),
             },
             body: JSON.stringify(processedBeacons),
         };
@@ -297,6 +376,11 @@ if (require.main === module) {
         httpMethod: 'GET',
         queryStringParameters: {
             viewport: '48.83161,2.41143,52.51745,6.37275'
+        },
+        requestContext: {
+            identity: {
+                sourceIp: '127.0.0.1'
+            }
         }
     };
     
