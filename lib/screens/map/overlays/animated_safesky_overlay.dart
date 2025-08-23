@@ -454,30 +454,31 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                 ),
               ),
             ),
-            // Altitude label - positioned top-right of icon
-            Positioned(
-              top: (totalHeight - markerSize) / 2 - 4,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                decoration: BoxDecoration(
-                  color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 0.5,
+            // Altitude label - positioned top-right of icon (only visible when zoomed in)
+            if (mapZoom >= 10)
+              Positioned(
+                top: (totalHeight - markerSize) / 2 - 4,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 0.5,
+                    ),
                   ),
-                ),
-                child: Text(
-                  _formatAltitude(beacon.altitudeFt, altitudeUnit),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
+                  child: Text(
+                    _formatAltitude(beacon.altitudeFt, altitudeUnit),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
             // Callsign label - positioned below icon
             if (showCallsign && beacon.callSign != null)
               Positioned(
