@@ -6,7 +6,7 @@ const CACHE_DURATION = 20000; // 20 seconds in milliseconds
 const cache = new Map();
 
 // SafeSky API configuration
-const SAFESKY_API_BASE = 'https://public-api.safesky.app/v1';
+const SAFESKY_API_HOST = process.env.SAFESKY_API_HOST || 'sandbox-public-api.safesky.app';
 const SAFESKY_API_KEY = process.env.SAFESKY_API_KEY;
 
 /**
@@ -130,20 +130,29 @@ exports.handler = async (event, context) => {
  */
 async function callSafeSkyAPI(lat, lon, alt) {
     return new Promise((resolve, reject) => {
+        // Create viewport: minLat, minLon, maxLat, maxLon
+        // Create a box around the given point (approximately 50km radius)
+        const latOffset = 0.45; // ~50km at this latitude
+        const lonOffset = 0.65; // ~50km at this latitude
+        
+        const minLat = (lat - latOffset).toFixed(5);
+        const minLon = (lon - lonOffset).toFixed(5);
+        const maxLat = (lat + latOffset).toFixed(5);
+        const maxLon = (lon + lonOffset).toFixed(5);
+        
+        const viewport = `${minLat},${minLon},${maxLat},${maxLon}`;
         const params = querystring.stringify({
-            latitude: lat,
-            longitude: lon,
-            altitude: alt,
-            radius: 50000, // 50km radius
+            viewport: viewport
         });
 
         const options = {
-            hostname: 'public-api.safesky.app',
+            hostname: SAFESKY_API_HOST,
             port: 443,
             path: `/v1/beacons?${params}`,
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${SAFESKY_API_KEY}`,
+                'x-api-key': SAFESKY_API_KEY,
+                'Content-Type': 'application/json',
                 'Accept': 'application/json',
             }
         };
