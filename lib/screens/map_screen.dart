@@ -52,7 +52,7 @@ import 'map/components/center_button.dart';
 import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
-import 'map/overlays/safesky_overlay.dart';
+import 'map/overlays/animated_safesky_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
 import '../widgets/flight_planning_panel.dart';
 import '../widgets/license_warning_widget.dart';
@@ -3677,9 +3677,9 @@ class MapScreenState extends State<MapScreen>
                   showMetarLayer: _mapStateController.showMetar,
                   onAirportTap: _onAirportSelected,
                 ),
-              // SafeSky overlay for real-time aircraft tracking
+              // SafeSky overlay for real-time aircraft tracking with animation
               if (_mapStateController.showSafeSky)
-                SafeSkyOverlay(
+                AnimatedSafeSkyOverlay(
                   safeSkyService: _safeSkyService,
                   showSafeSkyLayer: _mapStateController.showSafeSky,
                   onBeaconTap: _onSafeSkyBeaconTapped,
