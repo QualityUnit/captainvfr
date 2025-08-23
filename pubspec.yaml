@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_map: ^8.2.1
   font_awesome_flutter: ^10.7.0
+  flutter_svg: ^2.0.10
   
   # Location & Sensors
   geolocator: ^14.0.1

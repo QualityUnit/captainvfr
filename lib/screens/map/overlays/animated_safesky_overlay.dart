@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart' show Position;
 import 'dart:math' as math;
@@ -444,10 +445,14 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                     opacity: opacity,
                     child: Transform.rotate(
                       angle: _getRotationAngle(beacon.beaconType, beacon.course.toDouble()),
-                      child: Icon(
-                        _getBeaconIcon(beacon.beaconType),
-                        color: hasCollisionRisk ? Colors.red : _getBeaconColor(beacon.beaconType),
-                        size: iconSize,
+                      child: SvgPicture.asset(
+                        _getBeaconIconPath(beacon.beaconType),
+                        width: iconSize,
+                        height: iconSize,
+                        colorFilter: ColorFilter.mode(
+                          hasCollisionRisk ? Colors.red : _getBeaconColor(beacon.beaconType),
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
                   ),
@@ -533,59 +538,54 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
     return AnimatedSafeSkyOverlay.opacityFar;
   }
   
-  IconData _getBeaconIcon(String? beaconType) {
+  String _getBeaconIconPath(String? beaconType) {
     switch (beaconType?.toUpperCase()) {
       case 'JET':
+        return 'assets/icons/heavy_aircraft.svg';
       case 'MOTORPLANE':
-        return Icons.flight;
+        return 'assets/icons/light_aircraft.svg';
       case 'HELICOPTER':
+        return 'assets/icons/helicopter.svg';
       case 'GYROCOPTER':
-        return Icons.toys;
+        return 'assets/icons/gyrocopter.svg';
       case 'GLIDER':
+        return 'assets/icons/glider.svg';
       case 'HAND_GLIDER':
-        return Icons.flight_takeoff;
+        return 'assets/icons/hand_glider.svg';
       case 'BALLOON':
+        return 'assets/icons/ballon.svg';
       case 'AIRSHIP':
-        return Icons.bubble_chart;
+        return 'assets/icons/airship.svg';
       case 'PARA_GLIDER':
+        return 'assets/icons/para_glider.svg';
       case 'PARA_MOTOR':
-        return Icons.paragliding;
+        return 'assets/icons/para_motor.svg';
       case 'UAV':
+        return 'assets/icons/uav.svg';
       case 'PAV':
-        return Icons.precision_manufacturing;
+        return 'assets/icons/pav.svg';
       case 'STATIC_OBJECT':
-        return Icons.radio_button_checked;
+        return 'assets/icons/dot.svg';
       case 'MILITARY':
-        return Icons.shield;
+        return 'assets/icons/military.svg';
       default:
-        return Icons.airplanemode_active;
+        return 'assets/icons/aircraft.svg';
     }
   }
   
-  double _getRotationAngle(String? beaconType, double courseRadians) {
-    // Adjust rotation based on icon default orientation
+  double _getRotationAngle(String? beaconType, double course) {
+    // Convert course from degrees to radians
+    // SVG icons are drawn pointing up (north), so we rotate by the course angle
+    final courseRadians = course * math.pi / 180;
+    
+    // Special cases that shouldn't rotate
     switch (beaconType?.toUpperCase()) {
-      case 'HELICOPTER':
-      case 'GYROCOPTER':
-        return courseRadians;
-      case 'GLIDER':
-      case 'HAND_GLIDER':
-        return courseRadians + (math.pi / 4);
       case 'BALLOON':
       case 'AIRSHIP':
-        return 0.0; // No rotation for balloons
-      case 'PARA_GLIDER':
-      case 'PARA_MOTOR':
-        return courseRadians;
-      case 'UAV':
-      case 'PAV':
-        return courseRadians;
       case 'STATIC_OBJECT':
-        return 0.0;
-      case 'MILITARY':
-        return courseRadians;
+        return 0.0; // No rotation for balloons and static objects
       default:
-        return courseRadians + (math.pi / 4);
+        return courseRadians;
     }
   }
   
