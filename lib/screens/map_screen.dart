@@ -3697,7 +3697,6 @@ class MapScreenState extends State<MapScreen>
                   } else if (flightPlanService.currentFlightPlan != null) {
                     // Display single flight plan
                     plansToDisplay = [flightPlanService.currentFlightPlan!];
-                    debugPrint('Displaying single flight plan');
                   } else {
                     return const SizedBox.shrink();
                   }

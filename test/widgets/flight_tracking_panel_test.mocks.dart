@@ -217,6 +217,12 @@ class MockFlightService extends _i1.Mock implements _i6.FlightService {
       ) as double);
 
   @override
+  double get currentAltitude => (super.noSuchMethod(
+        Invocation.getter(#currentAltitude),
+        returnValue: 0.0,
+      ) as double);
+
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -290,6 +296,26 @@ class MockFlightService extends _i1.Mock implements _i6.FlightService {
           ),
         )),
       ) as _i11.Future<String>);
+
+  @override
+  _i11.Future<void> initializeBarometerService() => (super.noSuchMethod(
+        Invocation.method(
+          #initializeBarometerService,
+          [],
+        ),
+        returnValue: _i11.Future<void>.value(),
+        returnValueForMissingStub: _i11.Future<void>.value(),
+      ) as _i11.Future<void>);
+
+  @override
+  _i11.Future<void> stopBarometerService() => (super.noSuchMethod(
+        Invocation.method(
+          #stopBarometerService,
+          [],
+        ),
+        returnValue: _i11.Future<void>.value(),
+        returnValueForMissingStub: _i11.Future<void>.value(),
+      ) as _i11.Future<void>);
 
   @override
   void dispose() => super.noSuchMethod(

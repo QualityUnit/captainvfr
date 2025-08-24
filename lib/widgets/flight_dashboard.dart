@@ -39,10 +39,11 @@ class _FlightDashboardState extends State<FlightDashboard> with WidgetsBindingOb
     // Load saved preference for permission notification
     _loadPermissionNotificationPreference();
 
-    // Auto-select aircraft and start heading service after frame is built
+    // Auto-select aircraft and start services after frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoSelectAircraft();
       _startHeadingService();
+      _initializeAltitudeService();
       _startPeriodicHeadingCheck();
     });
   }
@@ -93,6 +94,12 @@ class _FlightDashboardState extends State<FlightDashboard> with WidgetsBindingOb
     }
   }
 
+  void _initializeAltitudeService() async {
+    // Initialize barometer and GPS for altitude display
+    final flightService = context.read<FlightService>();
+    await flightService.initializeBarometerService();
+  }
+  
   void _startHeadingService() async {
     // Start heading service when panel is shown
     final headingService = context.read<HeadingService>();

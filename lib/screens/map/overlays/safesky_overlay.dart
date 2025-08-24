@@ -248,52 +248,54 @@ class SafeSkyOverlay extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Altitude label (top right corner) - hide when there are too many beacons
-                if (!hideLabels)
-                  Positioned(
-                    right: -8,
-                    top: -4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(3),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 0.5,
-                        ),
-                      ),
-                      child: Text(
-                        _formatAltitude(beacon.altitudeFt, altitudeUnit),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
-            // Callsign label (shown for airborne beacons within 50km or with collision risk)
-            // Hidden when there are more than 50 beacons to optimize UI
-            if (!hideLabels && (showCallsign || (hasCollisionRisk && beacon.altitude > 0)))
+            // Combined callsign and altitude label (two lines)
+            // Hidden when there are more than 50 beacons to optimize UI or when altitude is 0 or invalid
+            if (!hideLabels && beacon.altitude > 0 && beacon.altitude < 50000)
               Container(
                 margin: const EdgeInsets.only(top: 2),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                constraints: const BoxConstraints(
+                  maxWidth: 80, // Prevent overly wide labels
+                ),
                 decoration: BoxDecoration(
                   color: hasCollisionRisk 
                     ? Colors.red.withValues(alpha: 0.9)
-                    : Colors.black.withValues(alpha: 0.7),
+                    : Colors.red.withValues(alpha: 0.7),  // Changed from black to red for better visibility
                   borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  beacon.callSign ?? beacon.id,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.normal,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 0.5,
                   ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showCallsign || (hasCollisionRisk && beacon.altitude > 0))
+                      Text(
+                        _truncateCallSign(beacon.callSign ?? beacon.id),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.w600,
+                          height: 1.0,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    Text(
+                      _formatAltitude(beacon.altitudeFt, altitudeUnit),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.normal,
+                        height: 1.0,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -331,6 +333,12 @@ class SafeSkyOverlay extends StatelessWidget {
     return opacityFar;
   }
 
+  // Truncate call sign if too long
+  String _truncateCallSign(String callSign) {
+    if (callSign.length <= 8) return callSign;
+    return '${callSign.substring(0, 7)}…';
+  }
+  
   IconData _getBeaconIcon(String? beaconType) {
     switch (beaconType?.toUpperCase()) {
       case 'JET':

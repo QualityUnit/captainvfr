@@ -1,8 +1,11 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:latlong2/latlong.dart';
 import '../models/flight.dart';
 import '../models/flight_point.dart';
@@ -49,9 +52,29 @@ class FlightService with ChangeNotifier {
   // Callback for flight path updates
   final Function()? onFlightPathUpdated;
   
+  // Track initialization state
+  bool _isBarometerInitialized = false;
+  
+  // Current GPS position for altitude fallback
+  Position? _currentGpsPosition;
+  StreamSubscription<Position>? _gpsPositionSubscription;
+  
+  // Elevation API caching with enhanced error handling
+  Position? _lastElevationFetchPosition;
+  DateTime? _lastElevationFetchTime;
+  double? _lastElevationValue; // Store the actual elevation value
+  static const double _elevationCacheRadius = 250.0; // meters
+  static const Duration _elevationCacheTimeout = Duration(minutes: 10);
+  static const Duration _elevationApiMinInterval = Duration(seconds: 5); // Rate limiting
+  DateTime? _lastElevationApiCall;
+  int _elevationApiRetryCount = 0;
+  static const int _maxElevationApiRetries = 3;
+  
   // Initialize method for compatibility
   Future<void> initialize() async {
     await _initializeStorage();
+    // Initialize barometer service to provide altitude data even when not tracking
+    await initializeBarometerService();
   }
   
   // Constructor
@@ -89,7 +112,7 @@ class FlightService with ChangeNotifier {
         _handleLocationUpdate(flightPoint);
       },
       onError: (error) {
-        debugPrint('Location error: $error');
+        // Location errors are handled by LocationTracker internally
       },
     );
     
@@ -181,15 +204,9 @@ class FlightService with ChangeNotifier {
     // Start sensors
     _sensorManager.startSensors();
     
-    // Start barometer
-    if (_barometerService != null) {
-      await _barometerService.initialize();
-      _barometerSubscription = _barometerService.onBarometerUpdate.listen((reading) {
-        _flightState.setCurrentBaroAltitude(reading.altitude);
-        _flightState.setCurrentPressure(reading.pressure);
-        _throttledNotifyListeners();
-      });
-    }
+    // Ensure barometer is initialized and listening
+    // The initializeBarometerService method handles redundancy checking
+    await initializeBarometerService();
     
     // Start location tracking
     await _locationTracker.startTracking();
@@ -217,8 +234,10 @@ class FlightService with ChangeNotifier {
     // Stop tracking
     _locationTracker.stopTracking();
     _sensorManager.stopSensors();
-    _barometerSubscription?.cancel();
-    _barometerSubscription = null;
+    
+    // Don't stop barometer service completely - keep it running for altitude display
+    // Just cancel the subscription during tracking to avoid duplicate listeners
+    // The barometer will continue running independently
     
     _flightState.setTracking(false);
     
@@ -392,6 +411,318 @@ class FlightService with ChangeNotifier {
     }
   }
   
+  /// Fetch elevation from online service for platforms where GPS altitude is not available
+  /// This includes macOS and Web platforms where GPS/barometer altitude data is often missing
+  Future<void> _fetchElevationForPosition(Position position) async {
+    // Check if we have a cached elevation for a nearby position
+    if (_shouldUseCachedElevation(position)) {
+      // Use cached elevation - position hasn't changed significantly
+      if (_lastElevationValue != null) {
+        // Update position but keep cached elevation
+        _currentGpsPosition = _createPositionWithElevation(
+          position, 
+          _lastElevationValue!
+        );
+      }
+      return;
+    }
+    
+    // Rate limiting - don't call API too frequently
+    if (_lastElevationApiCall != null &&
+        DateTime.now().difference(_lastElevationApiCall!) < _elevationApiMinInterval) {
+      return; // Too soon since last API call
+    }
+    
+    try {
+      // Use Open-Elevation API (free, no API key required)
+      final lat = position.latitude;
+      final lon = position.longitude;
+      
+      _lastElevationApiCall = DateTime.now();
+      
+      final url = Uri.parse(
+        'https://api.open-elevation.com/api/v1/lookup?locations=$lat,$lon'
+      );
+      
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => http.Response('', 408),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['results'] != null && data['results'].isNotEmpty) {
+          final elevation = data['results'][0]['elevation']?.toDouble();
+          if (elevation != null && elevation >= -500 && elevation <= 9000) {
+            // Validate elevation is within reasonable bounds
+            // Create new position with elevation
+            _currentGpsPosition = _createPositionWithElevation(position, elevation);
+            
+            // Update cache
+            _lastElevationFetchPosition = position;
+            _lastElevationFetchTime = DateTime.now();
+            _lastElevationValue = elevation;
+            _elevationApiRetryCount = 0; // Reset retry count on success
+          }
+        }
+      } else if (response.statusCode == 429) {
+        // Rate limit exceeded - implement exponential backoff
+        _elevationApiRetryCount++;
+        final backoffSeconds = 5 * (1 << _elevationApiRetryCount); // 5, 10, 20, 40...
+        _lastElevationApiCall = DateTime.now().add(Duration(seconds: backoffSeconds));
+      } else if (response.statusCode == 408 || response.statusCode >= 500) {
+        // Timeout or server error - retry with backoff
+        _elevationApiRetryCount++;
+        if (_elevationApiRetryCount <= _maxElevationApiRetries) {
+          final backoffSeconds = 2 * _elevationApiRetryCount;
+          await Future.delayed(Duration(seconds: backoffSeconds));
+          // Recursive retry
+          await _fetchElevationForPosition(position);
+        }
+      }
+    } on SocketException {
+      // Network error - use cached value if available
+      if (_lastElevationValue != null) {
+        _currentGpsPosition = _createPositionWithElevation(position, _lastElevationValue!);
+      }
+    } on TimeoutException {
+      // Timeout - retry if under limit
+      _elevationApiRetryCount++;
+      if (_elevationApiRetryCount <= _maxElevationApiRetries) {
+        await Future.delayed(Duration(seconds: 2));
+        await _fetchElevationForPosition(position);
+      }
+    } on FormatException {
+      // Invalid JSON response - don't retry
+      _elevationApiRetryCount = _maxElevationApiRetries + 1;
+    } catch (e) {
+      // Other errors - use cached value if available
+      if (_lastElevationValue != null) {
+        _currentGpsPosition = _createPositionWithElevation(position, _lastElevationValue!);
+      }
+    }
+  }
+  
+  /// Check if we should use cached elevation instead of fetching new data
+  bool _shouldUseCachedElevation(Position position) {
+    // No cache available
+    if (_lastElevationFetchPosition == null || 
+        _lastElevationFetchTime == null ||
+        _lastElevationValue == null) {
+      return false;
+    }
+    
+    // Check if cache is too old
+    if (DateTime.now().difference(_lastElevationFetchTime!) > _elevationCacheTimeout) {
+      // Clear stale cache
+      _lastElevationFetchPosition = null;
+      _lastElevationFetchTime = null;
+      _lastElevationValue = null;
+      return false;
+    }
+    
+    // Calculate distance from last fetch position
+    final distance = Geolocator.distanceBetween(
+      _lastElevationFetchPosition!.latitude,
+      _lastElevationFetchPosition!.longitude,
+      position.latitude,
+      position.longitude,
+    );
+    
+    // Use cache if within radius
+    return distance <= _elevationCacheRadius;
+  }
+  
+  /// Create a new Position object with updated elevation (for macOS and Web)
+  Position _createPositionWithElevation(Position original, double elevation) {
+    return Position(
+      latitude: original.latitude,
+      longitude: original.longitude,
+      timestamp: original.timestamp,
+      altitude: elevation,
+      altitudeAccuracy: 10.0, // Approximate accuracy for elevation API
+      accuracy: original.accuracy,
+      heading: original.heading,
+      headingAccuracy: original.headingAccuracy,
+      speed: original.speed,
+      speedAccuracy: original.speedAccuracy,
+      floor: original.floor,
+      isMocked: original.isMocked,
+    );
+  }
+  
+  /// Initialize GPS position monitoring for altitude fallback
+  Future<void> _initializeGpsMonitoring() async {
+    try {
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      
+      if (permission == LocationPermission.denied || 
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+      
+      // Get current position once
+      try {
+        _currentGpsPosition = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            timeLimit: Duration(seconds: 5),
+          ),
+        );
+        
+        // On macOS and Web, altitude might be 0 - try to get elevation from online service
+        if (_currentGpsPosition != null && 
+            _currentGpsPosition!.altitude == 0 &&
+            (kIsWeb || (!kIsWeb && Platform.isMacOS))) {
+          // Fetch elevation from API for platforms without GPS altitude
+          await _fetchElevationForPosition(_currentGpsPosition!);
+        }
+      } catch (e) {
+        // Timeout or error getting current position
+      }
+      
+      // Start monitoring position for altitude updates
+      const LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 50, // Update less frequently for altitude monitoring
+      );
+      
+      _gpsPositionSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen(
+        (Position position) async {
+          // On macOS and Web, check if altitude is 0 and fetch elevation
+          if (position.altitude == 0 && (kIsWeb || (!kIsWeb && Platform.isMacOS))) {
+            await _fetchElevationForPosition(position);
+          } else {
+            _currentGpsPosition = position;
+          }
+          
+          // Notify listeners if altitude changed significantly (more than 5 meters)
+          if (_currentGpsPosition != null && 
+              (position.altitude - (_currentGpsPosition?.altitude ?? 0)).abs() > 5) {
+            _throttledNotifyListeners();
+          }
+        },
+        onError: (error) {
+          // GPS errors are non-critical for altitude display
+        },
+      );
+    } catch (e) {
+      // GPS initialization errors are non-critical
+    }
+  }
+  
+  /// Initialize barometer service independently of flight tracking
+  /// This allows altitude to be displayed even when not tracking
+  Future<void> initializeBarometerService() async {
+    // Prevent redundant initialization
+    if (_isBarometerInitialized) {
+      return;
+    }
+    
+    if (_barometerService == null) {
+      return;
+    }
+    
+    // Don't reinitialize if already listening
+    if (_barometerService.isListening) {
+      _isBarometerInitialized = true;
+      return;
+    }
+    
+    try {
+      await _barometerService.initialize();
+      
+      // Check if barometer is available before starting
+      if (!_barometerService.isBarometerAvailable) {
+        // Barometer not available - will use fallback data
+        // Start listening anyway for simulated data
+      }
+      
+      await _barometerService.startListening();
+      
+      // Cancel existing subscription if any and create new one
+      await _barometerSubscription?.cancel();
+      _barometerSubscription = _barometerService.onBarometerUpdate.listen(
+        (reading) {
+          _flightState.setCurrentBaroAltitude(reading.altitude);
+          _flightState.setCurrentPressure(reading.pressure);
+          _throttledNotifyListeners();
+        },
+        onError: (error) {
+          // Barometer errors are handled internally by the service
+          // Don't cancel subscription on errors - let barometer service handle fallback
+        },
+      );
+      
+      _isBarometerInitialized = true;
+    } catch (e) {
+      // Failed to initialize - this is a non-critical service
+      // Will fall back to GPS altitude
+    }
+    
+    // Also initialize GPS monitoring for altitude fallback
+    await _initializeGpsMonitoring();
+  }
+  
+  /// Stop barometer service independently of flight tracking
+  Future<void> stopBarometerService() async {
+    if (_barometerService != null && _barometerService.isListening) {
+      try {
+        await _barometerService.stopListening();
+        _barometerSubscription?.cancel();
+        _barometerSubscription = null;
+        _isBarometerInitialized = false;
+      } catch (e) {
+        // Error stopping barometer service - non-critical
+      }
+    }
+  }
+  
+  /// Get altitude with proper fallback hierarchy: GPS > barometric > 0
+  /// 
+  /// Priority order:
+  /// 1. GPS altitude (widely available and doesn't fluctuate)
+  /// 2. Barometric altitude (more accurate but can fluctuate)
+  /// 3. Sea level (0.0) as final fallback
+  /// 
+  /// Returns altitude in meters
+  double get currentAltitude {
+    // First try GPS altitude from current position (more stable)
+    if (_currentGpsPosition != null) {
+      final gpsAlt = _currentGpsPosition!.altitude;
+      if (!gpsAlt.isNaN && gpsAlt.isFinite) {
+        return gpsAlt;
+      }
+    }
+    
+    // Try GPS altitude from flight path if tracking
+    if (_flightState.flightPath.isNotEmpty) {
+      final gpsAltitude = _flightState.flightPath.last.altitude;
+      if (!gpsAltitude.isNaN && gpsAltitude.isFinite) {
+        return gpsAltitude;
+      }
+    }
+    
+    // Fall back to barometric altitude if GPS not available
+    // Only use if it's reasonable (between -500m and 9000m)
+    if (barometricAltitude != null && 
+        !barometricAltitude!.isNaN && 
+        barometricAltitude!.isFinite &&
+        barometricAltitude! > -500 && 
+        barometricAltitude! < 9000) {
+      return barometricAltitude!;
+    }
+    
+    // Final fallback to 0 (sea level)
+    return 0.0;
+  }
+
   @override
   void dispose() {
     // Remove heading listener if it was added
@@ -402,6 +733,7 @@ class FlightService with ChangeNotifier {
     _locationTracker.dispose();
     _barometerSubscription?.cancel();
     _barometerService?.dispose();
+    _gpsPositionSubscription?.cancel();
     _notifyTimer?.cancel();
     _watchTrackingSubscription?.cancel();
     _watchService.dispose();

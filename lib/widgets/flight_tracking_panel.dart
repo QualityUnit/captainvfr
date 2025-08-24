@@ -8,6 +8,7 @@ import '../services/flight_service.dart';
 import '../services/aircraft_settings_service.dart';
 import '../services/barometer_service.dart';
 import '../services/heading_service.dart';
+import '../services/settings_service.dart';
 import 'flight_dashboard/components/expanded_view.dart';
 import 'flight_dashboard/components/stop_tracking_dialog.dart';
 import 'flight_dashboard/constants/flight_panel_constants.dart';
@@ -48,10 +49,11 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
     // Load saved preferences
     _loadPreferences();
 
-    // Auto-select aircraft and start heading service after frame is built
+    // Auto-select aircraft and start services after frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoSelectAircraft();
       _startHeadingService();
+      _startBarometerService();
       _startPeriodicHeadingCheck();
     });
   }
@@ -136,7 +138,18 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
       }
     } catch (e) {
       // Handle permission check errors gracefully (e.g., in simulator)
-      debugPrint('Error checking permissions: $e');
+      // Permission check error - non-critical
+    }
+  }
+  
+  void _startBarometerService() async {
+    try {
+      // Initialize barometer service to provide altitude data even when not tracking
+      final flightService = context.read<FlightService>();
+      await flightService.initializeBarometerService();
+    } catch (e) {
+      // Barometer initialization errors are non-critical
+      // The app will fall back to GPS altitude
     }
   }
   
@@ -292,69 +305,137 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                         ? Colors.red.withValues(alpha: FlightPanelConstants.backgroundOverlayOpacity)
                         : Colors.transparent,
                     ),
-                  child: Stack(
-                    children: [
-                      // Center content
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Drag handle bar
-                            Container(
-                              width: FlightPanelConstants.handleBarWidth,
-                              height: FlightPanelConstants.handleBarHeight,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: FlightPanelConstants.handleBarOpacity),
-                                borderRadius: BorderRadius.circular(FlightPanelConstants.handleBarBorderRadius),
-                              ),
-                            ),
-                            SizedBox(width: FlightPanelConstants.largeSpacing),
-                            // Compass icon
-                            Icon(
-                              Icons.explore,
-                              color: isTracking 
-                                ? Colors.red 
-                                : Colors.white.withValues(alpha: FlightPanelConstants.iconInactiveOpacity),
-                              size: FlightPanelConstants.handleIconSize,
-                            ),
-                            const SizedBox(width: 6),
-                            // Title
-                            Text(
-                              isTracking ? 'TRACKING' : 'FLIGHT DATA',
-                              style: TextStyle(
-                                color: isTracking 
-                                  ? Colors.red
-                                  : Colors.white.withValues(alpha: FlightPanelConstants.iconInactiveOpacity),
-                                fontSize: FlightPanelConstants.handleTitleFontSize,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            // Recording indicator
-                            if (isTracking) ...[
-                              SizedBox(width: FlightPanelConstants.mediumSpacing),
-                              Container(
-                                width: FlightPanelConstants.recordingIndicatorSize,
-                                height: FlightPanelConstants.recordingIndicatorSize,
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
+                  child: Consumer<SettingsService>(
+                    builder: (context, settings, child) {
+                      final isMetric = settings.units == 'metric';
+                      
+                      // Get altitude with fallback
+                      final altitude = flightService.currentAltitude;
+                      final displayAltitude = isMetric
+                          ? altitude
+                          : altitude * 3.28084; // Convert m to ft
+                      final altitudeUnit = isMetric ? 'm' : 'ft';
+                      
+                      // Get speed
+                      final speedMs = flightService.currentSpeed;
+                      final displaySpeed = isMetric
+                          ? speedMs * 3.6 // Convert m/s to km/h
+                          : speedMs * 1.94384; // Convert m/s to knots
+                      final speedUnit = isMetric ? 'km/h' : 'kt';
+                      
+                      return Stack(
+                        children: [
+                          // Left side - Altitude (only show when collapsed)
+                          if (!_isExpanded)
+                            Positioned(
+                              left: 16,
+                              top: 0,
+                              bottom: 0,
+                              child: Center(
+                                child: Text(
+                                  '${displayAltitude.toStringAsFixed(0)} $altitudeUnit',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,  // 2x bigger
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 2,
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ],
-                            SizedBox(width: FlightPanelConstants.largeSpacing),
-                            // Drag handle bar (right side)
-                            Container(
-                              width: FlightPanelConstants.handleBarWidth,
-                              height: FlightPanelConstants.handleBarHeight,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: FlightPanelConstants.handleBarOpacity),
-                                borderRadius: BorderRadius.circular(FlightPanelConstants.handleBarBorderRadius),
+                            ),
+                          
+                          // Right side - Speed (only show when collapsed)
+                          if (!_isExpanded)
+                            Positioned(
+                              right: 16,
+                              top: 0,
+                              bottom: 0,
+                              child: Center(
+                                child: Text(
+                                  '${displaySpeed.toStringAsFixed(0)} $speedUnit',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,  // 2x bigger
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 2,
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          
+                          // Center content
+                          Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Drag handle bar
+                                Container(
+                                  width: FlightPanelConstants.handleBarWidth,
+                                  height: FlightPanelConstants.handleBarHeight,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: FlightPanelConstants.handleBarOpacity),
+                                    borderRadius: BorderRadius.circular(FlightPanelConstants.handleBarBorderRadius),
+                                  ),
+                                ),
+                                SizedBox(width: FlightPanelConstants.largeSpacing),
+                                // Compass icon
+                                Icon(
+                                  Icons.explore,
+                                  color: isTracking 
+                                    ? Colors.red 
+                                    : Colors.white.withValues(alpha: FlightPanelConstants.iconInactiveOpacity),
+                                  size: FlightPanelConstants.handleIconSize,
+                                ),
+                                const SizedBox(width: 6),
+                                // Title
+                                Text(
+                                  isTracking ? 'TRACKING' : 'FLIGHT DATA',
+                                  style: TextStyle(
+                                    color: isTracking 
+                                      ? Colors.red
+                                      : Colors.white.withValues(alpha: FlightPanelConstants.iconInactiveOpacity),
+                                    fontSize: FlightPanelConstants.handleTitleFontSize,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                // Recording indicator
+                                if (isTracking) ...[
+                                  SizedBox(width: FlightPanelConstants.mediumSpacing),
+                                  Container(
+                                    width: FlightPanelConstants.recordingIndicatorSize,
+                                    height: FlightPanelConstants.recordingIndicatorSize,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ],
+                                SizedBox(width: FlightPanelConstants.largeSpacing),
+                                // Drag handle bar (right side)
+                                Container(
+                                  width: FlightPanelConstants.handleBarWidth,
+                                  height: FlightPanelConstants.handleBarHeight,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: FlightPanelConstants.handleBarOpacity),
+                                    borderRadius: BorderRadius.circular(FlightPanelConstants.handleBarBorderRadius),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       // Tracking button on the right if expanded
                       if (_isExpanded)
                         Positioned(
@@ -418,11 +499,13 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                             ),
                           ),
                         ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
-              ),
+              ),  // Closing Semantics widget
               // Panel content
               if (_isExpanded)
                 Expanded(
