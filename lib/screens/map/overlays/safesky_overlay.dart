@@ -284,8 +284,12 @@ class SafeSkyOverlay extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: hasCollisionRisk 
                     ? Colors.red.withValues(alpha: 0.9)
-                    : Colors.black.withValues(alpha: 0.7),
+                    : Colors.red.withValues(alpha: 0.7),  // Changed from black to red for better visibility
                   borderRadius: BorderRadius.circular(3),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 0.5,
+                  ),
                 ),
                 child: Text(
                   beacon.callSign ?? beacon.id,

@@ -499,8 +499,12 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
+                    color: Colors.red.withValues(alpha: 0.7),  // Changed from black to red for better visibility
                     borderRadius: BorderRadius.circular(3),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 0.5,
+                    ),
                   ),
                   child: Text(
                     beacon.callSign!,
