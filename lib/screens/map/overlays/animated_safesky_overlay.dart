@@ -465,13 +465,13 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                 ),
               ),
             ),
-            // Combined callsign and altitude label - positioned below icon
-            // Hidden when there are more than 50 beacons to optimize UI
-            if (!hideLabels && mapZoom >= 10)
+            // Combined callsign and altitude label (two lines) - positioned below icon
+            // Hidden when there are more than 50 beacons to optimize UI or when altitude is 0
+            if (!hideLabels && mapZoom >= 10 && beacon.altitude > 0)
               Positioned(
                 bottom: 0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   decoration: BoxDecoration(
                     color: hasCollisionRisk 
                       ? Colors.red.withValues(alpha: 0.9)
@@ -482,15 +482,29 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                       width: 0.5,
                     ),
                   ),
-                  child: Text(
-                    (showCallsign && beacon.callSign != null)
-                      ? '${beacon.callSign} • ${_formatAltitude(beacon.altitudeFt, altitudeUnit)}'
-                      : _formatAltitude(beacon.altitudeFt, altitudeUnit),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 10,
-                      fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.w500,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (showCallsign && beacon.callSign != null)
+                        Text(
+                          beacon.callSign!,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 10,
+                            fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.w600,
+                            height: 1.0,
+                          ),
+                        ),
+                      Text(
+                        _formatAltitude(beacon.altitudeFt, altitudeUnit),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 9,
+                          fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.normal,
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
