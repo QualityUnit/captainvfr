@@ -328,16 +328,23 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                           // Left side - Altitude (only show when collapsed)
                           if (!_isExpanded)
                             Positioned(
-                              left: 12,
+                              left: 16,
                               top: 0,
                               bottom: 0,
                               child: Center(
                                 child: Text(
                                   '${displayAltitude.toStringAsFixed(0)} $altitudeUnit',
                                   style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    fontSize: 22,  // 2x bigger
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 2,
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -346,16 +353,23 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
                           // Right side - Speed (only show when collapsed)
                           if (!_isExpanded)
                             Positioned(
-                              right: 12,
+                              right: 16,
                               top: 0,
                               bottom: 0,
                               child: Center(
                                 child: Text(
                                   '${displaySpeed.toStringAsFixed(0)} $speedUnit',
                                   style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    fontSize: 22,  // 2x bigger
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 2,
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
