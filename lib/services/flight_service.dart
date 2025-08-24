@@ -59,6 +59,14 @@ class FlightService with ChangeNotifier {
   Position? _currentGpsPosition;
   StreamSubscription<Position>? _gpsPositionSubscription;
   
+  // Elevation API caching
+  Position? _lastElevationFetchPosition;
+  DateTime? _lastElevationFetchTime;
+  static const double _elevationCacheRadius = 250.0; // meters
+  static const Duration _elevationCacheTimeout = Duration(minutes: 10);
+  static const Duration _elevationApiMinInterval = Duration(seconds: 5); // Rate limiting
+  DateTime? _lastElevationApiCall;
+  
   // Initialize method for compatibility
   Future<void> initialize() async {
     await _initializeStorage();
@@ -403,10 +411,31 @@ class FlightService with ChangeNotifier {
   /// Fetch elevation from online service for platforms where GPS altitude is not available
   /// This includes macOS and Web platforms where GPS/barometer altitude data is often missing
   Future<void> _fetchElevationForPosition(Position position) async {
+    // Check if we have a cached elevation for a nearby position
+    if (_shouldUseCachedElevation(position)) {
+      // Use cached elevation - position hasn't changed significantly
+      if (_lastElevationFetchPosition != null && _currentGpsPosition != null) {
+        // Update position but keep cached elevation
+        _currentGpsPosition = _createPositionWithElevation(
+          position, 
+          _currentGpsPosition!.altitude
+        );
+      }
+      return;
+    }
+    
+    // Rate limiting - don't call API too frequently
+    if (_lastElevationApiCall != null &&
+        DateTime.now().difference(_lastElevationApiCall!) < _elevationApiMinInterval) {
+      return; // Too soon since last API call
+    }
+    
     try {
       // Use Open-Elevation API (free, no API key required)
       final lat = position.latitude;
       final lon = position.longitude;
+      
+      _lastElevationApiCall = DateTime.now();
       
       final url = Uri.parse(
         'https://api.open-elevation.com/api/v1/lookup?locations=$lat,$lon'
@@ -424,13 +453,43 @@ class FlightService with ChangeNotifier {
           if (elevation != null) {
             // Create new position with elevation
             _currentGpsPosition = _createPositionWithElevation(position, elevation);
+            
+            // Update cache
+            _lastElevationFetchPosition = position;
+            _lastElevationFetchTime = DateTime.now();
           }
         }
       }
     } catch (e) {
       // Elevation API errors are non-critical
-      // Will fall back to 0 altitude
+      // Will fall back to cached elevation or 0
     }
+  }
+  
+  /// Check if we should use cached elevation instead of fetching new data
+  bool _shouldUseCachedElevation(Position position) {
+    // No cache available
+    if (_lastElevationFetchPosition == null || 
+        _lastElevationFetchTime == null ||
+        _currentGpsPosition == null) {
+      return false;
+    }
+    
+    // Check if cache is too old
+    if (DateTime.now().difference(_lastElevationFetchTime!) > _elevationCacheTimeout) {
+      return false;
+    }
+    
+    // Calculate distance from last fetch position
+    final distance = Geolocator.distanceBetween(
+      _lastElevationFetchPosition!.latitude,
+      _lastElevationFetchPosition!.longitude,
+      position.latitude,
+      position.longitude,
+    );
+    
+    // Use cache if within radius
+    return distance <= _elevationCacheRadius;
   }
   
   /// Create a new Position object with updated elevation (for macOS and Web)
