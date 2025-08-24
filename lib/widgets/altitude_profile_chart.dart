@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import '../models/airspace_profile.dart';
 import '../models/airspace.dart';
 import '../l10n/app_localizations.dart';
@@ -132,6 +133,14 @@ class _AltitudeProfileChartState extends State<AltitudeProfileChart> {
                     showMetric: widget.showMetric,
                     airspaceColors: airspaceColors,
                     selectedAirspace: _selectedAirspace,
+                  ),
+                  child: Container(),
+                ),
+                // Custom painter for terrain profile
+                CustomPaint(
+                  painter: TerrainProfilePainter(
+                    profile: profile,
+                    showMetric: widget.showMetric,
                   ),
                   child: Container(),
                 ),
@@ -799,5 +808,116 @@ class AirspaceRectanglePainter extends CustomPainter {
   bool shouldRepaint(AirspaceRectanglePainter oldDelegate) {
     return oldDelegate.selectedAirspace != selectedAirspace ||
            oldDelegate.profile != profile;
+  }
+}
+
+/// Custom painter to draw terrain profile
+class TerrainProfilePainter extends CustomPainter {
+  final AirspaceProfile profile;
+  final bool showMetric;
+  
+  TerrainProfilePainter({
+    required this.profile,
+    required this.showMetric,
+  });
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Get terrain points (filter out nulls)
+    final terrainPoints = <ProfilePoint>[];
+    for (final point in profile.profilePoints) {
+      if (point.terrainElevationFt != null) {
+        terrainPoints.add(point);
+      }
+    }
+    
+    if (terrainPoints.isEmpty) return;
+    
+    // Calculate chart maximum altitude (same logic as in chart)
+    final double chartMaxAltitude = math.min(
+      60000,
+      math.max(
+        6000,
+        profile.maxAltitudeFt * 2.0,
+      ),
+    );
+    
+    // Calculate chart area (accounting for padding and labels)
+    const leftPadding = 50.0;
+    const rightPadding = 20.0;
+    const topPadding = 40.0;
+    const bottomPadding = 50.0;
+    
+    final chartWidth = size.width - leftPadding - rightPadding;
+    final chartHeight = size.height - topPadding - bottomPadding;
+    
+    if (chartWidth <= 0 || chartHeight <= 0) return;
+    
+    // Create terrain fill path
+    final terrainPath = ui.Path();
+    bool firstPoint = true;
+    
+    for (final point in terrainPoints) {
+      final x = leftPadding + (point.distanceNm / profile.totalDistanceNm) * chartWidth;
+      final y = topPadding + chartHeight - (point.terrainElevationFt! / chartMaxAltitude) * chartHeight;
+      
+      if (firstPoint) {
+        terrainPath.moveTo(x, y);
+        firstPoint = false;
+      } else {
+        terrainPath.lineTo(x, y);
+      }
+    }
+    
+    // Close the path to fill the area
+    if (terrainPoints.isNotEmpty) {
+      // Add bottom right corner
+      final lastX = leftPadding + (terrainPoints.last.distanceNm / profile.totalDistanceNm) * chartWidth;
+      terrainPath.lineTo(lastX, topPadding + chartHeight);
+      
+      // Add bottom left corner
+      final firstX = leftPadding + (terrainPoints.first.distanceNm / profile.totalDistanceNm) * chartWidth;
+      terrainPath.lineTo(firstX, topPadding + chartHeight);
+      
+      // Close path
+      terrainPath.close();
+    }
+    
+    // Save canvas state
+    canvas.save();
+    
+    // Clip to chart area
+    canvas.clipRect(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight));
+    
+    // Draw terrain fill with gradient
+    final terrainPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.brown.withOpacity(0.6),
+          Colors.brown.withOpacity(0.3),
+        ],
+      ).createShader(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight))
+      ..style = PaintingStyle.fill;
+    
+    canvas.drawPath(terrainPath, terrainPaint);
+    
+    // Draw terrain outline
+    final outlinePaint = Paint()
+      ..color = Colors.brown
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    
+    canvas.drawPath(terrainPath, outlinePaint);
+    
+    // Restore canvas state
+    canvas.restore();
+  }
+  
+  @override
+  bool shouldRepaint(TerrainProfilePainter oldDelegate) {
+    return oldDelegate.profile != profile ||
+           oldDelegate.showMetric != showMetric;
   }
 }

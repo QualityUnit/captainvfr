@@ -11,6 +11,7 @@ class ProfilePoint {
   final int? legIndex;      // For multi-leg trips: which leg this point belongs to (0-based)
   final bool isLegStart;    // True if this is the start of a new leg
   final bool isLegEnd;      // True if this is the end of a leg
+  final double? terrainElevationFt; // Terrain elevation at this point (feet)
   
   ProfilePoint({
     required this.distanceNm,
@@ -21,6 +22,7 @@ class ProfilePoint {
     this.legIndex,
     this.isLegStart = false,
     this.isLegEnd = false,
+    this.terrainElevationFt,
   });
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/themed_dialog.dart';
 import '../services/settings_service.dart';
@@ -210,6 +211,63 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              _buildSection(
+                title: 'Data Sources & Attribution',
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.terrain, color: Colors.white70),
+                    title: const Text(
+                      'Terrain Elevation Data',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    subtitle: const Text(
+                      'Europe: Sonny\'s LiDAR DTM (sonny.4lima.de)\nGlobal: OpenElevation SRTM\nLicense: CC BY 4.0',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    onTap: () => _launchUrl('https://sonny.4lima.de/'),
+                  ),
+                  const Divider(color: Colors.white24),
+                  ListTile(
+                    leading: const Icon(Icons.map, color: Colors.white70),
+                    title: const Text(
+                      'Map Data',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    subtitle: const Text(
+                      '© OpenStreetMap contributors',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    onTap: () => _launchUrl('https://www.openstreetmap.org/copyright'),
+                  ),
+                  const Divider(color: Colors.white24),
+                  ListTile(
+                    leading: const Icon(Icons.flight, color: Colors.white70),
+                    title: const Text(
+                      'Aviation Data',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    subtitle: const Text(
+                      'OpenAIP, OurAirports',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    onTap: () => _launchUrl('https://www.openaip.net/'),
+                  ),
+                  const Divider(color: Colors.white24),
+                  ListTile(
+                    leading: const Icon(Icons.cloud, color: Colors.white70),
+                    title: const Text(
+                      'Weather Data',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    subtitle: const Text(
+                      'CheckWX API, SafeSky',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    onTap: () => _launchUrl('https://www.checkwxapi.com/'),
+                  ),
+                ],
+              ),
               const SizedBox(height: 32),
               Center(
                 child: ElevatedButton(
@@ -341,6 +399,13 @@ class SettingsScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   void _showResetDialog(BuildContext context, SettingsService settings) {
