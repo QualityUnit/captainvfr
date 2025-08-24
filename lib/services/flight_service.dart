@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:latlong2/latlong.dart';
 import '../models/flight.dart';
 import '../models/flight_point.dart';
@@ -398,6 +400,56 @@ class FlightService with ChangeNotifier {
     }
   }
   
+  /// Fetch elevation from online service for macOS where GPS altitude is not available
+  Future<void> _fetchElevationForPosition(Position position) async {
+    try {
+      // Use Open-Elevation API (free, no API key required)
+      final lat = position.latitude;
+      final lon = position.longitude;
+      
+      final url = Uri.parse(
+        'https://api.open-elevation.com/api/v1/lookup?locations=$lat,$lon'
+      );
+      
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => http.Response('', 408),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['results'] != null && data['results'].isNotEmpty) {
+          final elevation = data['results'][0]['elevation']?.toDouble();
+          if (elevation != null) {
+            // Create new position with elevation
+            _currentGpsPosition = _createPositionWithElevation(position, elevation);
+          }
+        }
+      }
+    } catch (e) {
+      // Elevation API errors are non-critical
+      // Will fall back to 0 altitude
+    }
+  }
+  
+  /// Create a new Position object with updated elevation (for macOS)
+  Position _createPositionWithElevation(Position original, double elevation) {
+    return Position(
+      latitude: original.latitude,
+      longitude: original.longitude,
+      timestamp: original.timestamp,
+      altitude: elevation,
+      altitudeAccuracy: 10.0, // Approximate accuracy for elevation API
+      accuracy: original.accuracy,
+      heading: original.heading,
+      headingAccuracy: original.headingAccuracy,
+      speed: original.speed,
+      speedAccuracy: original.speedAccuracy,
+      floor: original.floor,
+      isMocked: original.isMocked,
+    );
+  }
+  
   /// Initialize GPS position monitoring for altitude fallback
   Future<void> _initializeGpsMonitoring() async {
     try {
@@ -420,6 +472,14 @@ class FlightService with ChangeNotifier {
             timeLimit: Duration(seconds: 5),
           ),
         );
+        
+        // On macOS, altitude might be 0 - try to get elevation from online service
+        if (Platform.isMacOS && 
+            _currentGpsPosition != null && 
+            _currentGpsPosition!.altitude == 0) {
+          // We'll need to implement elevation API fallback for macOS
+          await _fetchElevationForPosition(_currentGpsPosition!);
+        }
       } catch (e) {
         // Timeout or error getting current position
       }
@@ -433,8 +493,14 @@ class FlightService with ChangeNotifier {
       _gpsPositionSubscription = Geolocator.getPositionStream(
         locationSettings: locationSettings,
       ).listen(
-        (Position position) {
-          _currentGpsPosition = position;
+        (Position position) async {
+          // On macOS, check if altitude is 0 and fetch elevation
+          if (Platform.isMacOS && position.altitude == 0) {
+            await _fetchElevationForPosition(position);
+          } else {
+            _currentGpsPosition = position;
+          }
+          
           // Notify listeners if altitude changed significantly (more than 5 meters)
           if (_currentGpsPosition != null && 
               (position.altitude - (_currentGpsPosition?.altitude ?? 0)).abs() > 5) {
