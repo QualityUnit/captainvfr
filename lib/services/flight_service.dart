@@ -400,7 +400,8 @@ class FlightService with ChangeNotifier {
     }
   }
   
-  /// Fetch elevation from online service for macOS where GPS altitude is not available
+  /// Fetch elevation from online service for platforms where GPS altitude is not available
+  /// This includes macOS and Web platforms where GPS/barometer altitude data is often missing
   Future<void> _fetchElevationForPosition(Position position) async {
     try {
       // Use Open-Elevation API (free, no API key required)
@@ -432,7 +433,7 @@ class FlightService with ChangeNotifier {
     }
   }
   
-  /// Create a new Position object with updated elevation (for macOS)
+  /// Create a new Position object with updated elevation (for macOS and Web)
   Position _createPositionWithElevation(Position original, double elevation) {
     return Position(
       latitude: original.latitude,
@@ -473,11 +474,11 @@ class FlightService with ChangeNotifier {
           ),
         );
         
-        // On macOS, altitude might be 0 - try to get elevation from online service
-        if (Platform.isMacOS && 
-            _currentGpsPosition != null && 
-            _currentGpsPosition!.altitude == 0) {
-          // We'll need to implement elevation API fallback for macOS
+        // On macOS and Web, altitude might be 0 - try to get elevation from online service
+        if (_currentGpsPosition != null && 
+            _currentGpsPosition!.altitude == 0 &&
+            (kIsWeb || (!kIsWeb && Platform.isMacOS))) {
+          // Fetch elevation from API for platforms without GPS altitude
           await _fetchElevationForPosition(_currentGpsPosition!);
         }
       } catch (e) {
@@ -494,8 +495,8 @@ class FlightService with ChangeNotifier {
         locationSettings: locationSettings,
       ).listen(
         (Position position) async {
-          // On macOS, check if altitude is 0 and fetch elevation
-          if (Platform.isMacOS && position.altitude == 0) {
+          // On macOS and Web, check if altitude is 0 and fetch elevation
+          if (position.altitude == 0 && (kIsWeb || (!kIsWeb && Platform.isMacOS))) {
             await _fetchElevationForPosition(position);
           } else {
             _currentGpsPosition = position;
