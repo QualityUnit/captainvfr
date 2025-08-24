@@ -47,7 +47,7 @@ class MapStateController extends ChangeNotifier {
   bool _showObstacles = false;
   bool _showHotspots = false;
   bool _showHeatmap = false;  // Flight tracking heatmap (default OFF)
-  bool _showSafeSky = false;  // SafeSky aircraft beacons (default OFF)
+  bool _showSafeSky = true;  // SafeSky aircraft beacons (default ON for safety)
   
   // Menu panel state
   bool _isMenuPanelOpen = false;
@@ -88,7 +88,7 @@ class MapStateController extends ChangeNotifier {
     _showObstacles = _prefs.getBool(_keyShowObstacles) ?? false;
     _showHotspots = _prefs.getBool(_keyShowHotspots) ?? false;
     _showHeatmap = _prefs.getBool(_keyShowHeatmap) ?? false;
-    _showSafeSky = _prefs.getBool(_keyShowSafeSky) ?? false;
+    _showSafeSky = _prefs.getBool(_keyShowSafeSky) ?? true;  // Default to true for new users
     
     _prefsInitialized = true;
     notifyListeners();
