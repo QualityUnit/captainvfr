@@ -53,6 +53,7 @@ import '../widgets/flight_tracking_panel.dart';
 import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
 import 'map/overlays/animated_safesky_overlay.dart';
+import 'map/overlays/terrain_danger_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
 import '../widgets/flight_planning_panel.dart';
 import '../widgets/license_warning_widget.dart';
@@ -1809,6 +1810,12 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
+  void _toggleTerrain() {
+    setState(() {
+      _mapStateController.toggleTerrain();
+    });
+  }
+
   void _startSafeSkyTracking() {
     if (_servicesInitialized) {
       final bounds = _mapController.camera.visibleBounds;
@@ -2427,6 +2434,23 @@ class MapScreenState extends State<MapScreen>
       // Handle cases where map controller is not ready
       // Position update already happened, just skip marker detection
     }
+  }
+
+  // Handle terrain warning
+  void _onTerrainWarning() {
+    if (!mounted) return;
+    
+    // Show a warning notification or play warning sound
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'TERRAIN WARNING - Check altitude!',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   // Handle SafeSky beacon selection
@@ -3685,6 +3709,14 @@ class MapScreenState extends State<MapScreen>
                   onBeaconTap: _onSafeSkyBeaconTapped,
                   currentPosition: _currentPosition,
                 ),
+              // Terrain danger overlay showing altitude-based terrain warnings
+              if (_mapStateController.showTerrain && _currentPosition != null)
+                TerrainDangerOverlay(
+                  currentAltitudeFt: _currentPosition?.altitude ?? 0.0,
+                  viewport: _mapController.camera.visibleBounds,
+                  isVisible: _mapStateController.showTerrain,
+                  onTerrainWarning: _onTerrainWarning,
+                ),
               // Flight plan overlays - add before current position marker
               Consumer<FlightPlanService>(
                 builder: (context, flightPlanService, child) {
@@ -4780,6 +4812,14 @@ class MapScreenState extends State<MapScreen>
               label: l10n.safeSky,
               isActive: _mapStateController.showSafeSky,
               onPressed: _toggleSafeSky,
+            ),
+            _buildMenuToggleButton(
+              icon: _mapStateController.showTerrain
+                  ? Icons.terrain
+                  : Icons.terrain_outlined,
+              label: 'Terrain',
+              isActive: _mapStateController.showTerrain,
+              onPressed: _toggleTerrain,
             ),
             _buildMenuToggleButton(
               icon: _showCurrentAirspacePanel

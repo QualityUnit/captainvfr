@@ -16,6 +16,7 @@ class MapStateController extends ChangeNotifier {
   static const String _keyShowHotspots = 'map_show_hotspots';
   static const String _keyShowHeatmap = 'map_show_heatmap';
   static const String _keyShowSafeSky = 'map_show_safesky';
+  static const String _keyShowTerrain = 'map_show_terrain';
   
   late SharedPreferences _prefs;
   bool _prefsInitialized = false;
@@ -48,6 +49,7 @@ class MapStateController extends ChangeNotifier {
   bool _showHotspots = false;
   bool _showHeatmap = false;  // Flight tracking heatmap (default OFF)
   bool _showSafeSky = true;  // SafeSky aircraft beacons (default ON for safety)
+  bool _showTerrain = false;  // Terrain danger zones (default OFF, performance impact)
   
   // Menu panel state
   bool _isMenuPanelOpen = false;
@@ -71,6 +73,7 @@ class MapStateController extends ChangeNotifier {
   bool get showHotspots => _showHotspots;
   bool get showHeatmap => _showHeatmap;
   bool get showSafeSky => _showSafeSky;
+  bool get showTerrain => _showTerrain;
   bool get isMenuPanelOpen => _isMenuPanelOpen;
   
   // Initialize and load saved preferences
@@ -89,6 +92,7 @@ class MapStateController extends ChangeNotifier {
     _showHotspots = _prefs.getBool(_keyShowHotspots) ?? false;
     _showHeatmap = _prefs.getBool(_keyShowHeatmap) ?? false;
     _showSafeSky = _prefs.getBool(_keyShowSafeSky) ?? true;  // Default to true for new users
+    _showTerrain = _prefs.getBool(_keyShowTerrain) ?? false;  // Default to false for performance
     
     _prefsInitialized = true;
     notifyListeners();
@@ -182,6 +186,14 @@ class MapStateController extends ChangeNotifier {
     _showSafeSky = !_showSafeSky;
     if (_prefsInitialized) {
       _prefs.setBool(_keyShowSafeSky, _showSafeSky);
+    }
+    notifyListeners();
+  }
+
+  void toggleTerrain() {
+    _showTerrain = !_showTerrain;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowTerrain, _showTerrain);
     }
     notifyListeners();
   }
