@@ -52,6 +52,8 @@ class FlightService with ChangeNotifier {
   // Initialize method for compatibility
   Future<void> initialize() async {
     await _initializeStorage();
+    // Initialize barometer service to provide altitude data even when not tracking
+    await initializeBarometerService();
   }
   
   // Constructor
@@ -181,15 +183,9 @@ class FlightService with ChangeNotifier {
     // Start sensors
     _sensorManager.startSensors();
     
-    // Start barometer
-    if (_barometerService != null) {
-      await _barometerService.initialize();
-      _barometerSubscription = _barometerService.onBarometerUpdate.listen((reading) {
-        _flightState.setCurrentBaroAltitude(reading.altitude);
-        _flightState.setCurrentPressure(reading.pressure);
-        _throttledNotifyListeners();
-      });
-    }
+    // Ensure barometer is initialized and listening
+    // If it's already listening from independent initialization, this will be a no-op
+    await initializeBarometerService();
     
     // Start location tracking
     await _locationTracker.startTracking();
@@ -217,8 +213,10 @@ class FlightService with ChangeNotifier {
     // Stop tracking
     _locationTracker.stopTracking();
     _sensorManager.stopSensors();
-    _barometerSubscription?.cancel();
-    _barometerSubscription = null;
+    
+    // Don't stop barometer service completely - keep it running for altitude display
+    // Just cancel the subscription during tracking to avoid duplicate listeners
+    // The barometer will continue running independently
     
     _flightState.setTracking(false);
     
@@ -392,6 +390,81 @@ class FlightService with ChangeNotifier {
     }
   }
   
+  /// Initialize barometer service independently of flight tracking
+  /// This allows altitude to be displayed even when not tracking
+  Future<void> initializeBarometerService() async {
+    if (_barometerService == null) {
+      debugPrint('Barometer service not available - skipping initialization');
+      return;
+    }
+    
+    // Don't reinitialize if already listening
+    if (_barometerService.isListening) {
+      debugPrint('Barometer service already listening');
+      return;
+    }
+    
+    try {
+      await _barometerService.initialize();
+      
+      // Check if barometer is available before starting
+      if (!_barometerService.isBarometerAvailable) {
+        debugPrint('Barometer sensor not available on this device - using fallback data');
+        // Start listening anyway for simulated data
+      }
+      
+      await _barometerService.startListening();
+      
+      // Subscribe to barometer updates if not already subscribed
+      _barometerSubscription ??= _barometerService.onBarometerUpdate.listen(
+        (reading) {
+          _flightState.setCurrentBaroAltitude(reading.altitude);
+          _flightState.setCurrentPressure(reading.pressure);
+          _throttledNotifyListeners();
+        },
+        onError: (error) {
+          debugPrint('Barometer update error: $error');
+          // Don't cancel subscription on errors - let barometer service handle fallback
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to initialize barometer service independently: $e');
+      // Don't throw - this is a non-critical service
+    }
+  }
+  
+  /// Stop barometer service independently of flight tracking
+  Future<void> stopBarometerService() async {
+    if (_barometerService != null && _barometerService.isListening) {
+      try {
+        await _barometerService.stopListening();
+        _barometerSubscription?.cancel();
+        _barometerSubscription = null;
+      } catch (e) {
+        debugPrint('Failed to stop barometer service independently: $e');
+      }
+    }
+  }
+  
+  /// Get altitude with proper fallback hierarchy: barometric > GPS > 0
+  double get currentAltitude {
+    // First try barometric altitude (can be negative in some cases like below sea level)
+    if (barometricAltitude != null && !barometricAltitude!.isNaN && barometricAltitude!.isFinite) {
+      return barometricAltitude!;
+    }
+    
+    // Fall back to GPS altitude from current location
+    if (_flightState.flightPath.isNotEmpty) {
+      final gpsAltitude = _flightState.flightPath.last.altitude;
+      if (!gpsAltitude.isNaN && gpsAltitude.isFinite) {
+        return gpsAltitude;
+      }
+    }
+    
+    // Final fallback to 0 (sea level)
+    return 0.0;
+  }
+
   @override
   void dispose() {
     // Remove heading listener if it was added

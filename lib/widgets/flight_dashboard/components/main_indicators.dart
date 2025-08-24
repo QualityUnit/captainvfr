@@ -86,7 +86,7 @@ class MainIndicators extends StatelessWidget {
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         final isMetric = settings.units == 'metric';
-        final altitude = flightService.barometricAltitude ?? 0;
+        final altitude = flightService.currentAltitude;
         final displayAltitude = isMetric
             ? altitude
             : altitude * 3.28084; // Convert m to ft

@@ -48,10 +48,11 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
     // Load saved preferences
     _loadPreferences();
 
-    // Auto-select aircraft and start heading service after frame is built
+    // Auto-select aircraft and start services after frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoSelectAircraft();
       _startHeadingService();
+      _startBarometerService();
       _startPeriodicHeadingCheck();
     });
   }
@@ -137,6 +138,17 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
     } catch (e) {
       // Handle permission check errors gracefully (e.g., in simulator)
       debugPrint('Error checking permissions: $e');
+    }
+  }
+  
+  void _startBarometerService() async {
+    try {
+      // Initialize barometer service to provide altitude data even when not tracking
+      final flightService = context.read<FlightService>();
+      await flightService.initializeBarometerService();
+    } catch (e) {
+      // Handle barometer initialization errors gracefully
+      debugPrint('Error initializing barometer service: $e');
     }
   }
   
