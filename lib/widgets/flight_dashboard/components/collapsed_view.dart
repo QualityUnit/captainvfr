@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../../services/flight_service.dart';
-import '../../../services/heading_service.dart';
 import '../../../services/settings_service.dart';
 import '../../../screens/flight_detail_screen.dart';
 import '../models/flight_icons.dart';
@@ -20,12 +18,12 @@ class CollapsedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final flightService = Provider.of<FlightService>(context);
-    final headingService = Provider.of<HeadingService>(context);
     
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         final isMetric = settings.units == 'metric';
-        final altitude = flightService.barometricAltitude ?? 0;
+        // Use currentAltitude which has proper fallback
+        final altitude = flightService.currentAltitude;
         final displayAltitude = isMetric
             ? altitude
             : altitude * 3.28084; // Convert m to ft
@@ -63,50 +61,11 @@ class CollapsedView extends StatelessWidget {
 
             return Row(
               children: [
-                // Expand button
-                SizedBox(
-                  width: buttonSize,
-                  height: buttonSize,
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.expand_more,
-                      color: const Color(0xFF448AFF),
-                      size: iconSize + 4,
-                    ),
-                    onPressed: onExpand,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-                SizedBox(width: spacing * 2),
-                // Speed
-                Expanded(
+                // Left side - Altitude indicator
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: spacing * 2),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        FlightIcons.speed,
-                        color: Colors.blueAccent,
-                        size: iconSize,
-                      ),
-                      SizedBox(width: spacing),
-                      Flexible(
-                        child: Text(
-                          '${displaySpeed.toStringAsFixed(0)} $speedUnit',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Altitude
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         FlightIcons.altitude,
@@ -114,123 +73,135 @@ class CollapsedView extends StatelessWidget {
                         size: iconSize,
                       ),
                       SizedBox(width: spacing),
-                      Flexible(
-                        child: Text(
-                          '${displayAltitude.toStringAsFixed(0)} $altitudeUnit',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        '${displayAltitude.toStringAsFixed(0)} $altitudeUnit',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Heading - Use HeadingService for always-on heading data
+                
+                // Center section - Title and controls
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.navigation,
-                        color: headingService.currentHeading != null 
-                            ? Colors.blueAccent 
-                            : Colors.white,
-                        size: iconSize,
+                      // Expand button
+                      SizedBox(
+                        width: buttonSize,
+                        height: buttonSize,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.expand_more,
+                            color: const Color(0xFF448AFF),
+                            size: iconSize + 4,
+                          ),
+                          onPressed: onExpand,
+                          padding: EdgeInsets.zero,
+                        ),
                       ),
-                      SizedBox(width: spacing),
-                      Flexible(
-                        child: GestureDetector(
-                          onTap: headingService.hasError ? () {
-                            // Show error message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(headingService.errorMessage ?? 'Compass not available'),
-                                action: SnackBarAction(
-                                  label: 'Settings',
-                                  onPressed: () => openAppSettings(),
-                                ),
-                              ),
-                            );
-                          } : null,
-                          child: Text(
-                            headingService.currentHeading != null 
-                                ? '${headingService.currentHeading!.round()}°'
-                                : headingService.hasError ? 'Denied' : '---°',
-                            style: TextStyle(
-                              color: headingService.currentHeading != null 
-                                  ? Colors.white 
-                                  : headingService.hasError ? Colors.orange : Colors.white,
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.bold,
+                      SizedBox(width: spacing * 2),
+                      
+                      // Title
+                      Text(
+                        'Flight Tracking',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: fontSize + 2,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      
+                      SizedBox(width: spacing * 2),
+                      
+                      // Tracking button
+                      Container(
+                        width: buttonSize * 1.5,
+                        height: buttonSize * 1.5,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: flightService.isTracking
+                                ? Colors.red.withValues(alpha: 0.8)
+                                : Colors.green.withValues(alpha: 0.8),
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(buttonSize * 0.75),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (flightService.isTracking ? Colors.red : Colors.green)
+                                  .withValues(alpha: 0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
-                            overflow: TextOverflow.ellipsis,
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(buttonSize * 0.75),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(buttonSize * 0.75),
+                            onTap: () async {
+                              if (flightService.isTracking) {
+                                // Show confirmation dialog
+                                final shouldStop = await StopTrackingDialog.show(context);
+                                if (shouldStop == true) {
+                                  final savedFlight = await flightService.stopTracking();
+                                  
+                                  // Navigate to flight detail if a flight was saved
+                                  if (savedFlight != null && context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => FlightDetailScreen(flight: savedFlight),
+                                      ),
+                                    );
+                                  }
+                                }
+                              } else {
+                                flightService.startTracking();
+                              }
+                            },
+                            child: Center(
+                              child: Icon(
+                                flightService.isTracking ? Icons.stop : Icons.play_arrow,
+                                color: flightService.isTracking
+                                    ? Colors.red
+                                    : Colors.green,
+                                size: (iconSize + 4) * 1.2,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Tracking button - Improved design with rounded border
+                
+                // Right side - Speed indicator
                 Container(
-                  width: buttonSize * 1.5,
-                  height: buttonSize * 1.5,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: flightService.isTracking
-                          ? Colors.red.withValues(alpha: 0.8)
-                          : Colors.green.withValues(alpha: 0.8),
-                      width: 2.0,
-                    ),
-                    borderRadius: BorderRadius.circular(buttonSize * 0.75),
-                    // Subtle shadow for depth
-                    boxShadow: [
-                      BoxShadow(
-                        color: (flightService.isTracking ? Colors.red : Colors.green)
-                            .withValues(alpha: 0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                  padding: EdgeInsets.symmetric(horizontal: spacing * 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        FlightIcons.speed,
+                        color: Colors.blueAccent,
+                        size: iconSize,
                       ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(buttonSize * 0.75),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(buttonSize * 0.75),
-                      onTap: () async {
-                        if (flightService.isTracking) {
-                          // Show confirmation dialog
-                          final shouldStop = await StopTrackingDialog.show(context);
-                          if (shouldStop == true) {
-                            final savedFlight = await flightService.stopTracking();
-                            
-                            // Navigate to flight detail if a flight was saved
-                            if (savedFlight != null && context.mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FlightDetailScreen(flight: savedFlight),
-                                ),
-                              );
-                            }
-                          }
-                        } else {
-                          flightService.startTracking();
-                        }
-                      },
-                      child: Center(
-                        child: Icon(
-                          flightService.isTracking ? Icons.stop : Icons.play_arrow,
-                          color: flightService.isTracking
-                              ? Colors.red
-                              : Colors.green,
-                          size: (iconSize + 4) * 1.2,
+                      SizedBox(width: spacing),
+                      Text(
+                        '${displaySpeed.toStringAsFixed(0)} $speedUnit',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],
