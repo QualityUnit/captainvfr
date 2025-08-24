@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/flight.dart';
 import '../models/flight_point.dart';
@@ -51,6 +52,10 @@ class FlightService with ChangeNotifier {
   
   // Track initialization state
   bool _isBarometerInitialized = false;
+  
+  // Current GPS position for altitude fallback
+  Position? _currentGpsPosition;
+  StreamSubscription<Position>? _gpsPositionSubscription;
   
   // Initialize method for compatibility
   Future<void> initialize() async {
@@ -393,6 +398,58 @@ class FlightService with ChangeNotifier {
     }
   }
   
+  /// Initialize GPS position monitoring for altitude fallback
+  Future<void> _initializeGpsMonitoring() async {
+    try {
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      
+      if (permission == LocationPermission.denied || 
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+      
+      // Get current position once
+      try {
+        _currentGpsPosition = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            timeLimit: Duration(seconds: 5),
+          ),
+        );
+      } catch (e) {
+        // Timeout or error getting current position
+      }
+      
+      // Start monitoring position for altitude updates
+      const LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 50, // Update less frequently for altitude monitoring
+      );
+      
+      _gpsPositionSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen(
+        (Position position) {
+          _currentGpsPosition = position;
+          // Notify listeners if altitude changed significantly (more than 5 meters)
+          if (_currentGpsPosition != null && 
+              (position.altitude - (_currentGpsPosition?.altitude ?? 0)).abs() > 5) {
+            _throttledNotifyListeners();
+          }
+        },
+        onError: (error) {
+          // GPS errors are non-critical for altitude display
+        },
+      );
+    } catch (e) {
+      // GPS initialization errors are non-critical
+    }
+  }
+  
   /// Initialize barometer service independently of flight tracking
   /// This allows altitude to be displayed even when not tracking
   Future<void> initializeBarometerService() async {
@@ -441,6 +498,9 @@ class FlightService with ChangeNotifier {
       // Failed to initialize - this is a non-critical service
       // Will fall back to GPS altitude
     }
+    
+    // Also initialize GPS monitoring for altitude fallback
+    await _initializeGpsMonitoring();
   }
   
   /// Stop barometer service independently of flight tracking
@@ -457,26 +517,39 @@ class FlightService with ChangeNotifier {
     }
   }
   
-  /// Get altitude with proper fallback hierarchy: barometric > GPS > 0
+  /// Get altitude with proper fallback hierarchy: GPS > barometric > 0
   /// 
   /// Priority order:
-  /// 1. Barometric altitude (most accurate when available)
-  /// 2. GPS altitude (less accurate but widely available)
+  /// 1. GPS altitude (widely available and doesn't fluctuate)
+  /// 2. Barometric altitude (more accurate but can fluctuate)
   /// 3. Sea level (0.0) as final fallback
   /// 
   /// Returns altitude in meters
   double get currentAltitude {
-    // First try barometric altitude (can be negative in some cases like below sea level)
-    if (barometricAltitude != null && !barometricAltitude!.isNaN && barometricAltitude!.isFinite) {
-      return barometricAltitude!;
+    // First try GPS altitude from current position (more stable)
+    if (_currentGpsPosition != null) {
+      final gpsAlt = _currentGpsPosition!.altitude;
+      if (!gpsAlt.isNaN && gpsAlt.isFinite) {
+        return gpsAlt;
+      }
     }
     
-    // Fall back to GPS altitude from current location
+    // Try GPS altitude from flight path if tracking
     if (_flightState.flightPath.isNotEmpty) {
       final gpsAltitude = _flightState.flightPath.last.altitude;
       if (!gpsAltitude.isNaN && gpsAltitude.isFinite) {
         return gpsAltitude;
       }
+    }
+    
+    // Fall back to barometric altitude if GPS not available
+    // Only use if it's reasonable (between -500m and 9000m)
+    if (barometricAltitude != null && 
+        !barometricAltitude!.isNaN && 
+        barometricAltitude!.isFinite &&
+        barometricAltitude! > -500 && 
+        barometricAltitude! < 9000) {
+      return barometricAltitude!;
     }
     
     // Final fallback to 0 (sea level)
@@ -493,6 +566,7 @@ class FlightService with ChangeNotifier {
     _locationTracker.dispose();
     _barometerSubscription?.cancel();
     _barometerService?.dispose();
+    _gpsPositionSubscription?.cancel();
     _notifyTimer?.cancel();
     _watchTrackingSubscription?.cancel();
     _watchService.dispose();

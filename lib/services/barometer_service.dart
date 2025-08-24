@@ -40,9 +40,11 @@ class BarometerService {
   // Stream that emits whenever there's a barometer update
   Stream<BarometerReading> get onBarometerUpdate => _updateController.stream;
 
-  // Pressure smoothing
+  // Pressure and altitude smoothing
   final List<double> _pressureWindow = [];
-  static const int _smoothingWindow = 3; // Number of samples for moving average
+  final List<double> _altitudeWindow = [];
+  static const int _smoothingWindow = 5; // Increased for more stability
+  static const int _altitudeSmoothingWindow = 10; // More aggressive smoothing for altitude
 
   bool _isListening = false;
   bool _isBarometerAvailable = false;
@@ -195,7 +197,7 @@ class BarometerService {
 
   /// Update pressure with smoothing and calculate altitude
   void _updatePressure(double pressure) {
-    // Apply moving average for smoothing
+    // Apply moving average for pressure smoothing
     _pressureWindow.add(pressure);
     if (_pressureWindow.length > _smoothingWindow) {
       _pressureWindow.removeAt(0);
@@ -211,13 +213,35 @@ class BarometerService {
         _pressureWindow.reduce((a, b) => a + b) / _pressureWindow.length;
 
     _pressureHPa = smoothedPressure;
-    _altitudeMeters = _calculateAltitudeFromPressure(smoothedPressure);
+    
+    // Calculate raw altitude from pressure
+    final rawAltitude = _calculateAltitudeFromPressure(smoothedPressure);
+    
+    // Apply additional smoothing to altitude to reduce fluctuations
+    _altitudeWindow.add(rawAltitude);
+    if (_altitudeWindow.length > _altitudeSmoothingWindow) {
+      _altitudeWindow.removeAt(0);
+    }
+    
+    // Calculate smoothed altitude
+    double smoothedAltitude = rawAltitude;
+    if (_altitudeWindow.isNotEmpty) {
+      smoothedAltitude = _altitudeWindow.reduce((a, b) => a + b) / _altitudeWindow.length;
+      
+      // Apply additional filtering: ignore changes less than 1 meter
+      if (_altitudeMeters != null && 
+          (smoothedAltitude - _altitudeMeters!).abs() < 1.0) {
+        smoothedAltitude = _altitudeMeters!;
+      }
+    }
+    
+    _altitudeMeters = smoothedAltitude;
 
     // Emit update
     _updateController.add(
       BarometerReading(
         pressure: smoothedPressure,
-        altitude: _altitudeMeters!,
+        altitude: smoothedAltitude,
         timestamp: DateTime.now(),
       ),
     );
@@ -271,20 +295,14 @@ class BarometerService {
     // Cancel any existing subscription to prevent duplicates
     _sensorSubscription?.cancel();
 
-    double basePressure = 1013.25;
-    int counter = 0;
-
-    _sensorSubscription =
-        Stream.periodic(const Duration(milliseconds: 2000), (count) {
-          // Simulate realistic pressure variations (±2 hPa over time)
-          counter++;
-          final variation = math.sin(counter * 0.1) * 2.0;
-          final simulatedPressure = basePressure + variation;
-
-          return simulatedPressure;
-        }).listen((pressure) {
-          _updatePressure(pressure);
-        });
+    // When barometer is not available, don't provide simulated fluctuating data
+    // This will cause the app to fall back to GPS altitude which is more stable
+    // Only provide a static sea level pressure for reference
+    _pressureHPa = 1013.25;
+    _altitudeMeters = 0.0; // Sea level
+    
+    // Don't emit updates - let GPS handle altitude
+    // This prevents random fluctuations when sensor is not available
   }
 
   /// Set the sea level pressure (QNH) for accurate altitude calculation
@@ -326,8 +344,9 @@ class BarometerService {
       await _sensorSubscription?.cancel();
       _sensorSubscription = null;
 
-      // Clear the pressure window to prevent stale data
+      // Clear the pressure and altitude windows to prevent stale data
       _pressureWindow.clear();
+      _altitudeWindow.clear();
 
       if (_isBarometerAvailable && !kIsWeb) {
         await _methodChannel.invokeMethod('stopPressureUpdates');
