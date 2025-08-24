@@ -83,6 +83,10 @@ class Airport implements SpatialIndexable {
   String? taf;
   String? rawText; // For backward compatibility with marker system
   DateTime? lastWeatherUpdate;
+  
+  // Weather data source tracking
+  String? metarSource; // 'primary' or 'safesky'
+  String? tafSource; // 'primary' or 'safesky'
 
   // Simple getters for common weather info
   String? get metarString => rawMetar;
@@ -148,10 +152,27 @@ class Airport implements SpatialIndexable {
     );
   }
 
-  void updateWeather(String metar, {String? taf}) {
+  void updateWeather(String metar, {String? taf, String? metarSource, String? tafSource}) {
     rawMetar = metar;
     rawText = metar; // For backward compatibility
     this.taf = taf;
+    this.metarSource = metarSource ?? 'primary'; // Default to primary source
+    this.tafSource = tafSource ?? (taf != null ? 'primary' : null);
+    lastWeatherUpdate = DateTime.now().toUtc();
+  }
+  
+  /// Update METAR with source information
+  void updateMetar(String metar, {String source = 'primary'}) {
+    rawMetar = metar;
+    rawText = metar; // For backward compatibility
+    metarSource = source;
+    lastWeatherUpdate = DateTime.now().toUtc();
+  }
+  
+  /// Update TAF with source information
+  void updateTaf(String taf, {String source = 'primary'}) {
+    this.taf = taf;
+    tafSource = source;
     lastWeatherUpdate = DateTime.now().toUtc();
   }
 

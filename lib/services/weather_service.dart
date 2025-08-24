@@ -225,7 +225,20 @@ class WeatherService {
       _triggerBackgroundReload();
     }
 
-    // Return cached data immediately (even if invalid/expired)
+    // If primary data is not available or invalid, try SafeSky as fallback
+    if (cachedMetar == null || _isWeatherDataInvalid(cachedMetar)) {
+      try {
+        final safeSkyMetar = await _fetchMetarFromSafeSky(icaoUpper);
+        if (safeSkyMetar != null) {
+          // Successfully got SafeSky data - mark it in cache to avoid repeated calls
+          return safeSkyMetar;
+        }
+      } catch (e) {
+        _logger.w('⚠️ SafeSky METAR fallback failed for $icaoUpper: $e');
+      }
+    }
+
+    // Return primary cached data (even if invalid/expired) or null if nothing available
     return cachedMetar;
   }
 
@@ -250,7 +263,20 @@ class WeatherService {
       _triggerBackgroundReload();
     }
 
-    // Return cached data immediately (even if invalid/expired)
+    // If primary data is not available or invalid, try SafeSky as fallback
+    if (cachedTaf == null || _isWeatherDataInvalid(cachedTaf)) {
+      try {
+        final safeSkyTaf = await _fetchTafFromSafeSky(icaoUpper);
+        if (safeSkyTaf != null) {
+          // Successfully got SafeSky data - mark it in cache to avoid repeated calls
+          return safeSkyTaf;
+        }
+      } catch (e) {
+        _logger.w('⚠️ SafeSky TAF fallback failed for $icaoUpper: $e');
+      }
+    }
+
+    // Return primary cached data (even if invalid/expired) or null if nothing available
     return cachedTaf;
   }
 
@@ -384,6 +410,247 @@ class WeatherService {
   /// Legacy method for backward compatibility
   Future<String?> fetchTaf(String icaoCode) async {
     return await getTaf(icaoCode);
+  }
+
+  // SafeSky API integration constants
+  static const String _safeSkyBaseUrl = 'https://imuwdhmbde.execute-api.eu-central-1.amazonaws.com/prod';
+  static const Duration _safeSkyTimeout = Duration(seconds: 30);
+  static const Duration _safeSkyRequestCooldown = Duration(seconds: 2); // Prevent rapid requests
+  final Map<String, DateTime> _safeSkyLastRequests = {}; // Track last request times for rate limiting
+
+  /// Fetch METAR from SafeSky API as fallback
+  /// Returns the METAR text if successful, null otherwise
+  Future<String?> _fetchMetarFromSafeSky(String icaoCode) async {
+    try {
+      final icaoUpper = icaoCode.toUpperCase();
+      
+      // Check rate limiting - prevent requests too close together
+      final lastRequest = _safeSkyLastRequests[icaoUpper];
+      if (lastRequest != null) {
+        final timeSinceLastRequest = DateTime.now().difference(lastRequest);
+        if (timeSinceLastRequest < _safeSkyRequestCooldown) {
+          _logger.d('⏳ SafeSky METAR request for $icaoUpper rate limited, waiting ${_safeSkyRequestCooldown.inSeconds}s');
+          return null;
+        }
+      }
+
+      _logger.d('🛩️ Fetching METAR from SafeSky for $icaoUpper');
+      _safeSkyLastRequests[icaoUpper] = DateTime.now();
+
+      final url = '$_safeSkyBaseUrl/weather/metar/$icaoUpper';
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(_safeSkyTimeout);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        
+        // Extract METAR text from SafeSky response
+        String? metarText;
+        if (jsonData is Map<String, dynamic>) {
+          metarText = jsonData['raw_text']?.toString() ?? 
+                     jsonData['metar']?.toString() ?? 
+                     jsonData['text']?.toString();
+        } else if (jsonData is String) {
+          metarText = jsonData;
+        }
+
+        if (metarText != null && metarText.trim().isNotEmpty) {
+          // Validate the METAR format
+          if (_isValidMetarFormat(metarText)) {
+            _logger.i('✅ SafeSky METAR fetched for $icaoUpper: ${metarText.length} chars');
+            
+            // Cache the SafeSky METAR with appropriate timestamp
+            _metarCache[icaoUpper] = metarText;
+            _metarTimestamps[icaoUpper] = DateTime.now();
+            
+            return metarText;
+          } else {
+            _logger.w('⚠️ Invalid METAR format from SafeSky for $icaoUpper: $metarText');
+          }
+        }
+      } else if (response.statusCode == 404) {
+        _logger.d('🔍 No METAR data available from SafeSky for $icaoUpper');
+      } else if (response.statusCode == 429) {
+        _logger.w('⚠️ SafeSky API rate limited for METAR $icaoUpper');
+      } else {
+        _logger.w('⚠️ SafeSky METAR API error for $icaoUpper: ${response.statusCode}');
+      }
+    } catch (e) {
+      _logger.w('⚠️ SafeSky METAR fetch error for $icaoCode: $e');
+    }
+    
+    return null;
+  }
+
+  /// Fetch TAF from SafeSky API as fallback
+  Future<String?> _fetchTafFromSafeSky(String icaoCode) async {
+    try {
+      final icaoUpper = icaoCode.toUpperCase();
+      
+      // Check rate limiting - prevent requests too close together
+      final lastRequest = _safeSkyLastRequests[icaoUpper];
+      if (lastRequest != null) {
+        final timeSinceLastRequest = DateTime.now().difference(lastRequest);
+        if (timeSinceLastRequest < _safeSkyRequestCooldown) {
+          _logger.d('⏳ SafeSky TAF request for $icaoUpper rate limited, waiting ${_safeSkyRequestCooldown.inSeconds}s');
+          return null;
+        }
+      }
+
+      _logger.d('🛩️ Fetching TAF from SafeSky for $icaoUpper');
+      _safeSkyLastRequests[icaoUpper] = DateTime.now();
+
+      final url = '$_safeSkyBaseUrl/weather/taf/$icaoUpper';
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(_safeSkyTimeout);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        
+        // Extract TAF text from SafeSky response
+        String? tafText;
+        if (jsonData is Map<String, dynamic>) {
+          tafText = jsonData['raw_text']?.toString() ?? 
+                   jsonData['taf']?.toString() ?? 
+                   jsonData['text']?.toString();
+        } else if (jsonData is String) {
+          tafText = jsonData;
+        }
+
+        if (tafText != null && tafText.trim().isNotEmpty) {
+          // Validate the TAF format
+          if (_isValidTafFormat(tafText)) {
+            _logger.i('✅ SafeSky TAF fetched for $icaoUpper: ${tafText.length} chars');
+            
+            // Cache the SafeSky TAF with appropriate timestamp
+            _tafCache[icaoUpper] = tafText;
+            _tafTimestamps[icaoUpper] = DateTime.now();
+            
+            return tafText;
+          } else {
+            _logger.w('⚠️ Invalid TAF format from SafeSky for $icaoUpper: $tafText');
+          }
+        }
+      } else if (response.statusCode == 404) {
+        _logger.d('🔍 No TAF data available from SafeSky for $icaoUpper');
+      } else if (response.statusCode == 429) {
+        _logger.w('⚠️ SafeSky API rate limited for TAF $icaoUpper');
+      } else {
+        _logger.w('⚠️ SafeSky TAF API error for $icaoUpper: ${response.statusCode}');
+      }
+    } catch (e) {
+      _logger.w('⚠️ SafeSky TAF fetch error for $icaoCode: $e');
+    }
+    
+    return null;
+  }
+
+  /// Validate METAR format
+  bool _isValidMetarFormat(String metar) {
+    if (metar.trim().isEmpty) return false;
+    
+    // Basic METAR validation - should start with 4-letter ICAO code and contain timestamp
+    final metarPattern = RegExp(r'^[A-Z]{4}\s+\d{6}Z?\s+');
+    return metarPattern.hasMatch(metar.trim());
+  }
+
+  /// Validate TAF format
+  bool _isValidTafFormat(String taf) {
+    if (taf.trim().isEmpty) return false;
+    
+    // Basic TAF validation - should start with TAF and 4-letter ICAO code
+    final tafPattern = RegExp(r'^TAF\s+[A-Z]{4}\s+\d{6}Z?');
+    return tafPattern.hasMatch(taf.trim());
+  }
+
+  /// Get METAR with source information
+  Future<({String? data, String source})> getMetarWithSource(String icaoCode) async {
+    final icaoUpper = icaoCode.toUpperCase();
+
+    // First, try to get cached data
+    String? cachedMetar = _metarCache[icaoUpper];
+
+    // If no cached data, try loading from persistent storage
+    if (cachedMetar == null && _metarCache.isEmpty) {
+      await _loadCachedData();
+      cachedMetar = _metarCache[icaoUpper];
+    }
+
+    // Check if we need to reload data in background
+    final shouldReload = _shouldReloadWeatherData(icaoUpper, isMetar: true);
+
+    if (shouldReload && !_isReloading) {
+      // Trigger background reload but don't wait for it
+      _triggerBackgroundReload();
+    }
+
+    // If primary data is available and valid, return it
+    if (cachedMetar != null && !_isWeatherDataInvalid(cachedMetar)) {
+      return (data: cachedMetar, source: 'primary');
+    }
+
+    // Try SafeSky as fallback
+    try {
+      final safeSkyMetar = await _fetchMetarFromSafeSky(icaoUpper);
+      if (safeSkyMetar != null) {
+        return (data: safeSkyMetar, source: 'safesky');
+      }
+    } catch (e) {
+      _logger.w('⚠️ SafeSky METAR fallback failed for $icaoUpper: $e');
+    }
+
+    // Return primary cached data (even if invalid) if available, otherwise null
+    return (data: cachedMetar, source: 'primary');
+  }
+
+  /// Get TAF with source information
+  Future<({String? data, String source})> getTafWithSource(String icaoCode) async {
+    final icaoUpper = icaoCode.toUpperCase();
+
+    // First, try to get cached data
+    String? cachedTaf = _tafCache[icaoUpper];
+
+    // If no cached data, try loading from persistent storage
+    if (cachedTaf == null && _tafCache.isEmpty) {
+      await _loadCachedData();
+      cachedTaf = _tafCache[icaoUpper];
+    }
+
+    // Check if we need to reload data in background
+    final shouldReload = _shouldReloadWeatherData(icaoUpper, isMetar: false);
+
+    if (shouldReload && !_isReloading) {
+      // Trigger background reload but don't wait for it
+      _triggerBackgroundReload();
+    }
+
+    // If primary data is available and valid, return it
+    if (cachedTaf != null && !_isWeatherDataInvalid(cachedTaf)) {
+      return (data: cachedTaf, source: 'primary');
+    }
+
+    // Try SafeSky as fallback
+    try {
+      final safeSkyTaf = await _fetchTafFromSafeSky(icaoUpper);
+      if (safeSkyTaf != null) {
+        return (data: safeSkyTaf, source: 'safesky');
+      }
+    } catch (e) {
+      _logger.w('⚠️ SafeSky TAF fallback failed for $icaoUpper: $e');
+    }
+
+    // Return primary cached data (even if invalid) if available, otherwise null
+    return (data: cachedTaf, source: 'primary');
   }
 
   /// Disposes of resources
