@@ -86,6 +86,7 @@ class MainIndicators extends StatelessWidget {
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         final isMetric = settings.units == 'metric';
+        // Get altitude with smart fallback: barometric > GPS > 0
         final altitude = flightService.currentAltitude;
         final displayAltitude = isMetric
             ? altitude

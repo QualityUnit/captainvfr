@@ -49,6 +49,9 @@ class FlightService with ChangeNotifier {
   // Callback for flight path updates
   final Function()? onFlightPathUpdated;
   
+  // Track initialization state
+  bool _isBarometerInitialized = false;
+  
   // Initialize method for compatibility
   Future<void> initialize() async {
     await _initializeStorage();
@@ -91,7 +94,7 @@ class FlightService with ChangeNotifier {
         _handleLocationUpdate(flightPoint);
       },
       onError: (error) {
-        debugPrint('Location error: $error');
+        // Location errors are handled by LocationTracker internally
       },
     );
     
@@ -184,7 +187,7 @@ class FlightService with ChangeNotifier {
     _sensorManager.startSensors();
     
     // Ensure barometer is initialized and listening
-    // If it's already listening from independent initialization, this will be a no-op
+    // The initializeBarometerService method handles redundancy checking
     await initializeBarometerService();
     
     // Start location tracking
@@ -393,14 +396,18 @@ class FlightService with ChangeNotifier {
   /// Initialize barometer service independently of flight tracking
   /// This allows altitude to be displayed even when not tracking
   Future<void> initializeBarometerService() async {
+    // Prevent redundant initialization
+    if (_isBarometerInitialized) {
+      return;
+    }
+    
     if (_barometerService == null) {
-      debugPrint('Barometer service not available - skipping initialization');
       return;
     }
     
     // Don't reinitialize if already listening
     if (_barometerService.isListening) {
-      debugPrint('Barometer service already listening');
+      _isBarometerInitialized = true;
       return;
     }
     
@@ -409,27 +416,30 @@ class FlightService with ChangeNotifier {
       
       // Check if barometer is available before starting
       if (!_barometerService.isBarometerAvailable) {
-        debugPrint('Barometer sensor not available on this device - using fallback data');
+        // Barometer not available - will use fallback data
         // Start listening anyway for simulated data
       }
       
       await _barometerService.startListening();
       
-      // Subscribe to barometer updates if not already subscribed
-      _barometerSubscription ??= _barometerService.onBarometerUpdate.listen(
+      // Cancel existing subscription if any and create new one
+      await _barometerSubscription?.cancel();
+      _barometerSubscription = _barometerService.onBarometerUpdate.listen(
         (reading) {
           _flightState.setCurrentBaroAltitude(reading.altitude);
           _flightState.setCurrentPressure(reading.pressure);
           _throttledNotifyListeners();
         },
         onError: (error) {
-          debugPrint('Barometer update error: $error');
+          // Barometer errors are handled internally by the service
           // Don't cancel subscription on errors - let barometer service handle fallback
         },
       );
+      
+      _isBarometerInitialized = true;
     } catch (e) {
-      debugPrint('Failed to initialize barometer service independently: $e');
-      // Don't throw - this is a non-critical service
+      // Failed to initialize - this is a non-critical service
+      // Will fall back to GPS altitude
     }
   }
   
@@ -440,13 +450,21 @@ class FlightService with ChangeNotifier {
         await _barometerService.stopListening();
         _barometerSubscription?.cancel();
         _barometerSubscription = null;
+        _isBarometerInitialized = false;
       } catch (e) {
-        debugPrint('Failed to stop barometer service independently: $e');
+        // Error stopping barometer service - non-critical
       }
     }
   }
   
   /// Get altitude with proper fallback hierarchy: barometric > GPS > 0
+  /// 
+  /// Priority order:
+  /// 1. Barometric altitude (most accurate when available)
+  /// 2. GPS altitude (less accurate but widely available)
+  /// 3. Sea level (0.0) as final fallback
+  /// 
+  /// Returns altitude in meters
   double get currentAltitude {
     // First try barometric altitude (can be negative in some cases like below sea level)
     if (barometricAltitude != null && !barometricAltitude!.isNaN && barometricAltitude!.isFinite) {

@@ -137,7 +137,7 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
       }
     } catch (e) {
       // Handle permission check errors gracefully (e.g., in simulator)
-      debugPrint('Error checking permissions: $e');
+      // Permission check error - non-critical
     }
   }
   
@@ -147,8 +147,8 @@ class _FlightTrackingPanelState extends State<FlightTrackingPanel>
       final flightService = context.read<FlightService>();
       await flightService.initializeBarometerService();
     } catch (e) {
-      // Handle barometer initialization errors gracefully
-      debugPrint('Error initializing barometer service: $e');
+      // Barometer initialization errors are non-critical
+      // The app will fall back to GPS altitude
     }
   }
   
