@@ -4,7 +4,7 @@ const querystring = require('querystring');
 // Cache configuration
 const CACHE_DURATION = 10000; // 10 seconds for beacon data (balances freshness with API load)
 const WEATHER_CACHE_DURATION = 1800000; // 30 minutes for weather data
-const MAX_CACHE_ENTRIES = 200; // Maximum cache entries to prevent memory issues
+const MAX_CACHE_ENTRIES = 2000; // Maximum cache entries to prevent memory issues
 const cache = new Map();
 const weatherCache = new Map();
 
