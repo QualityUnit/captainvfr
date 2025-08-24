@@ -2,8 +2,11 @@ const https = require('https');
 const querystring = require('querystring');
 
 // Cache configuration
-const CACHE_DURATION = 5000; // 5 seconds in milliseconds
+const CACHE_DURATION = 10000; // 10 seconds for beacon data (balances freshness with API load)
+const WEATHER_CACHE_DURATION = 1800000; // 30 minutes for weather data
+const MAX_CACHE_ENTRIES = 200; // Maximum cache entries to prevent memory issues
 const cache = new Map();
+const weatherCache = new Map();
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60000; // 1 minute window
@@ -156,6 +159,56 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // Validate geographic bounds
+        if (south < -90 || south > 90 || north < -90 || north > 90) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'Invalid latitude values',
+                    message: 'Latitude must be between -90 and 90 degrees'
+                }),
+            };
+        }
+
+        if (west < -180 || west > 180 || east < -180 || east > 180) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'Invalid longitude values',
+                    message: 'Longitude must be between -180 and 180 degrees'
+                }),
+            };
+        }
+
+        if (south >= north) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'Invalid viewport bounds',
+                    message: 'South latitude must be less than north latitude'
+                }),
+            };
+        }
+
+        // Check viewport size (prevent requesting too large areas)
+        const latSpan = north - south;
+        const lonSpan = Math.abs(east - west);
+        const maxSpan = 10; // Maximum 10 degrees span
+
+        if (latSpan > maxSpan || lonSpan > maxSpan) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'Viewport too large',
+                    message: `Maximum viewport span is ${maxSpan} degrees`
+                }),
+            };
+        }
+
         // Create cache key based on viewport (rounded to reduce cache misses)
         const cacheKey = `${south.toFixed(2)}_${west.toFixed(2)}_${north.toFixed(2)}_${east.toFixed(2)}`;
         
@@ -199,10 +252,14 @@ exports.handler = async (event, context) => {
         });
 
         // Clean up old cache entries if cache grows too large
-        if (cache.size > 100) {
-            const oldestKey = cache.keys().next().value;
-            cache.delete(oldestKey);
-            console.log('Cleaned old cache entry:', oldestKey);
+        if (cache.size > MAX_CACHE_ENTRIES) {
+            // Remove oldest 25% of entries
+            const entriesToDelete = Math.floor(cache.size * 0.25);
+            const keys = Array.from(cache.keys());
+            for (let i = 0; i < entriesToDelete; i++) {
+                cache.delete(keys[i]);
+            }
+            console.log(`Cleaned ${entriesToDelete} old cache entries`);
         }
 
         const remaining = MAX_REQUESTS_PER_IP - (rateLimitMap.get(clientIp) || 1);
@@ -221,14 +278,23 @@ exports.handler = async (event, context) => {
         };
 
     } catch (error) {
-        console.error('Error in SafeSky proxy:', error);
+        // Log detailed error for debugging
+        console.error('Error in SafeSky proxy:', {
+            errorName: error.name,
+            errorMessage: error.message,
+            errorStack: error.stack,
+            requestPath: event.path,
+            queryParams: event.queryStringParameters
+        });
         
+        // Return user-friendly error response
         return {
             statusCode: 500,
             headers: corsHeaders,
             body: JSON.stringify({ 
                 error: 'Internal server error',
-                message: process.env.NODE_ENV === 'development' ? error.message : undefined
+                message: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request',
+                timestamp: new Date().toISOString()
             }),
         };
     }
@@ -283,7 +349,17 @@ async function fetchSafeSkyBeacons(viewport) {
 
         req.on('error', (error) => {
             console.error('Error making request to SafeSky API:', error);
-            // Return empty array on network errors to gracefully degrade
+            
+            // Distinguish between different error types
+            if (error.code === 'ENOTFOUND') {
+                console.error('SafeSky API host not found');
+            } else if (error.code === 'ETIMEDOUT') {
+                console.error('SafeSky API request timed out');
+            } else if (error.code === 'ECONNREFUSED') {
+                console.error('SafeSky API connection refused');
+            }
+            
+            // Return empty array to gracefully degrade, but log the specific error
             resolve([]);
         });
 

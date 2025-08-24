@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../utils/spatial_index.dart';
+import '../config/environment.dart';
 
 part 'safesky_beacon.g.dart';
 
@@ -77,8 +78,8 @@ class SafeSkyBeacon extends HiveObject implements SpatialIndexable {
   /// Get the position as LatLng
   LatLng get position => LatLng(latitude, longitude);
 
-  /// Get altitude in feet
-  int get altitudeFt => (altitude * 3.28084).round();
+  /// Get altitude in feet using standard conversion constant
+  int get altitudeFt => (altitude * Environment.metersToFeet).round();
 
   /// Get ground speed in knots
   int get groundSpeedKnots => (groundSpeed * 1.94384).round();

@@ -116,14 +116,7 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
       vsync: this,
     );
     
-    // Start animation timer for position updates (60fps)
-    _animationTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-      if (mounted && widget.showSafeSkyLayer) {
-        setState(() {
-          // Trigger rebuild to update interpolated positions
-        });
-      }
-    });
+    // Don't start animation timer here - will start it when beacons are received
     
     // Subscribe to beacon updates
     _subscribeToBeacons();
@@ -156,6 +149,26 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
   
   void _updateBeacons(List<SafeSkyBeacon> newBeacons) {
     if (!mounted) return;
+    
+    // Start animation timer only if we have moving beacons
+    final hasMovingBeacons = newBeacons.any((beacon) => 
+      beacon.groundSpeed > 0 || beacon.verticalRate != 0
+    );
+    
+    if (hasMovingBeacons && _animationTimer == null) {
+      // Start animation timer for smooth updates
+      _animationTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+        if (mounted && widget.showSafeSkyLayer) {
+          setState(() {
+            // Trigger rebuild to update interpolated positions
+          });
+        }
+      });
+    } else if (!hasMovingBeacons && _animationTimer != null) {
+      // Stop animation timer if no beacons are moving
+      _animationTimer?.cancel();
+      _animationTimer = null;
+    }
     
     setState(() {
       // Create a map of new beacons for quick lookup
