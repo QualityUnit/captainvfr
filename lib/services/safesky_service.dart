@@ -6,14 +6,15 @@ import 'package:logger/logger.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../models/safesky_beacon.dart';
+import '../config/environment.dart';
 
 /// Service for fetching and managing SafeSky beacon data
 class SafeSkyService {
-  // SafeSky backend proxy URL
-  static const String _baseUrl = 'https://imuwdhmbde.execute-api.eu-central-1.amazonaws.com/prod';
+  // SafeSky backend proxy URL from configuration
+  static String get _baseUrl => Environment.safeSkyApiUrl;
   static const Duration _minRefreshInterval = Duration(seconds: 5);
   static const Duration _maxRefreshInterval = Duration(seconds: 30);
-  static const Duration _cacheDuration = Duration(seconds: 5);
+  static Duration get _cacheDuration => Environment.beaconCacheDuration;
   
   final _logger = Logger(
     level: Level.warning, // Production logging level
