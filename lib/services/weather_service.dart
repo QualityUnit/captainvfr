@@ -437,7 +437,7 @@ class WeatherService {
       _logger.d('🛩️ Fetching METAR from SafeSky for $icaoUpper');
       _safeSkyLastRequests[icaoUpper] = DateTime.now();
 
-      final url = '$_safeSkyBaseUrl/weather/metar/$icaoUpper';
+      final url = '$_safeSkyBaseUrl/metar/$icaoUpper';
       final response = await _client.get(
         Uri.parse(url),
         headers: {
@@ -452,7 +452,8 @@ class WeatherService {
         // Extract METAR text from SafeSky response
         String? metarText;
         if (jsonData is Map<String, dynamic>) {
-          metarText = jsonData['raw_text']?.toString() ?? 
+          metarText = jsonData['raw']?.toString() ?? 
+                     jsonData['raw_text']?.toString() ?? 
                      jsonData['metar']?.toString() ?? 
                      jsonData['text']?.toString();
         } else if (jsonData is String) {
@@ -505,7 +506,7 @@ class WeatherService {
       _logger.d('🛩️ Fetching TAF from SafeSky for $icaoUpper');
       _safeSkyLastRequests[icaoUpper] = DateTime.now();
 
-      final url = '$_safeSkyBaseUrl/weather/taf/$icaoUpper';
+      final url = '$_safeSkyBaseUrl/taf/$icaoUpper';
       final response = await _client.get(
         Uri.parse(url),
         headers: {
@@ -520,7 +521,8 @@ class WeatherService {
         // Extract TAF text from SafeSky response
         String? tafText;
         if (jsonData is Map<String, dynamic>) {
-          tafText = jsonData['raw_text']?.toString() ?? 
+          tafText = jsonData['raw']?.toString() ?? 
+                   jsonData['raw_text']?.toString() ?? 
                    jsonData['taf']?.toString() ?? 
                    jsonData['text']?.toString();
         } else if (jsonData is String) {
