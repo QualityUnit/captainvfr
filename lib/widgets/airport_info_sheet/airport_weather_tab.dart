@@ -74,12 +74,20 @@ class AirportWeatherTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'METAR',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: hasDangerousWeather ? Colors.red.shade700 : Colors.green,
-          ),
+        Row(
+          children: [
+            Text(
+              'METAR',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: hasDangerousWeather ? Colors.red.shade700 : Colors.green,
+              ),
+            ),
+            if (airport.metarSource == 'safesky') ...[
+              const SizedBox(width: 8),
+              _buildSafeSkyIndicator(context),
+            ],
+          ],
         ),
         const SizedBox(height: 8),
 
@@ -113,12 +121,20 @@ class AirportWeatherTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'TAF',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: hasDangerousWeather ? Colors.red.shade700 : Colors.blue,
-          ),
+        Row(
+          children: [
+            Text(
+              'TAF',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: hasDangerousWeather ? Colors.red.shade700 : Colors.blue,
+              ),
+            ),
+            if (airport.tafSource == 'safesky') ...[
+              const SizedBox(width: 8),
+              _buildSafeSkyIndicator(context),
+            ],
+          ],
         ),
         const SizedBox(height: 8),
 
@@ -298,6 +314,41 @@ class AirportWeatherTab extends StatelessWidget {
           ElevatedButton(
             onPressed: onRetry,
             child: Text(l10n.refreshWeather),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSafeSkyIndicator(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: Colors.orange.withValues(alpha: 0.4),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.cloud_sync_outlined,
+            size: 12,
+            color: Colors.orange.shade700,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'SafeSky',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: Colors.orange.shade700,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
           ),
         ],
       ),

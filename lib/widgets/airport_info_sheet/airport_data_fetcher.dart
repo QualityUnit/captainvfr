@@ -47,6 +47,8 @@ class AirportDataFetcher {
 
     String? finalMetar;
     String? finalTaf;
+    String metarSource = 'primary';
+    String tafSource = 'primary';
 
     // Always show cached data first if available
     final cachedMetar = weatherService.getCachedMetar(airport.icao);
@@ -59,15 +61,17 @@ class AirportDataFetcher {
       finalTaf = cachedTaf;
     }
 
-    // Fetch weather data (this will return cached data immediately and trigger reload if needed)
-    final metar = await weatherService.getMetar(airport.icao);
-    final taf = await weatherService.getTaf(airport.icao);
+    // Fetch weather data with source information (includes SafeSky fallback)
+    final metarResult = await weatherService.getMetarWithSource(airport.icao);
+    final tafResult = await weatherService.getTafWithSource(airport.icao);
 
-    if (metar != null) {
-      finalMetar = metar;
+    if (metarResult.data != null) {
+      finalMetar = metarResult.data;
+      metarSource = metarResult.source;
     }
-    if (taf != null) {
-      finalTaf = taf;
+    if (tafResult.data != null) {
+      finalTaf = tafResult.data;
+      tafSource = tafResult.source;
     }
 
     // Batch all updates into a single operation to minimize widget rebuilds
@@ -75,11 +79,10 @@ class AirportDataFetcher {
       // Use a deferred update to avoid buildScope issues
       Future.microtask(() {
         if (finalMetar != null) {
-          airport.updateWeather(finalMetar);
+          airport.updateMetar(finalMetar, source: metarSource);
         }
         if (finalTaf != null && finalTaf != finalMetar) {
-          airport.taf = finalTaf;
-          airport.lastWeatherUpdate = DateTime.now().toUtc();
+          airport.updateTaf(finalTaf, source: tafSource);
         }
       });
     }

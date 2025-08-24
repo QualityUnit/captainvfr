@@ -4,7 +4,7 @@ const querystring = require('querystring');
 // Cache configuration
 const CACHE_DURATION = 10000; // 10 seconds for beacon data (balances freshness with API load)
 const WEATHER_CACHE_DURATION = 1800000; // 30 minutes for weather data
-const MAX_CACHE_ENTRIES = 200; // Maximum cache entries to prevent memory issues
+const MAX_CACHE_ENTRIES = 2000; // Maximum cache entries to prevent memory issues
 const cache = new Map();
 const weatherCache = new Map();
 
@@ -17,7 +17,7 @@ let totalRequestCount = 0;
 let lastResetTime = Date.now();
 
 // SafeSky API configuration
-const SAFESKY_API_BASE = 'https://sandbox-public-api.safesky.app'; // Sandbox API
+const SAFESKY_API_BASE = process.env.SAFESKY_API_BASE || 'https://sandbox-public-api.safesky.app'; // Default to Sandbox API
 const SAFESKY_API_KEY = process.env.SAFESKY_API_KEY;
 
 /**
@@ -54,7 +54,7 @@ function checkRateLimit(clientIp) {
 }
 
 /**
- * AWS Lambda handler for SafeSky beacon data proxy
+ * AWS Lambda handler for SafeSky proxy (beacon and weather data)
  * 
  * @param {Object} event - Lambda event object
  * @param {Object} context - Lambda context object
@@ -91,6 +91,18 @@ exports.handler = async (event, context) => {
 
     // Extract client IP (from API Gateway)
     const clientIp = event.requestContext?.identity?.sourceIp || 'unknown';
+
+    // Route to appropriate handler based on path
+    const path = event.path || event.rawPath || '/';
+    
+    // Weather endpoints
+    if (path.includes('/metar/')) {
+        return handleMetarRequest(event, corsHeaders, clientIp);
+    } else if (path.includes('/taf/')) {
+        return handleTafRequest(event, corsHeaders, clientIp);
+    } else if (path.includes('/weather/')) {
+        return handleCombinedWeatherRequest(event, corsHeaders, clientIp);
+    }
     
     // Check rate limit
     if (!checkRateLimit(clientIp)) {
@@ -455,10 +467,439 @@ function generateMockBeacons() {
     ];
 }
 
+/**
+ * Handle METAR request for a specific ICAO code
+ * @param {Object} event - Lambda event object
+ * @param {Object} corsHeaders - CORS headers
+ * @param {string} clientIp - Client IP address
+ * @returns {Object} HTTP response
+ */
+async function handleMetarRequest(event, corsHeaders, clientIp) {
+    // Extract ICAO code from path
+    const pathParts = event.path ? event.path.split('/') : event.rawPath.split('/');
+    const icao = pathParts[pathParts.length - 1]?.toUpperCase();
+    
+    if (!icao || icao.length !== 4) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Invalid ICAO code',
+                message: 'ICAO code must be 4 characters (e.g., KJFK)'
+            }),
+        };
+    }
+
+    // Check rate limit
+    if (!checkRateLimit(clientIp)) {
+        const retryAfter = Math.ceil(RATE_LIMIT_WINDOW / 1000);
+        return {
+            statusCode: 429,
+            headers: {
+                ...corsHeaders,
+                'Retry-After': String(retryAfter),
+            },
+            body: JSON.stringify({ 
+                error: 'Too many requests',
+                retryAfter: retryAfter
+            }),
+        };
+    }
+
+    try {
+        // Check weather cache
+        const cacheKey = `metar_${icao}`;
+        const cachedData = weatherCache.get(cacheKey);
+        const now = Date.now();
+        
+        if (cachedData && (now - cachedData.timestamp) < WEATHER_CACHE_DURATION) {
+            console.log('Returning cached METAR for:', icao);
+            return {
+                statusCode: 200,
+                headers: {
+                    ...corsHeaders,
+                    'X-Cache': 'HIT',
+                    'X-Data-Source': 'SafeSky',
+                    'Cache-Control': `max-age=${Math.ceil((WEATHER_CACHE_DURATION - (now - cachedData.timestamp)) / 1000)}`,
+                },
+                body: JSON.stringify(cachedData.data),
+            };
+        }
+
+        // Fetch from SafeSky API
+        console.log('Fetching METAR from SafeSky for:', icao);
+        const metar = await fetchSafeSkyWeather('metar', icao);
+        
+        if (metar) {
+            // Cache the data
+            weatherCache.set(cacheKey, {
+                data: metar,
+                timestamp: now
+            });
+
+            // Clean up old cache entries
+            cleanupWeatherCache();
+
+            return {
+                statusCode: 200,
+                headers: {
+                    ...corsHeaders,
+                    'X-Cache': 'MISS',
+                    'X-Data-Source': 'SafeSky',
+                    'Cache-Control': `max-age=${Math.ceil(WEATHER_CACHE_DURATION / 1000)}`,
+                },
+                body: JSON.stringify(metar),
+            };
+        } else {
+            return {
+                statusCode: 404,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'No METAR data available',
+                    icao: icao
+                }),
+            };
+        }
+    } catch (error) {
+        console.error('Error fetching METAR:', error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Internal server error',
+                message: process.env.NODE_ENV === 'development' ? error.message : undefined
+            }),
+        };
+    }
+}
+
+/**
+ * Handle TAF request for a specific ICAO code
+ * @param {Object} event - Lambda event object
+ * @param {Object} corsHeaders - CORS headers
+ * @param {string} clientIp - Client IP address
+ * @returns {Object} HTTP response
+ */
+async function handleTafRequest(event, corsHeaders, clientIp) {
+    // Extract ICAO code from path
+    const pathParts = event.path ? event.path.split('/') : event.rawPath.split('/');
+    const icao = pathParts[pathParts.length - 1]?.toUpperCase();
+    
+    if (!icao || icao.length !== 4) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Invalid ICAO code',
+                message: 'ICAO code must be 4 characters (e.g., KJFK)'
+            }),
+        };
+    }
+
+    // Check rate limit
+    if (!checkRateLimit(clientIp)) {
+        const retryAfter = Math.ceil(RATE_LIMIT_WINDOW / 1000);
+        return {
+            statusCode: 429,
+            headers: {
+                ...corsHeaders,
+                'Retry-After': String(retryAfter),
+            },
+            body: JSON.stringify({ 
+                error: 'Too many requests',
+                retryAfter: retryAfter
+            }),
+        };
+    }
+
+    try {
+        // Check weather cache
+        const cacheKey = `taf_${icao}`;
+        const cachedData = weatherCache.get(cacheKey);
+        const now = Date.now();
+        
+        if (cachedData && (now - cachedData.timestamp) < WEATHER_CACHE_DURATION) {
+            console.log('Returning cached TAF for:', icao);
+            return {
+                statusCode: 200,
+                headers: {
+                    ...corsHeaders,
+                    'X-Cache': 'HIT',
+                    'X-Data-Source': 'SafeSky',
+                    'Cache-Control': `max-age=${Math.ceil((WEATHER_CACHE_DURATION - (now - cachedData.timestamp)) / 1000)}`,
+                },
+                body: JSON.stringify(cachedData.data),
+            };
+        }
+
+        // Fetch from SafeSky API
+        console.log('Fetching TAF from SafeSky for:', icao);
+        const taf = await fetchSafeSkyWeather('taf', icao);
+        
+        if (taf) {
+            // Cache the data
+            weatherCache.set(cacheKey, {
+                data: taf,
+                timestamp: now
+            });
+
+            // Clean up old cache entries
+            cleanupWeatherCache();
+
+            return {
+                statusCode: 200,
+                headers: {
+                    ...corsHeaders,
+                    'X-Cache': 'MISS',
+                    'X-Data-Source': 'SafeSky',
+                    'Cache-Control': `max-age=${Math.ceil(WEATHER_CACHE_DURATION / 1000)}`,
+                },
+                body: JSON.stringify(taf),
+            };
+        } else {
+            return {
+                statusCode: 404,
+                headers: corsHeaders,
+                body: JSON.stringify({ 
+                    error: 'No TAF data available',
+                    icao: icao
+                }),
+            };
+        }
+    } catch (error) {
+        console.error('Error fetching TAF:', error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Internal server error',
+                message: process.env.NODE_ENV === 'development' ? error.message : undefined
+            }),
+        };
+    }
+}
+
+/**
+ * Handle combined weather request (both METAR and TAF)
+ * @param {Object} event - Lambda event object
+ * @param {Object} corsHeaders - CORS headers
+ * @param {string} clientIp - Client IP address
+ * @returns {Object} HTTP response
+ */
+async function handleCombinedWeatherRequest(event, corsHeaders, clientIp) {
+    // Extract ICAO code from path
+    const pathParts = event.path ? event.path.split('/') : event.rawPath.split('/');
+    const icao = pathParts[pathParts.length - 1]?.toUpperCase();
+    
+    if (!icao || icao.length !== 4) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Invalid ICAO code',
+                message: 'ICAO code must be 4 characters (e.g., KJFK)'
+            }),
+        };
+    }
+
+    // Check rate limit (counts as 2 requests)
+    if (!checkRateLimit(clientIp) || !checkRateLimit(clientIp)) {
+        const retryAfter = Math.ceil(RATE_LIMIT_WINDOW / 1000);
+        return {
+            statusCode: 429,
+            headers: {
+                ...corsHeaders,
+                'Retry-After': String(retryAfter),
+            },
+            body: JSON.stringify({ 
+                error: 'Too many requests',
+                retryAfter: retryAfter
+            }),
+        };
+    }
+
+    try {
+        const now = Date.now();
+        const result = {
+            icao: icao,
+            metar: null,
+            taf: null,
+            metarSource: null,
+            tafSource: null,
+            timestamp: now
+        };
+
+        // Check METAR cache
+        const metarCacheKey = `metar_${icao}`;
+        const cachedMetar = weatherCache.get(metarCacheKey);
+        
+        if (cachedMetar && (now - cachedMetar.timestamp) < WEATHER_CACHE_DURATION) {
+            console.log('Using cached METAR for:', icao);
+            result.metar = cachedMetar.data;
+            result.metarSource = 'SafeSky-cached';
+        } else {
+            // Fetch fresh METAR
+            const metar = await fetchSafeSkyWeather('metar', icao);
+            if (metar) {
+                result.metar = metar;
+                result.metarSource = 'SafeSky';
+                weatherCache.set(metarCacheKey, {
+                    data: metar,
+                    timestamp: now
+                });
+            }
+        }
+
+        // Check TAF cache
+        const tafCacheKey = `taf_${icao}`;
+        const cachedTaf = weatherCache.get(tafCacheKey);
+        
+        if (cachedTaf && (now - cachedTaf.timestamp) < WEATHER_CACHE_DURATION) {
+            console.log('Using cached TAF for:', icao);
+            result.taf = cachedTaf.data;
+            result.tafSource = 'SafeSky-cached';
+        } else {
+            // Fetch fresh TAF
+            const taf = await fetchSafeSkyWeather('taf', icao);
+            if (taf) {
+                result.taf = taf;
+                result.tafSource = 'SafeSky';
+                weatherCache.set(tafCacheKey, {
+                    data: taf,
+                    timestamp: now
+                });
+            }
+        }
+
+        // Clean up old cache entries
+        cleanupWeatherCache();
+
+        const hasCache = result.metarSource?.includes('cached') || result.tafSource?.includes('cached');
+
+        return {
+            statusCode: 200,
+            headers: {
+                ...corsHeaders,
+                'X-Cache': hasCache ? 'PARTIAL' : 'MISS',
+                'X-Data-Source': 'SafeSky',
+                'Cache-Control': `max-age=${Math.ceil(WEATHER_CACHE_DURATION / 1000)}`,
+            },
+            body: JSON.stringify(result),
+        };
+    } catch (error) {
+        console.error('Error fetching weather:', error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Internal server error',
+                message: process.env.NODE_ENV === 'development' ? error.message : undefined
+            }),
+        };
+    }
+}
+
+/**
+ * Fetch weather data from SafeSky API
+ * @param {string} type - 'metar' or 'taf'
+ * @param {string} icao - ICAO airport code
+ * @returns {Promise<Object|null>} Weather data or null
+ */
+async function fetchSafeSkyWeather(type, icao) {
+    if (!SAFESKY_API_KEY) {
+        console.warn('SAFESKY_API_KEY not configured, returning null');
+        return null;
+    }
+
+    return new Promise((resolve) => {
+        const path = `/v1/fis/${type}/${icao}`;
+        
+        const options = {
+            hostname: new URL(SAFESKY_API_BASE).hostname,
+            port: 443,
+            path: path,
+            method: 'GET',
+            headers: {
+                'x-api-key': SAFESKY_API_KEY,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            timeout: 30000, // 30 second timeout for weather data
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            res.on('end', () => {
+                try {
+                    if (res.statusCode === 200) {
+                        // SafeSky returns raw METAR/TAF text, not JSON
+                        const weatherData = data.trim();
+                        console.log(`SafeSky API returned ${type.toUpperCase()} for ${icao}: ${weatherData}`);
+                        
+                        // Return the raw weather data as an object
+                        const result = {
+                            icao: icao,
+                            raw: weatherData,
+                            type: type.toUpperCase(),
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        resolve(result);
+                    } else if (res.statusCode === 404) {
+                        console.log(`No ${type.toUpperCase()} data available for ${icao}`);
+                        resolve(null);
+                    } else {
+                        console.error(`SafeSky API error for ${type}: ${res.statusCode} - ${data}`);
+                        resolve(null);
+                    }
+                } catch (error) {
+                    console.error(`Error processing SafeSky ${type} response:`, error);
+                    resolve(null);
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            console.error(`Error fetching ${type} from SafeSky:`, error);
+            resolve(null);
+        });
+
+        req.on('timeout', () => {
+            console.error(`SafeSky ${type} request timeout`);
+            req.destroy();
+            resolve(null);
+        });
+
+        req.end();
+    });
+}
+
+/**
+ * Clean up old weather cache entries
+ */
+function cleanupWeatherCache() {
+    if (weatherCache.size > 200) {
+        // Remove oldest entries
+        const entriesToDelete = weatherCache.size - 150;
+        const keys = Array.from(weatherCache.keys());
+        for (let i = 0; i < entriesToDelete; i++) {
+            weatherCache.delete(keys[i]);
+        }
+        console.log(`Cleaned ${entriesToDelete} old weather cache entries`);
+    }
+}
+
 // Local testing
 if (require.main === module) {
-    const testEvent = {
+    // Test beacon endpoint
+    const testBeaconEvent = {
         httpMethod: 'GET',
+        path: '/beacons',
         queryStringParameters: {
             viewport: '46.8,7.3,47.0,7.6'
         },
@@ -469,7 +910,59 @@ if (require.main === module) {
         }
     };
     
-    exports.handler(testEvent, {}).then(result => {
-        console.log('Test result:', JSON.stringify(result, null, 2));
+    // Test METAR endpoint
+    const testMetarEvent = {
+        httpMethod: 'GET',
+        path: '/metar/KJFK',
+        requestContext: {
+            identity: {
+                sourceIp: '127.0.0.1'
+            }
+        }
+    };
+    
+    // Test TAF endpoint
+    const testTafEvent = {
+        httpMethod: 'GET',
+        path: '/taf/KJFK',
+        requestContext: {
+            identity: {
+                sourceIp: '127.0.0.1'
+            }
+        }
+    };
+    
+    // Test combined weather endpoint
+    const testWeatherEvent = {
+        httpMethod: 'GET',
+        path: '/weather/KJFK',
+        requestContext: {
+            identity: {
+                sourceIp: '127.0.0.1'
+            }
+        }
+    };
+    
+    // Run tests
+    console.log('Testing beacon endpoint...');
+    exports.handler(testBeaconEvent, {}).then(result => {
+        console.log('Beacon result:', JSON.stringify(result, null, 2));
+        
+        console.log('\nTesting METAR endpoint...');
+        return exports.handler(testMetarEvent, {});
+    }).then(result => {
+        console.log('METAR result:', JSON.stringify(result, null, 2));
+        
+        console.log('\nTesting TAF endpoint...');
+        return exports.handler(testTafEvent, {});
+    }).then(result => {
+        console.log('TAF result:', JSON.stringify(result, null, 2));
+        
+        console.log('\nTesting combined weather endpoint...');
+        return exports.handler(testWeatherEvent, {});
+    }).then(result => {
+        console.log('Weather result:', JSON.stringify(result, null, 2));
+    }).catch(error => {
+        console.error('Test error:', error);
     });
 }
