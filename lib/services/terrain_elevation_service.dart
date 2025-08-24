@@ -7,7 +7,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
-import '../services/tiled_data_loader.dart';
 import '../config/environment.dart';
 
 /// Service for loading and querying terrain elevation data
@@ -305,6 +304,114 @@ class TerrainElevationService {
       await getElevation(LatLng(lat + 0.5, lon + 0.5));
     }
   }
+
+  /// Calculate minimum safe altitude for a route
+  /// Returns MSA in feet with specified safety margin
+  Future<MinimumSafeAltitude> calculateMSA(
+    List<LatLng> route, {
+    double corridorWidthNm = 5.0, // Width of corridor to check (nautical miles)
+    double safetyMarginFt = 1000.0, // Safety margin above terrain
+    double sampleDistanceNm = 1.0, // Distance between sample points
+  }) async {
+    if (route.isEmpty) {
+      return MinimumSafeAltitude(
+        msaFt: 0,
+        maxTerrainFt: 0,
+        criticalPoint: null,
+        criticalIndex: -1,
+      );
+    }
+    
+    double maxTerrainElevation = 0;
+    LatLng? criticalPoint;
+    int criticalIndex = -1;
+    
+    // Sample points along the route
+    for (int i = 0; i < route.length - 1; i++) {
+      final start = route[i];
+      final end = route[i + 1];
+      
+      // Calculate segment distance (convert km to nautical miles)
+      final segmentDistanceKm = const Distance().as(
+        LengthUnit.Kilometer,
+        start,
+        end,
+      );
+      final segmentDistance = segmentDistanceKm * 0.539957; // km to nautical miles
+      
+      // Number of samples for this segment
+      final samples = (segmentDistance / sampleDistanceNm).ceil();
+      
+      for (int s = 0; s <= samples; s++) {
+        final t = samples > 0 ? s / samples : 0.0;
+        
+        // Interpolate position along segment
+        final samplePoint = LatLng(
+          start.latitude + (end.latitude - start.latitude) * t,
+          start.longitude + (end.longitude - start.longitude) * t,
+        );
+        
+        // Check terrain in corridor around this point
+        final corridorElevation = await _getMaxElevationInRadius(
+          samplePoint,
+          corridorWidthNm,
+        );
+        
+        if (corridorElevation != null && corridorElevation > maxTerrainElevation) {
+          maxTerrainElevation = corridorElevation;
+          criticalPoint = samplePoint;
+          criticalIndex = i;
+        }
+      }
+    }
+    
+    // Convert to feet and add safety margin
+    final maxTerrainFt = maxTerrainElevation * 3.28084;
+    final msaFt = maxTerrainFt + safetyMarginFt;
+    
+    // Round up to nearest 100ft
+    final roundedMsaFt = ((msaFt / 100).ceil() * 100).toDouble();
+    
+    return MinimumSafeAltitude(
+      msaFt: roundedMsaFt,
+      maxTerrainFt: maxTerrainFt,
+      criticalPoint: criticalPoint,
+      criticalIndex: criticalIndex,
+      safetyMarginFt: safetyMarginFt,
+      corridorWidthNm: corridorWidthNm,
+    );
+  }
+
+  /// Get maximum elevation within a radius of a point
+  Future<double?> _getMaxElevationInRadius(
+    LatLng center,
+    double radiusNm,
+  ) async {
+    // Convert radius to degrees (approximate)
+    final radiusDeg = radiusNm / 60.0; // 1 degree ≈ 60 nautical miles
+    
+    // Sample in a grid pattern
+    const samples = 9; // 3x3 grid
+    double? maxElevation;
+    
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dy = -1; dy <= 1; dy++) {
+        final samplePoint = LatLng(
+          center.latitude + (dy * radiusDeg / 2),
+          center.longitude + (dx * radiusDeg / 2),
+        );
+        
+        final elevation = await getElevation(samplePoint);
+        if (elevation != null) {
+          maxElevation = maxElevation == null 
+            ? elevation 
+            : math.max(maxElevation, elevation);
+        }
+      }
+    }
+    
+    return maxElevation;
+  }
 }
 
 /// Elevation data source types
@@ -368,6 +475,31 @@ class TerrainDangerZone {
     required this.warningLevel,
     required this.clearanceFt,
   });
+}
+
+/// Minimum safe altitude calculation result
+class MinimumSafeAltitude {
+  final double msaFt;              // Minimum safe altitude in feet
+  final double maxTerrainFt;       // Maximum terrain elevation found
+  final LatLng? criticalPoint;     // Location of highest terrain
+  final int criticalIndex;         // Route segment index with highest terrain
+  final double safetyMarginFt;     // Safety margin used
+  final double corridorWidthNm;    // Corridor width checked
+
+  MinimumSafeAltitude({
+    required this.msaFt,
+    required this.maxTerrainFt,
+    this.criticalPoint,
+    required this.criticalIndex,
+    this.safetyMarginFt = 1000.0,
+    this.corridorWidthNm = 5.0,
+  });
+
+  /// Check if a given altitude is safe
+  bool isAltitudeSafe(double altitudeFt) => altitudeFt >= msaFt;
+
+  /// Get clearance for a given altitude
+  double getClearance(double altitudeFt) => altitudeFt - maxTerrainFt;
 }
 
 /// Elevation tile data handler
