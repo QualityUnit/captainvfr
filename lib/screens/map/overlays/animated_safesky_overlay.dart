@@ -465,41 +465,17 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                 ),
               ),
             ),
-            // Altitude label - positioned top-right of icon (only visible when zoomed in and altitude > 0)
+            // Combined callsign and altitude label - positioned below icon
             // Hidden when there are more than 50 beacons to optimize UI
-            if (!hideLabels && mapZoom >= 10 && beacon.altitudeFt > 0)
-              Positioned(
-                top: (totalHeight - markerSize) / 2 - 4,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: (hasCollisionRisk ? Colors.red : Colors.black).withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(3),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Text(
-                    _formatAltitude(beacon.altitudeFt, altitudeUnit),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            // Callsign label - positioned below icon
-            // Hidden when there are more than 50 beacons to optimize UI
-            if (!hideLabels && showCallsign && beacon.callSign != null)
+            if (!hideLabels && mapZoom >= 10)
               Positioned(
                 bottom: 0,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.7),  // Changed from black to red for better visibility
+                    color: hasCollisionRisk 
+                      ? Colors.red.withValues(alpha: 0.9)
+                      : Colors.red.withValues(alpha: 0.7),  // Changed from black to red for better visibility
                     borderRadius: BorderRadius.circular(3),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.3),
@@ -507,11 +483,13 @@ class _AnimatedSafeSkyOverlayState extends State<AnimatedSafeSkyOverlay>
                     ),
                   ),
                   child: Text(
-                    beacon.callSign!,
+                    (showCallsign && beacon.callSign != null)
+                      ? '${beacon.callSign} • ${_formatAltitude(beacon.altitudeFt, altitudeUnit)}'
+                      : _formatAltitude(beacon.altitudeFt, altitudeUnit),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 10,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: hasCollisionRisk ? FontWeight.bold : FontWeight.w500,
                     ),
                   ),
                 ),
