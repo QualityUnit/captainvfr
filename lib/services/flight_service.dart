@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -59,13 +59,16 @@ class FlightService with ChangeNotifier {
   Position? _currentGpsPosition;
   StreamSubscription<Position>? _gpsPositionSubscription;
   
-  // Elevation API caching
+  // Elevation API caching with enhanced error handling
   Position? _lastElevationFetchPosition;
   DateTime? _lastElevationFetchTime;
+  double? _lastElevationValue; // Store the actual elevation value
   static const double _elevationCacheRadius = 250.0; // meters
   static const Duration _elevationCacheTimeout = Duration(minutes: 10);
   static const Duration _elevationApiMinInterval = Duration(seconds: 5); // Rate limiting
   DateTime? _lastElevationApiCall;
+  int _elevationApiRetryCount = 0;
+  static const int _maxElevationApiRetries = 3;
   
   // Initialize method for compatibility
   Future<void> initialize() async {
@@ -414,11 +417,11 @@ class FlightService with ChangeNotifier {
     // Check if we have a cached elevation for a nearby position
     if (_shouldUseCachedElevation(position)) {
       // Use cached elevation - position hasn't changed significantly
-      if (_lastElevationFetchPosition != null && _currentGpsPosition != null) {
+      if (_lastElevationValue != null) {
         // Update position but keep cached elevation
         _currentGpsPosition = _createPositionWithElevation(
           position, 
-          _currentGpsPosition!.altitude
+          _lastElevationValue!
         );
       }
       return;
@@ -450,19 +453,53 @@ class FlightService with ChangeNotifier {
         final data = json.decode(response.body);
         if (data['results'] != null && data['results'].isNotEmpty) {
           final elevation = data['results'][0]['elevation']?.toDouble();
-          if (elevation != null) {
+          if (elevation != null && elevation >= -500 && elevation <= 9000) {
+            // Validate elevation is within reasonable bounds
             // Create new position with elevation
             _currentGpsPosition = _createPositionWithElevation(position, elevation);
             
             // Update cache
             _lastElevationFetchPosition = position;
             _lastElevationFetchTime = DateTime.now();
+            _lastElevationValue = elevation;
+            _elevationApiRetryCount = 0; // Reset retry count on success
           }
         }
+      } else if (response.statusCode == 429) {
+        // Rate limit exceeded - implement exponential backoff
+        _elevationApiRetryCount++;
+        final backoffSeconds = 5 * (1 << _elevationApiRetryCount); // 5, 10, 20, 40...
+        _lastElevationApiCall = DateTime.now().add(Duration(seconds: backoffSeconds));
+      } else if (response.statusCode == 408 || response.statusCode >= 500) {
+        // Timeout or server error - retry with backoff
+        _elevationApiRetryCount++;
+        if (_elevationApiRetryCount <= _maxElevationApiRetries) {
+          final backoffSeconds = 2 * _elevationApiRetryCount;
+          await Future.delayed(Duration(seconds: backoffSeconds));
+          // Recursive retry
+          await _fetchElevationForPosition(position);
+        }
       }
+    } on SocketException {
+      // Network error - use cached value if available
+      if (_lastElevationValue != null) {
+        _currentGpsPosition = _createPositionWithElevation(position, _lastElevationValue!);
+      }
+    } on TimeoutException {
+      // Timeout - retry if under limit
+      _elevationApiRetryCount++;
+      if (_elevationApiRetryCount <= _maxElevationApiRetries) {
+        await Future.delayed(Duration(seconds: 2));
+        await _fetchElevationForPosition(position);
+      }
+    } on FormatException {
+      // Invalid JSON response - don't retry
+      _elevationApiRetryCount = _maxElevationApiRetries + 1;
     } catch (e) {
-      // Elevation API errors are non-critical
-      // Will fall back to cached elevation or 0
+      // Other errors - use cached value if available
+      if (_lastElevationValue != null) {
+        _currentGpsPosition = _createPositionWithElevation(position, _lastElevationValue!);
+      }
     }
   }
   
@@ -471,12 +508,16 @@ class FlightService with ChangeNotifier {
     // No cache available
     if (_lastElevationFetchPosition == null || 
         _lastElevationFetchTime == null ||
-        _currentGpsPosition == null) {
+        _lastElevationValue == null) {
       return false;
     }
     
     // Check if cache is too old
     if (DateTime.now().difference(_lastElevationFetchTime!) > _elevationCacheTimeout) {
+      // Clear stale cache
+      _lastElevationFetchPosition = null;
+      _lastElevationFetchTime = null;
+      _lastElevationValue = null;
       return false;
     }
     
