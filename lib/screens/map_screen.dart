@@ -74,8 +74,10 @@ import '../utils/airspace_utils.dart';
 import '../widgets/loading_progress_bar.dart';
 import '../widgets/themed_dialog.dart';
 import '../widgets/map_zoom_controls.dart';
+import '../widgets/terrain_warning_display.dart';
 import '../services/cache_service.dart';
 import '../services/notam_service_v3.dart';
+import '../services/terrain_elevation_service.dart';
 
 // Extracted components
 import 'map/constants/map_constants.dart';
@@ -2033,6 +2035,18 @@ class MapScreenState extends State<MapScreen>
     final currentAltitudeFt = _currentPosition?.altitude != null
         ? _currentPosition!.altitude * 3.28084 // Convert meters to feet
         : null;
+    
+    // Get ground elevation at this point
+    double? groundElevationFt;
+    try {
+      final terrainService = TerrainElevationService();
+      final elevationMeters = await terrainService.getElevation(point);
+      if (elevationMeters != null) {
+        groundElevationFt = elevationMeters * 3.28084; // Convert meters to feet
+      }
+    } catch (e) {
+      // Ignore errors getting elevation
+    }
 
     // Sort airspaces by altitude (lower first)
     airspaces.sort((a, b) {
@@ -2103,26 +2117,63 @@ class MapScreenState extends State<MapScreen>
                     ],
                   ),
                 ),
-                // Current altitude indicator
-                if (currentAltitudeFt != null)
+                // Current altitude and ground elevation indicator
+                if (currentAltitudeFt != null || groundElevationFt != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                     color: Colors.black.withValues(alpha: 0.2),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.flight,
-                          size: 14,
-                          color: AppColors.infoColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Current altitude: ${currentAltitudeFt.round()} ft',
-                          style: TextStyle(
-                            fontSize: fontSize,
-                            color: AppColors.secondaryTextColor,
+                        if (currentAltitudeFt != null)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.flight,
+                                size: 14,
+                                color: AppColors.infoColor,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Current altitude: ${currentAltitudeFt.round()} ft',
+                                style: TextStyle(
+                                  fontSize: fontSize,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        if (groundElevationFt != null) ...[
+                          if (currentAltitudeFt != null) const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.terrain,
+                                size: 14,
+                                color: Colors.brown,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Ground elevation: ${groundElevationFt.round()} ft',
+                                style: TextStyle(
+                                  fontSize: fontSize,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ),
+                              if (currentAltitudeFt != null) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '(AGL: ${(currentAltitudeFt - groundElevationFt).round()} ft)',
+                                  style: TextStyle(
+                                    fontSize: fontSize,
+                                    color: AppColors.infoColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -2438,19 +2489,8 @@ class MapScreenState extends State<MapScreen>
 
   // Handle terrain warning
   void _onTerrainWarning() {
-    if (!mounted) return;
-    
-    // Show a warning notification or play warning sound
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'TERRAIN WARNING - Check altitude!',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    // No longer needed - terrain warning is displayed at the top of the screen
+    // The TerrainDangerOverlay widget handles its own display
   }
 
   // Handle SafeSky beacon selection
@@ -4081,6 +4121,25 @@ class MapScreenState extends State<MapScreen>
                 ),
             ],
           ),
+          
+          // Terrain warning text display - shows at top when terrain is dangerous
+          if (_servicesInitialized)
+            Builder(
+              builder: (context) {
+                LatLngBounds? viewport;
+                try {
+                  viewport = _mapController.camera.visibleBounds;
+                } catch (e) {
+                  // Map controller not ready yet
+                  viewport = null;
+                }
+                return TerrainWarningDisplay(
+                  currentAltitudeFt: _currentPosition?.altitude,
+                  viewport: viewport,
+                  isVisible: _mapStateController.showTerrain,
+                );
+              },
+            ),
 
           // Flight tracking panel - always visible on bottom right
           const FlightTrackingPanel(),
@@ -4936,11 +4995,9 @@ class MapScreenState extends State<MapScreen>
           onPressed: () {
             _mapStateController.closeMenuPanel();
             _pauseAllTimers();
-            Navigator.push(
+            SettingsDialog.show(
               context,
-              MaterialPageRoute(
-                builder: (context) => const SettingsScreen(),
-              ),
+              currentMapBounds: _mapController?.camera.visibleBounds,
             ).then((_) => _resumeAllTimers());
           },
         ),

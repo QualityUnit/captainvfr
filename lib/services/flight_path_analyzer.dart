@@ -6,9 +6,11 @@ import '../models/airspace_profile.dart';
 import '../models/flight_plan.dart';
 import '../models/trip.dart';
 import 'spatial_airspace_service.dart';
+import 'terrain_elevation_service.dart';
 
 class FlightPathAnalyzer {
   final SpatialAirspaceService _airspaceService;
+  final TerrainElevationService _terrainService = TerrainElevationService();
   static const Distance _distance = Distance();
   
   FlightPathAnalyzer(this._airspaceService);
@@ -75,6 +77,9 @@ class FlightPathAnalyzer {
     
     // Sort crossings by entry distance
     allAirspaceCrossings.sort((a, b) => a.entryDistanceNm.compareTo(b.entryDistanceNm));
+    
+    // Populate terrain elevation data for all profile points
+    await _populateTerrainElevation(allProfilePoints);
     
     return AirspaceProfile(
       profilePoints: allProfilePoints,
@@ -348,6 +353,39 @@ class FlightPathAnalyzer {
     }
     
     return intersections % 2 == 1;
+  }
+  
+  /// Populate terrain elevation data for profile points
+  Future<void> _populateTerrainElevation(List<ProfilePoint> points) async {
+    // Fetch all elevations in parallel for better performance
+    final futures = <Future<double?>>[];
+    for (final point in points) {
+      futures.add(_terrainService.getElevation(point.position));
+    }
+    
+    final elevations = await Future.wait(futures);
+    
+    // Create new points with terrain data
+    for (int i = 0; i < points.length; i++) {
+      final elevation = elevations[i];
+      if (elevation != null) {
+        final terrainFt = elevation * 3.28084;
+        final oldPoint = points[i];
+        
+        // Replace with new point that includes terrain elevation
+        points[i] = ProfilePoint(
+          distanceNm: oldPoint.distanceNm,
+          altitudeFt: oldPoint.altitudeFt,
+          position: oldPoint.position,
+          waypointId: oldPoint.waypointId,
+          waypointName: oldPoint.waypointName,
+          legIndex: oldPoint.legIndex,
+          isLegStart: oldPoint.isLegStart,
+          isLegEnd: oldPoint.isLegEnd,
+          terrainElevationFt: terrainFt,
+        );
+      }
+    }
   }
 }
 

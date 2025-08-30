@@ -30,14 +30,17 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
   List<TerrainDangerZone> _dangerZones = [];
   Timer? _updateTimer;
   bool _isLoading = false;
+  LatLngBounds? _lastViewport;
+  double? _lastAltitude;
   
-  // Grid resolution based on zoom level
+  // Grid resolution based on zoom level - optimized for performance
   double get _gridResolution {
     final viewportSize = (widget.viewport.north - widget.viewport.south).abs();
-    if (viewportSize < 0.1) return 0.002;  // High zoom: ~200m grid
-    if (viewportSize < 0.5) return 0.005;  // Medium zoom: ~500m grid  
-    if (viewportSize < 2.0) return 0.01;   // Low zoom: ~1km grid
-    return 0.02; // Very low zoom: ~2km grid
+    if (viewportSize < 0.05) return 0.003;  // Very high zoom: ~300m grid
+    if (viewportSize < 0.2) return 0.008;   // High zoom: ~800m grid
+    if (viewportSize < 0.5) return 0.015;   // Medium zoom: ~1.5km grid  
+    if (viewportSize < 2.0) return 0.025;   // Low zoom: ~2.5km grid
+    return 0.04; // Very low zoom: ~4km grid - coarser for better performance
   }
 
   @override
@@ -62,9 +65,13 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
     
     // Update if altitude or viewport changed significantly
     if (widget.isVisible && 
-        ((widget.currentAltitudeFt - oldWidget.currentAltitudeFt).abs() > 100 ||
+        ((widget.currentAltitudeFt - oldWidget.currentAltitudeFt).abs() > 200 ||
          _viewportChanged(oldWidget.viewport))) {
-      _updateDangerZones();
+      // Debounce updates to avoid too frequent calls
+      _updateTimer?.cancel();
+      _updateTimer = Timer(const Duration(milliseconds: 500), () {
+        _updateDangerZones();
+      });
     }
   }
 
@@ -79,9 +86,27 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
   void _startUpdating() {
     _updateDangerZones();
     _updateTimer?.cancel();
-    _updateTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      _updateDangerZones();
+    // Reduced update frequency for better performance
+    _updateTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      // Only update if viewport or altitude changed significantly
+      if (_hasSignificantChange()) {
+        _updateDangerZones();
+      }
     });
+  }
+  
+  bool _hasSignificantChange() {
+    if (_lastViewport == null || _lastAltitude == null) return true;
+    
+    // Check altitude change
+    if ((widget.currentAltitudeFt - _lastAltitude!).abs() > 200) return true;
+    
+    // Check viewport change
+    const threshold = 0.02; // degrees
+    return (widget.viewport.north - _lastViewport!.north).abs() > threshold ||
+           (widget.viewport.south - _lastViewport!.south).abs() > threshold ||
+           (widget.viewport.east - _lastViewport!.east).abs() > threshold ||
+           (widget.viewport.west - _lastViewport!.west).abs() > threshold;
   }
 
   void _stopUpdating() {
@@ -96,7 +121,12 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
       _isLoading = true;
     });
     
+    // Store current viewport and altitude
+    _lastViewport = widget.viewport;
+    _lastAltitude = widget.currentAltitudeFt;
+    
     try {
+      // Use optimized batch processing
       final zones = await _terrainService.getTerrainDangerZones(
         widget.viewport,
         widget.currentAltitudeFt,
@@ -139,227 +169,38 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
       return const SizedBox.shrink();
     }
 
+    // Return only the map markers layer
+    // The warning text will be handled separately in TerrainWarningText widget
     return IgnorePointer(
-      child: Stack(
-        children: [
-          // Terrain danger zones
-          ..._dangerZones.map((zone) => _buildDangerZoneMarker(zone)),
-          
-          // Legend
-          if (_dangerZones.isNotEmpty)
-            Positioned(
-              bottom: 100,
-              right: 16,
-              child: _buildLegend(),
-            ),
-          
-          // Loading indicator
-          if (_isLoading)
-            Positioned(
-              top: 60,
-              right: 16,
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
-                ),
-              ),
-            ),
-        ],
+      child: MarkerLayer(
+        markers: _dangerZones
+            .where((zone) => zone.warningLevel == TerrainWarningLevel.critical || 
+                             zone.warningLevel == TerrainWarningLevel.warning)
+            .map((zone) => Marker(
+                  point: zone.position,
+                  width: 15,  // Small markers
+                  height: 15,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: zone.warningLevel == TerrainWarningLevel.critical
+                          ? Colors.red.withValues(alpha: 0.08)  // Very transparent red
+                          : Colors.orange.withValues(alpha: 0.06), // Very transparent orange
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ))
+            .toList(),
       ),
     );
   }
-
-  Widget _buildDangerZoneMarker(TerrainDangerZone zone) {
-    final color = _getWarningColor(zone.warningLevel);
-    final opacity = _getWarningOpacity(zone.warningLevel);
-    
-    return MarkerLayer(
-      markers: [
-        Marker(
-          point: zone.position,
-          width: 20,
-          height: 20,
-          child: Container(
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: opacity),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: color,
-                width: 1,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLegend() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.dialogBackgroundColor.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.sectionBorderColor),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Terrain Clearance',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryTextColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          _buildLegendItem('Critical', TerrainWarningLevel.critical),
-          _buildLegendItem('Warning', TerrainWarningLevel.warning),
-          _buildLegendItem('Caution', TerrainWarningLevel.caution),
-          const SizedBox(height: 4),
-          Text(
-            'Alt: ${widget.currentAltitudeFt.toStringAsFixed(0)}ft',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: 10,
-              color: AppColors.secondaryTextColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(String label, TerrainWarningLevel level) {
-    final color = _getWarningColor(level);
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.6),
-              shape: BoxShape.circle,
-              border: Border.all(color: color),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              color: AppColors.secondaryTextColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getWarningColor(TerrainWarningLevel level) {
-    switch (level) {
-      case TerrainWarningLevel.critical:
-        return Colors.red;
-      case TerrainWarningLevel.warning:
-        return Colors.orange;
-      case TerrainWarningLevel.caution:
-        return Colors.yellow;
-      case TerrainWarningLevel.safe:
-        return Colors.green;
-      case TerrainWarningLevel.noData:
-        return Colors.grey;
-    }
-  }
-
-  double _getWarningOpacity(TerrainWarningLevel level) {
-    switch (level) {
-      case TerrainWarningLevel.critical:
-        return 0.7;
-      case TerrainWarningLevel.warning:
-        return 0.5;
-      case TerrainWarningLevel.caution:
-        return 0.3;
-      case TerrainWarningLevel.safe:
-        return 0.2;
-      case TerrainWarningLevel.noData:
-        return 0.1;
-    }
-  }
+  
+  // Expose danger zones for external use
+  bool get hasCriticalTerrain => _dangerZones.any(
+    (z) => z.warningLevel == TerrainWarningLevel.critical
+  );
+  
+  bool get hasWarningTerrain => _dangerZones.any(
+    (z) => z.warningLevel == TerrainWarningLevel.warning
+  );
 }
 
-/// Custom painter for terrain contour lines
-class TerrainContourPainter extends CustomPainter {
-  final List<TerrainDangerZone> dangerZones;
-  final double gridResolution;
-
-  TerrainContourPainter({
-    required this.dangerZones,
-    required this.gridResolution,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Group zones by warning level
-    final zonesByLevel = <TerrainWarningLevel, List<TerrainDangerZone>>{};
-    
-    for (final zone in dangerZones) {
-      zonesByLevel.putIfAbsent(zone.warningLevel, () => []).add(zone);
-    }
-    
-    // Draw contour lines for each warning level
-    for (final entry in zonesByLevel.entries) {
-      final paint = Paint()
-        ..color = _getColorForLevel(entry.key)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
-      
-      // Create path connecting zones of same level
-      final path = ui.Path();
-      bool first = true;
-      
-      for (final zone in entry.value) {
-        // Convert LatLng to canvas coordinates
-        // This is simplified - in real implementation would need proper projection
-        final x = zone.position.longitude * 100;
-        final y = zone.position.latitude * 100;
-        
-        if (first) {
-          path.moveTo(x, y);
-          first = false;
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-      
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  Color _getColorForLevel(TerrainWarningLevel level) {
-    switch (level) {
-      case TerrainWarningLevel.critical:
-        return Colors.red;
-      case TerrainWarningLevel.warning:
-        return Colors.orange;
-      case TerrainWarningLevel.caution:
-        return Colors.yellow;
-      case TerrainWarningLevel.safe:
-        return Colors.green;
-      case TerrainWarningLevel.noData:
-        return Colors.grey;
-    }
-  }
-
-  @override
-  bool shouldRepaint(TerrainContourPainter oldDelegate) {
-    return dangerZones.length != oldDelegate.dangerZones.length ||
-           gridResolution != oldDelegate.gridResolution;
-  }
-}

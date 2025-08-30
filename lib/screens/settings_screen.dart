@@ -13,6 +13,7 @@ import '../services/airport_service.dart';
 import '../services/navaid_service.dart';
 import '../services/weather_service.dart';
 import '../services/tiled_data_loader.dart';
+import '../services/terrain_elevation_service.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_colors.dart';
 import 'offline_data/controllers/offline_data_state_controller.dart';
@@ -1007,6 +1008,13 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                 onClear: () => _clearSpecificCache('Weather'),
                 onRefresh: _refreshWeatherData,
               ),
+              _buildCompactCacheCard(
+                title: 'Elevation Data',
+                icon: Icons.terrain,
+                count: 0, // Tiles are downloaded on-demand from CDN
+                lastFetch: 'CDN-cached tiles',
+                onClear: () => _clearSpecificCache('Elevation'),
+              ),
 
               const SizedBox(height: 16),
 
@@ -1316,6 +1324,9 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
             break;
           case 'Hotspots':
             _tiledDataLoader.clearCacheForType('hotspots');
+            break;
+          case 'Elevation':
+            await TerrainElevationService.clearAllCaches();
             break;
         }
         await _loadAllCacheStats();
