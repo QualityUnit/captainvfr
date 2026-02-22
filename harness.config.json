@@ -1,0 +1,354 @@
+{
+  "version": "1.0.0",
+  "repoRoot": ".",
+  "detection": {
+    "primaryLanguage": "Dart",
+    "framework": "Flutter",
+    "packageManager": "npm",
+    "ciProvider": "GitHub Actions",
+    "monorepo": false
+  },
+  "riskTiers": {
+    "tier1": {
+      "name": "low",
+      "description": "Documentation, comments, markdown files, non-code config",
+      "patterns": [
+        "docs/**",
+        "*.md",
+        "**/*.md",
+        "CHANGELOG.md",
+        "LICENSE",
+        ".gitignore",
+        ".gitattributes",
+        "hugo/**",
+        "backend/lambda/**/README.md",
+        "backend/lambda/**/DEPLOYMENT_GUIDE.md"
+      ],
+      "requiredChecks": [
+        "lint"
+      ],
+      "mergePolicy": {
+        "minApprovals": 0,
+        "requireReviewAgent": false,
+        "allowSelfMerge": true
+      },
+      "evidenceRequirements": []
+    },
+    "tier2": {
+      "name": "medium",
+      "description": "Business logic, features, refactors, source code, tests",
+      "patterns": [
+        "lib/**/*.dart",
+        "test/**/*.dart",
+        "scripts/**/*.dart",
+        "scripts/**/*.sh",
+        "scripts/**/*.py",
+        "assets/**",
+        "web/**",
+        "ios/**",
+        "android/**",
+        "macos/**",
+        "l10n.yaml",
+        "analysis_options.yaml",
+        "devtools_options.yaml",
+        ".metadata",
+        "amplify.yml",
+        "amplify/**"
+      ],
+      "requiredChecks": [
+        "lint",
+        "test",
+        "build"
+      ],
+      "mergePolicy": {
+        "minApprovals": 1,
+        "requireReviewAgent": true,
+        "allowSelfMerge": false
+      },
+      "evidenceRequirements": [
+        "tests-pass",
+        "lint-clean"
+      ]
+    },
+    "tier3": {
+      "name": "high",
+      "description": "Critical paths: package dependencies, build config, infrastructure",
+      "patterns": [
+        "pubspec.yaml",
+        "pubspec.lock",
+        "package.json",
+        "package-lock.json",
+        "android/build.gradle.kts",
+        "android/app/build.gradle",
+        "ios/Podfile",
+        "ios/Podfile.lock",
+        "macos/Podfile",
+        "macos/Podfile.lock",
+        ".github/workflows/**",
+        "android/key.properties",
+        "ios/GoogleService-Info.plist",
+        "build_release.sh",
+        "release_ios.sh",
+        "release_android.sh"
+      ],
+      "requiredChecks": [
+        "lint",
+        "test",
+        "build",
+        "structural-tests",
+        "harness-smoke",
+        "manual-approval"
+      ],
+      "mergePolicy": {
+        "minApprovals": 2,
+        "requireReviewAgent": true,
+        "allowSelfMerge": false
+      },
+      "evidenceRequirements": [
+        "tests-pass",
+        "lint-clean",
+        "manual-review"
+      ]
+    }
+  },
+  "commands": {
+    "test": "flutter test",
+    "build": "flutter build apk --debug",
+    "lint": "flutter analyze",
+    "typeCheck": null
+  },
+  "docsDrift": {
+    "trackedDocs": [
+      "README.md",
+      "CLAUDE.md",
+      "docs/TERRAIN_SYSTEM.md",
+      "docs/3D_RENDERING_OPTIMIZATION_PLAN.md",
+      "docs/FLUTTER_GPU_3D_COMPARISON.md",
+      "backend/lambda/safesky-proxy/README.md",
+      "backend/lambda/safesky-proxy/DEPLOYMENT_GUIDE.md",
+      "backend/lambda/safesky-proxy/AMPLIFY_CICD_SETUP.md"
+    ],
+    "maxStaleDays": 14,
+    "requireUpdateWithCodeChange": false,
+    "exemptPatterns": [
+      "test/**",
+      "scripts/**",
+      "hugo/**"
+    ]
+  },
+  "shaDiscipline": {
+    "enabled": true,
+    "enforceExactSha": true,
+    "rejectStaleReviews": true,
+    "description": "All CI gates pin to exact commit SHA from the risk policy gate"
+  },
+  "evidenceConfig": {
+    "screenshotDir": ".harness/evidence",
+    "retentionDays": 30,
+    "requiredForUI": false,
+    "browserTool": null
+  },
+  "architecturalBoundaries": {
+    "screens": [
+      "widgets",
+      "services",
+      "models",
+      "utils",
+      "constants",
+      "config"
+    ],
+    "widgets": [
+      "models",
+      "utils",
+      "constants",
+      "services"
+    ],
+    "services": [
+      "models",
+      "utils",
+      "constants",
+      "config",
+      "adapters"
+    ],
+    "models": [
+      "utils",
+      "constants"
+    ],
+    "utils": [
+      "constants"
+    ],
+    "constants": [],
+    "config": [
+      "constants"
+    ],
+    "adapters": [
+      "models"
+    ]
+  },
+  "monorepo": {
+    "enabled": false,
+    "packages": [],
+    "sharedChecks": []
+  },
+  "harnesses": [
+    {
+      "name": "risk-contract",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        "harness.config.json"
+      ]
+    },
+    {
+      "name": "claude-md",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".mcp.json",
+        "KIRO.md"
+      ]
+    },
+    {
+      "name": "docs-structure",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        "docs/architecture.md",
+        "docs/conventions.md",
+        "docs/layers.md"
+      ]
+    },
+    {
+      "name": "pre-commit-hooks",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".githooks/pre-commit",
+        "scripts/install-hooks.sh"
+      ]
+    },
+    {
+      "name": "risk-policy-gate",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/workflows/risk-policy-gate.yml",
+        "docs/RISK_POLICY_GATE.md",
+        "scripts/risk-policy-gate.sh",
+        "scripts/structural-tests.sh"
+      ]
+    },
+    {
+      "name": "ci-pipeline",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/harness-smoke.yml",
+        ".github/workflows/structural-tests.yml"
+      ]
+    },
+    {
+      "name": "review-agent",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/workflows/code-review-agent.yml"
+      ]
+    },
+    {
+      "name": "remediation-loop",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": []
+    },
+    {
+      "name": "browser-evidence",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/workflows/browser-evidence.yml",
+        "docs/BROWSER_EVIDENCE.md",
+        "scripts/harness-ui-capture-browser-evidence.ts",
+        "scripts/harness-ui-verify-browser-evidence.ts",
+        ".gitignore"
+      ]
+    },
+    {
+      "name": "pr-templates",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/PULL_REQUEST_TEMPLATE/agent-pr.md"
+      ]
+    },
+    {
+      "name": "architectural-linters",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        "scripts/README.md",
+        "scripts/lint-architecture-config.json",
+        "scripts/lint-architecture.ts"
+      ]
+    },
+    {
+      "name": "garbage-collection",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/workflows/doc-gardening.yml",
+        "scripts/doc-gardening-prompt.md"
+      ]
+    },
+    {
+      "name": "incident-harness-loop",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".github/ISSUE_TEMPLATE/harness-gap.md",
+        ".github/workflows/weekly-metrics.yml",
+        "docs/harness-gaps.md"
+      ]
+    },
+    {
+      "name": "issue-triage",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".codefactory/prompts/issue-triage.md",
+        ".github/workflows/issue-triage.yml",
+        "scripts/issue-triage-guard.ts"
+      ]
+    },
+    {
+      "name": "issue-planner",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".codefactory/prompts/issue-planner.md",
+        "scripts/issue-planner-guard.ts"
+      ]
+    },
+    {
+      "name": "issue-implementer",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": [
+        ".codefactory/prompts/issue-implementer.md",
+        ".github/workflows/issue-implementer.yml",
+        "scripts/issue-implementer-guard.ts"
+      ]
+    },
+    {
+      "name": "skills-installer",
+      "enabled": true,
+      "generatedAt": "2026-02-22T19:33:22.952Z",
+      "files": []
+    }
+  ],
+  "generatedAt": "2026-02-22T19:07:59.112Z",
+  "lastUpdated": "2026-02-22T19:33:22.952Z",
+  "aiPlatform": "kiro"
+}

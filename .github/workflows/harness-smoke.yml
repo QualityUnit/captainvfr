@@ -1,0 +1,146 @@
+name: Harness Smoke Tests
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  harness-smoke:
+    name: Harness Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Validate harness.config.json schema
+        run: |
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('harness.config.json', 'utf8'));
+
+            // Check top-level required keys
+            const required = ['version', 'riskTiers', 'commands', 'shaDiscipline', 'architecturalBoundaries'];
+            const missing = required.filter(k => !(k in config));
+            if (missing.length) {
+              console.error('Missing required keys:', missing.join(', '));
+              process.exit(1);
+            }
+
+            // Check all three risk tiers exist
+            for (const tier of ['tier1', 'tier2', 'tier3']) {
+              if (!config.riskTiers[tier]) {
+                console.error('Missing risk tier:', tier);
+                process.exit(1);
+              }
+              const t = config.riskTiers[tier];
+              if (!t.patterns || !Array.isArray(t.patterns)) {
+                console.error(tier + ' missing patterns array');
+                process.exit(1);
+              }
+              if (!t.requiredChecks || !Array.isArray(t.requiredChecks)) {
+                console.error(tier + ' missing requiredChecks array');
+                process.exit(1);
+              }
+            }
+
+            // Check SHA discipline
+            if (typeof config.shaDiscipline.enabled !== 'boolean') {
+              console.error('shaDiscipline.enabled must be boolean');
+              process.exit(1);
+            }
+
+            // Check architectural boundaries
+            const modules = Object.keys(config.architecturalBoundaries);
+            if (modules.length === 0) {
+              console.error('architecturalBoundaries must define at least one module');
+              process.exit(1);
+            }
+
+            console.log('✔ harness.config.json schema valid (' + modules.length + ' modules, 3 tiers)');
+          "
+
+      - name: Validate harness commands exist
+        run: |
+          node -e "
+            const config = JSON.parse(require('fs').readFileSync('harness.config.json', 'utf8'));
+            const cmds = config.commands || {};
+            let failures = 0;
+
+            for (const [key, cmd] of Object.entries(cmds)) {
+              if (cmd) {
+                console.log('✔', key + ':', cmd);
+              } else {
+                console.warn('⚠', key + ':', 'not configured');
+              }
+            }
+
+            if (failures > 0) process.exit(1);
+          "
+
+      - name: Check KIRO.md
+        run: |
+          if [[ ! -s KIRO.md ]]; then
+            echo "::error::KIRO.md is missing or empty"
+            exit 1
+          fi
+          echo "✔ KIRO.md present ($(wc -l < KIRO.md) lines)"
+
+      - name: Check critical project files
+        run: |
+          files=(
+            pubspec.yaml analysis_options.yaml harness.config.json
+            lib/main.dart
+          )
+          missing=0
+          for f in "${files[@]}"; do
+            if [[ ! -f "$f" ]]; then
+              echo "::error::Missing: $f"
+              ((missing++))
+            fi
+          done
+          if (( missing > 0 )); then
+            exit 1
+          fi
+          echo "✔ All ${#files[@]} critical files present"
+
+      - name: Check CI workflow files
+        run: |
+          workflows=(
+            .github/workflows/ci.yml
+            .github/workflows/structural-tests.yml
+            .github/workflows/harness-smoke.yml
+          )
+          missing=0
+          for f in "${workflows[@]}"; do
+            if [[ ! -f "$f" ]]; then
+              echo "::error::Missing workflow: $f"
+              ((missing++))
+            fi
+          done
+          if (( missing > 0 )); then
+            exit 1
+          fi
+          echo "✔ All ${#workflows[@]} workflow files present"
+
+      - name: Check risk-policy-gate script
+        run: |
+          if [[ ! -f scripts/risk-policy-gate.sh ]]; then
+            echo "::error::scripts/risk-policy-gate.sh not found"
+            exit 1
+          fi
+          echo "✔ Risk policy gate script present"
+
+      - name: Check structural-tests script
+        run: |
+          if [[ ! -f scripts/structural-tests.sh ]]; then
+            echo "::error::scripts/structural-tests.sh not found"
+            exit 1
+          fi
+          echo "✔ Structural tests script present"

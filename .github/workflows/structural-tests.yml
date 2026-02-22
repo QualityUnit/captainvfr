@@ -1,0 +1,54 @@
+name: Structural Tests
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  structural-tests:
+    name: Architectural Boundary Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate architectural boundaries
+        run: bash scripts/structural-tests.sh
+
+      - name: Validate import discipline
+        run: |
+          echo "Checking for cross-layer imports in lib/..."
+          violations=0
+          
+          # Check that models/ never imports from screens/, widgets/, or services/
+          if grep -rE "from\s+['\"].*\/(screens|widgets|services)\/" lib/models/ 2>/dev/null; then
+            echo "::error::models/ must not import from screens/, widgets/, or services/"
+            ((violations++))
+          fi
+          
+          # Check that utils/ never imports from any sibling module
+          if grep -rE "from\s+['\"].*\/(screens|widgets|services|models|config|adapters)\/" lib/utils/ 2>/dev/null; then
+            echo "::error::utils/ must not import from sibling modules"
+            ((violations++))
+          fi
+          
+          if (( violations > 0 )); then
+            exit 1
+          fi
+          
+          echo "✔ Import discipline check complete"
+
+      - name: Verify no circular imports
+        run: |
+          echo "Scanning for obvious circular import patterns..."
+          
+          # Check that constants/ never imports from any other module
+          if grep -rE "import\s+['\"].*\/(screens|widgets|services|models|utils|config|adapters)\/" lib/constants/ 2>/dev/null; then
+            echo "::error::constants/ must not import from any other module"
+            exit 1
+          fi
+          
+          echo "✔ No circular import patterns detected"

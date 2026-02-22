@@ -150,3 +150,6 @@ scripts/*_progress.json
 
 # NASA Earthdata credentials - NEVER commit
 scripts/earthdata_credentials.txt
+
+# Harness evidence artifacts
+.harness/evidence/

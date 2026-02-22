@@ -1,0 +1,109 @@
+name: Browser Evidence
+
+on:
+  pull_request:
+    paths:
+      - 'lib/screens/**/*.dart'
+      - 'lib/widgets/**/*.dart'
+      - 'web/**'
+      - 'assets/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: browser-evidence-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Capture Browser Evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1 # v2.16.0
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build Flutter web
+        run: flutter build web --release --web-renderer canvaskit
+
+      - name: Start web server
+        run: |
+          cd build/web
+          python3 -m http.server 8080 &
+          echo $! > /tmp/web-server.pid
+
+      - name: Wait for server
+        run: |
+          timeout 30 bash -c 'until curl -s http://localhost:8080 > /dev/null; do sleep 1; done'
+
+      - name: Capture screenshots
+        run: npx tsx scripts/harness-ui-capture-browser-evidence.ts --base-url http://localhost:8080
+
+      - name: Verify screenshots
+        run: npx tsx scripts/harness-ui-verify-browser-evidence.ts
+
+      - name: Stop web server
+        if: always()
+        run: |
+          if [ -f /tmp/web-server.pid ]; then
+            kill $(cat /tmp/web-server.pid) || true
+          fi
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: browser-evidence
+          path: .harness/evidence/
+          retention-days: 14
+
+      - name: Post evidence summary
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const manifestPath = '.harness/evidence/manifest.json';
+            
+            if (!fs.existsSync(manifestPath)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '❌ Browser evidence capture failed - no manifest generated'
+              });
+              return;
+            }
+            
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            const flows = manifest.flows.map(f => `- ✅ ${f.name} (${f.durationMs}ms)`).join('\n');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 📸 Browser Evidence Captured\n\n**SHA:** \`${manifest.headSha.slice(0, 7)}\`\n**Captured:** ${manifest.capturedAt}\n**Mode:** ${manifest.captureMode}\n\n### Flows\n${flows}\n\nArtifacts available for 14 days.`
+            });

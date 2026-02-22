@@ -1,0 +1,57 @@
+{
+  "srcRoot": "lib",
+  "layers": [
+    {
+      "name": "screens",
+      "patterns": ["lib/screens/**"],
+      "canDependOn": ["widgets", "services", "models", "utils", "constants", "config", "l10n"]
+    },
+    {
+      "name": "widgets",
+      "patterns": ["lib/widgets/**"],
+      "canDependOn": ["models", "utils", "constants", "services", "l10n"]
+    },
+    {
+      "name": "services",
+      "patterns": ["lib/services/**"],
+      "canDependOn": ["models", "utils", "config", "adapters", "constants"]
+    },
+    {
+      "name": "models",
+      "patterns": ["lib/models/**"],
+      "canDependOn": ["adapters", "utils"]
+    },
+    {
+      "name": "utils",
+      "patterns": ["lib/utils/**"],
+      "canDependOn": ["constants"]
+    },
+    {
+      "name": "constants",
+      "patterns": ["lib/constants/**"],
+      "canDependOn": []
+    },
+    {
+      "name": "config",
+      "patterns": ["lib/config/**"],
+      "canDependOn": ["constants"]
+    },
+    {
+      "name": "adapters",
+      "patterns": ["lib/adapters/**"],
+      "canDependOn": []
+    },
+    {
+      "name": "l10n",
+      "patterns": ["lib/l10n/**"],
+      "canDependOn": []
+    }
+  ],
+  "ignorePatterns": [
+    "**/*.g.dart",
+    "**/*.freezed.dart",
+    "**/test/**",
+    "**/*_test.dart"
+  ],
+  "exemptComment": "arch-exempt"
+}

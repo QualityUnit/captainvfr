@@ -1,0 +1,283 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to run CI for (used by implementer agent)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || inputs.pr_number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  risk-gate:
+    name: Risk Policy Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.pr-gate.outputs.sha || steps.push-gate.outputs.sha }}
+      tier: ${{ steps.pr-gate.outputs.tier || steps.push-gate.outputs.tier }}
+      tier-name: ${{ steps.pr-gate.outputs.tier-name || steps.push-gate.outputs.tier-name }}
+      required-checks: ${{ steps.pr-gate.outputs.required-checks || steps.push-gate.outputs.required-checks }}
+      docs-drift: ${{ steps.pr-gate.outputs.docs-drift || steps.push-gate.outputs.docs-drift }}
+      review-agent-status: ${{ steps.pr-gate.outputs.review-agent-status || steps.push-gate.outputs.review-agent-status }}
+    steps:
+      - name: Resolve PR context
+        id: pr-context
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_JSON=$(gh pr view "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --json headRefOid,baseRefName)
+          echo "head-sha=$(echo "$PR_JSON" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
+          echo "base-ref=$(echo "$PR_JSON" | jq -r '.baseRefName')" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout at verified SHA
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ steps.pr-context.outputs.head-sha || github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Run risk policy gate (PR)
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        id: pr-gate
+        run: bash scripts/risk-policy-gate.sh
+        env:
+          EXPECTED_SHA: ${{ steps.pr-context.outputs.head-sha || github.event.pull_request.head.sha }}
+          BASE_REF: ${{ steps.pr-context.outputs.base-ref || github.event.pull_request.base.ref }}
+          STRICTNESS: relaxed
+
+      - name: Set defaults (push to main)
+        if: github.event_name == 'push'
+        id: push-gate
+        run: |
+          {
+            echo "sha=${{ github.sha }}"
+            echo "tier=2"
+            echo "tier-name=medium"
+            echo 'required-checks=["lint","test","build","structural-tests","harness-smoke"]'
+            echo "docs-drift=false"
+            echo "review-agent-status=skipped"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Annotate PR with tier
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        run: |
+          echo "### Risk Policy Gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Tier** | ${{ steps.pr-gate.outputs.tier }} (${{ steps.pr-gate.outputs.tier-name }}) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **SHA** | \`${{ steps.pr-gate.outputs.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Docs Drift** | ${{ steps.pr-gate.outputs.docs-drift }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "<details><summary>Required Checks</summary>" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo '${{ steps.pr-gate.outputs.required-checks }}' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+
+  lint:
+    name: Lint
+    needs: risk-gate
+    if: contains(fromJSON(needs.risk-gate.outputs.required-checks), 'lint')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.risk-gate.outputs.sha }}
+
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1 # v2.16.0
+        with:
+          flutter-version: '3.27.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run analyzer
+        run: flutter analyze
+
+  test:
+    name: Test
+    needs: risk-gate
+    if: contains(fromJSON(needs.risk-gate.outputs.required-checks), 'test')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.risk-gate.outputs.sha }}
+
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1 # v2.16.0
+        with:
+          flutter-version: '3.27.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.0
+        with:
+          name: test-results
+          path: test/
+          retention-days: 7
+
+  build:
+    name: Build
+    needs: risk-gate
+    if: contains(fromJSON(needs.risk-gate.outputs.required-checks), 'build')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.risk-gate.outputs.sha }}
+
+      - uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1 # v2.16.0
+        with:
+          flutter-version: '3.27.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --debug
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.0
+        with:
+          name: build-artifacts
+          path: build/app/outputs/flutter-apk/
+          retention-days: 7
+
+  structural-tests:
+    name: Structural Tests
+    needs: risk-gate
+    if: contains(fromJSON(needs.risk-gate.outputs.required-checks), 'structural-tests')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.risk-gate.outputs.sha }}
+
+      - name: Validate architectural boundaries
+        run: bash scripts/structural-tests.sh
+
+  harness-smoke:
+    name: Harness Smoke
+    needs: risk-gate
+    if: contains(fromJSON(needs.risk-gate.outputs.required-checks), 'harness-smoke')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.risk-gate.outputs.sha }}
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Validate harness.config.json
+        run: |
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('harness.config.json', 'utf8'));
+            const required = ['version', 'riskTiers', 'commands', 'shaDiscipline', 'architecturalBoundaries'];
+            const missing = required.filter(k => !(k in config));
+            if (missing.length) { console.error('Missing keys:', missing.join(', ')); process.exit(1); }
+            for (const t of ['tier1', 'tier2', 'tier3']) {
+              if (!config.riskTiers[t]) { console.error('Missing tier:', t); process.exit(1); }
+            }
+            console.log('✔ harness.config.json schema valid');
+          "
+
+      - name: Check KIRO.md
+        run: |
+          if [[ ! -s KIRO.md ]]; then
+            echo "::error::KIRO.md is missing or empty"
+            exit 1
+          fi
+          echo "✔ KIRO.md present ($(wc -l < KIRO.md) lines)"
+
+      - name: Check critical files
+        run: |
+          files=(
+            pubspec.yaml analysis_options.yaml harness.config.json
+            lib/main.dart
+          )
+          for f in "${files[@]}"; do
+            if [[ ! -f "$f" ]]; then
+              echo "::error::Missing: $f"
+              exit 1
+            fi
+          done
+          echo "✔ All critical files present"
+
+      - name: Check workflow files
+        run: |
+          for f in .github/workflows/ci.yml .github/workflows/structural-tests.yml .github/workflows/harness-smoke.yml; do
+            if [[ ! -f "$f" ]]; then
+              echo "::error::Missing workflow: $f"
+              exit 1
+            fi
+          done
+          echo "✔ All workflow files present"
+
+      - name: Validate harness commands
+        run: |
+          node -e "
+            const config = JSON.parse(require('fs').readFileSync('harness.config.json', 'utf8'));
+            const cmds = config.commands || {};
+            for (const [key, cmd] of Object.entries(cmds)) {
+              if (cmd) {
+                console.log('✔', key + ':', cmd);
+              } else {
+                console.log('⚠', key + ':', 'not configured');
+              }
+            }
+          "
+
+  manual-approval:
+    name: Manual Approval (Tier 3)
+    needs: risk-gate
+    if: contains(fromJSON(needs.risk-gate.outputs.required-checks), 'manual-approval')
+    runs-on: ubuntu-latest
+    timeout-minutes: 1440
+    environment: tier3-approval
+    steps:
+      - name: Tier 3 change detected
+        run: |
+          echo "::warning::This PR touches critical paths and requires manual approval."
+          echo "A maintainer must approve the 'tier3-approval' environment to proceed."
+          echo ""
+          echo "Changed tier-3 files are listed in the Risk Policy Gate summary."
