@@ -5,12 +5,14 @@ class SmallIndicatorWidget extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final Color? valueColor;
 
   const SmallIndicatorWidget({
     super.key,
     required this.label,
     required this.value,
     required this.icon,
+    this.valueColor,
   });
 
   @override
@@ -47,20 +49,20 @@ class SmallIndicatorWidget extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(icon, color: Colors.blueAccent, size: iconSize),
+                    Icon(icon, color: valueColor ?? Colors.blueAccent, size: iconSize),
                     const SizedBox(width: 1),
                     Flexible(
                       child: Text(
                         value,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: valueColor ?? Colors.white,
                           fontSize: valueFontSize,
                           fontWeight: FontWeight.w500,
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                        maxLines: 2,
                       ),
                     ),
                   ],

@@ -83,7 +83,6 @@ import '../widgets/terrain_warning_display.dart';
 import '../services/cache_service.dart';
 import '../services/notam_service_v3.dart';
 import '../services/terrain_elevation_service.dart';
-import '../widgets/flight_hud.dart';
 import '../widgets/emergency_panel.dart';
 import '../widgets/gesture_hints_overlay.dart';
 
@@ -202,8 +201,7 @@ class MapScreenState extends State<MapScreen>
   // ignore: unused_field
   double? _profileSelectedDistance; // Distance along the flight path
   
-  // HUD and Emergency panel state
-  bool _isHUDExpanded = false;
+  // Emergency panel and gesture hints state
   bool _showEmergencyPanel = false;
   bool _showGestureHints = false;
 
@@ -4279,23 +4277,6 @@ class MapScreenState extends State<MapScreen>
                 );
               },
             ),
-          
-          // Flight HUD - top center, below terrain warning
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 60,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: FlightHUD(
-                isExpanded: _isHUDExpanded,
-                onToggle: () {
-                  setState(() {
-                    _isHUDExpanded = !_isHUDExpanded;
-                  });
-                },
-              ),
-            ),
-          ),
           
           // Emergency button - top right, below menu button
           Positioned(
