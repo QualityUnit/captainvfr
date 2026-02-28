@@ -1,49 +1,69 @@
+// Legacy terrain elevation service - REPLACED BY SRTM SERVICE
+// This file is kept for compatibility but redirects to the new SRTM service
+
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:convert';
 import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:http/http.dart' as http;
-import '../services/tiled_data_loader.dart';
-import '../config/environment.dart';
+import 'package:path_provider/path_provider.dart';
+import 'srtm_elevation_service.dart';
 
-/// Service for loading and querying terrain elevation data
-/// Combines high-precision Sonny's LiDAR data (Europe) with global SRTM coverage
+/// Legacy terrain elevation service - now uses SRTM backend
+/// Provides backward compatibility while using modern SRTM data
 class TerrainElevationService {
-  static const String sonnyDataDir = 'elevation_data/sonny_lidar';
-  static const String srtmDataDir = 'elevation_data/srtm';
-  static const String cacheDir = 'elevation_data/cache';
+  static final SrtmElevationService _srtmService = SrtmElevationService();
+  static bool _initialized = false;
   
-  final _logger = Logger(level: Level.info);
-  final Map<String, ElevationTile> _tileCache = {};
-  final int _maxCacheSize = 50; // Maximum tiles in memory
+  static Future<void> _ensureInitialized() async {
+    if (!_initialized) {
+      await _srtmService.initialize();
+      _initialized = true;
+    }
+  }
   
-  // Elevation data sources in priority order
+  static String? _cacheDir;
+  
+  static Future<String> get cacheDir async {
+    if (_cacheDir == null) {
+      final appDir = await getApplicationDocumentsDirectory();
+      _cacheDir = path.join(appDir.path, 'srtm_cache');
+      final dir = Directory(_cacheDir!);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+    }
+    return _cacheDir!;
+  }
+  
+  // Elevation data sources - now using SRTM
   static const List<ElevationSource> dataSources = [
-    ElevationSource.sonnyLidar,  // Highest accuracy (Europe)
-    ElevationSource.srtm,         // Global coverage
-    ElevationSource.openElevation, // Online fallback
+    ElevationSource.srtm,  // SRTM-based elevation for aviation safety
   ];
 
   /// Get elevation at a specific point
-  Future<double?> getElevation(LatLng point) async {
-    // Try each data source in priority order
-    for (final source in dataSources) {
-      final elevation = await _getElevationFromSource(point, source);
-      if (elevation != null) {
-        return elevation;
-      }
-    }
-    
-    _logger.w('No elevation data available for $point');
-    return null;
+  /// Uses 30m SRTM data for precise elevation queries
+  static Future<double?> getElevation(LatLng point) async {
+    await _ensureInitialized();
+    return await _srtmService.getElevation(
+      point.latitude, 
+      point.longitude,
+      resolution: ElevationResolution.precise,
+    );
+  }
+  
+  /// Get elevation for map visualization (uses 500m data for performance)
+  static Future<double?> getElevationForVisualization(LatLng point) async {
+    await _ensureInitialized();
+    return await _srtmService.getElevation(
+      point.latitude, 
+      point.longitude,
+      resolution: ElevationResolution.visualization,
+    );
   }
 
   /// Get elevation profile along a path
-  Future<List<ElevationPoint>> getElevationProfile(
+  static Future<List<ElevationPoint>> getElevationProfile(
     List<LatLng> path, {
     double? sampleDistance, // meters between samples
   }) async {
@@ -51,58 +71,46 @@ class TerrainElevationService {
     
     if (path.isEmpty) return profile;
     
-    // Calculate total distance
-    double totalDistance = 0;
-    for (int i = 1; i < path.length; i++) {
-      totalDistance += const Distance().as(
-        LengthUnit.Meter,
-        path[i - 1],
-        path[i],
-      );
-    }
+    await _ensureInitialized();
     
-    // Determine sampling strategy
-    final samples = sampleDistance != null
-        ? (totalDistance / sampleDistance).ceil()
-        : path.length;
+    // Batch process elevations for better performance
+    final points = path.map((p) => (lat: p.latitude, lon: p.longitude)).toList();
+    final elevations = await _srtmService.getElevationBatch(
+      points,
+      resolution: ElevationResolution.precise, // Use precise data for flight planning
+    );
     
-    // Sample elevation along path
+    // Build profile with distances
     double currentDistance = 0;
-    for (int i = 0; i < samples; i++) {
-      final t = i / (samples - 1);
-      final point = _interpolatePoint(path, t);
-      final elevation = await getElevation(point);
+    for (int i = 0; i < path.length; i++) {
+      if (i > 0) {
+        currentDistance += const Distance().as(
+          LengthUnit.Meter,
+          path[i - 1],
+          path[i],
+        );
+      }
+      
+      final elevation = elevations[i];
       
       profile.add(ElevationPoint(
-        position: point,
+        position: path[i],
         elevation: elevation ?? 0,
         distance: currentDistance,
-        dataSource: _getDataSourceForPoint(point),
+        dataSource: ElevationSource.srtm,
       ));
-      
-      if (sampleDistance != null) {
-        currentDistance += sampleDistance;
-      }
     }
     
     return profile;
   }
 
   /// Get terrain clearance for current position and altitude
-  Future<TerrainClearance> getTerrainClearance(
+  static Future<TerrainClearance> getTerrainClearance(
     LatLng position,
     double altitudeFt,
   ) async {
-    final terrainElevation = await getElevation(position);
-    
-    if (terrainElevation == null) {
-      return TerrainClearance(
-        terrainElevationFt: 0,
-        aircraftAltitudeFt: altitudeFt,
-        clearanceFt: altitudeFt,
-        warningLevel: TerrainWarningLevel.noData,
-      );
-    }
+    var terrainElevation = await getElevation(position);
+    terrainElevation ??= 0.0;  // Default to sea level if no data
     
     final terrainFt = terrainElevation * 3.28084; // Convert meters to feet
     final clearance = altitudeFt - terrainFt;
@@ -128,32 +136,63 @@ class TerrainElevationService {
   }
 
   /// Get terrain danger zones within viewport based on current altitude
-  Future<List<TerrainDangerZone>> getTerrainDangerZones(
+  /// Uses 500m SRTM data for fast visualization performance
+  static Future<List<TerrainDangerZone>> getTerrainDangerZones(
     LatLngBounds viewport,
     double currentAltitudeFt, {
     double gridResolution = 0.01, // degrees
   }) async {
+    await _ensureInitialized();
     final zones = <TerrainDangerZone>[];
     
     // Sample terrain in grid pattern
     final latSteps = ((viewport.north - viewport.south) / gridResolution).ceil();
     final lonSteps = ((viewport.east - viewport.west) / gridResolution).ceil();
     
+    // Collect all points for batch processing
+    final points = <({double lat, double lon})>[];
     for (int latStep = 0; latStep <= latSteps; latStep++) {
       for (int lonStep = 0; lonStep <= lonSteps; lonStep++) {
         final lat = viewport.south + (latStep * gridResolution);
         final lon = viewport.west + (lonStep * gridResolution);
-        final point = LatLng(lat, lon);
+        points.add((lat: lat, lon: lon));
+      }
+    }
+    
+    // Batch process elevations using 500m data for fast visualization
+    final elevations = await _srtmService.getElevationBatch(
+      points,
+      resolution: ElevationResolution.visualization,
+    );
+    
+    // Process all elevations and check for danger zones
+    for (int i = 0; i < points.length; i++) {
+      final point = points[i];
+      final elevation = elevations[i];
+      
+      if (elevation != null) {
+        final terrainFt = elevation * 3.28084; // Convert meters to feet
+        final clearance = currentAltitudeFt - terrainFt;
         
-        final clearance = await getTerrainClearance(point, currentAltitudeFt);
+        // Determine warning level based on clearance
+        TerrainWarningLevel warningLevel;
+        if (clearance < 100) {
+          warningLevel = TerrainWarningLevel.critical;
+        } else if (clearance < 500) {
+          warningLevel = TerrainWarningLevel.warning;
+        } else if (clearance < 1000) {
+          warningLevel = TerrainWarningLevel.caution;
+        } else {
+          warningLevel = TerrainWarningLevel.safe;
+        }
         
-        if (clearance.warningLevel != TerrainWarningLevel.safe &&
-            clearance.warningLevel != TerrainWarningLevel.noData) {
+        // Add danger zones (exclude safe areas)
+        if (warningLevel != TerrainWarningLevel.safe) {
           zones.add(TerrainDangerZone(
-            position: point,
-            terrainElevationFt: clearance.terrainElevationFt,
-            warningLevel: clearance.warningLevel,
-            clearanceFt: clearance.clearanceFt,
+            position: LatLng(point.lat, point.lon),
+            terrainElevationFt: terrainFt,
+            warningLevel: warningLevel,
+            clearanceFt: clearance,
           ));
         }
       }
@@ -162,156 +201,173 @@ class TerrainElevationService {
     return zones;
   }
 
-  /// Get elevation from specific data source
-  Future<double?> _getElevationFromSource(
-    LatLng point,
-    ElevationSource source,
-  ) async {
-    switch (source) {
-      case ElevationSource.sonnyLidar:
-        return await _getElevationFromHgt(point, sonnyDataDir);
-      
-      case ElevationSource.srtm:
-        return await _getElevationFromHgt(point, srtmDataDir);
-      
-      case ElevationSource.openElevation:
-        return await _getElevationFromApi(point);
-    }
-  }
-
-  /// Read elevation from HGT file (Sonny's or SRTM)
-  Future<double?> _getElevationFromHgt(LatLng point, String dataDir) async {
-    // Calculate tile coordinates
-    final tileLat = point.latitude.floor();
-    final tileLon = point.longitude.floor();
-    final tileKey = '${tileLat}_$tileLon';
-    
-    // Check cache
-    if (_tileCache.containsKey(tileKey)) {
-      return _tileCache[tileKey]!.getElevation(point);
-    }
-    
-    // Construct HGT filename
-    final latPrefix = tileLat >= 0 ? 'N' : 'S';
-    final lonPrefix = tileLon >= 0 ? 'E' : 'W';
-    final fileName = '$latPrefix${tileLat.abs().toString().padLeft(2, '0')}'
-                    '$lonPrefix${tileLon.abs().toString().padLeft(3, '0')}.hgt';
-    
-    // Try to find file in country subdirectories (for Sonny's data)
-    File? hgtFile;
-    final dataDirectory = Directory(dataDir);
-    
-    if (await dataDirectory.exists()) {
-      // Search in subdirectories
-      await for (final entity in dataDirectory.list(recursive: true)) {
-        if (entity is File && path.basename(entity.path) == fileName) {
-          hgtFile = entity;
-          break;
-        }
-      }
-    }
-    
-    if (hgtFile == null || !await hgtFile.exists()) {
-      return null;
-    }
-    
-    // Load tile into cache
-    final tile = await ElevationTile.loadFromHgt(hgtFile);
-    
-    // Manage cache size
-    if (_tileCache.length >= _maxCacheSize) {
-      _tileCache.remove(_tileCache.keys.first);
-    }
-    
-    _tileCache[tileKey] = tile;
-    
-    return tile.getElevation(point);
-  }
-
-  /// Get elevation from OpenElevation API (fallback)
-  Future<double?> _getElevationFromApi(LatLng point) async {
-    try {
-      final url = 'https://api.open-elevation.com/api/v1/lookup'
-                 '?locations=${point.latitude},${point.longitude}';
-      
-      final response = await http.get(Uri.parse(url)).timeout(
-        const Duration(seconds: 5),
-      );
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final results = data['results'] as List;
-        if (results.isNotEmpty) {
-          return (results[0]['elevation'] as num).toDouble();
-        }
-      }
-    } catch (e) {
-      _logger.w('OpenElevation API error: $e');
-    }
-    
-    return null;
-  }
-
-  /// Determine which data source is available for a point
-  ElevationSource? _getDataSourceForPoint(LatLng point) {
-    // Check if point is in Europe (roughly)
-    if (point.latitude >= 35 && point.latitude <= 72 &&
-        point.longitude >= -11 && point.longitude <= 40) {
-      return ElevationSource.sonnyLidar;
-    }
-    return ElevationSource.srtm;
-  }
-
-  /// Interpolate point along path
-  LatLng _interpolatePoint(List<LatLng> path, double t) {
-    if (path.length < 2) return path.first;
-    
-    final totalLength = path.length - 1;
-    final segment = (t * totalLength).floor();
-    final localT = (t * totalLength) - segment;
-    
-    if (segment >= path.length - 1) return path.last;
-    
-    final p1 = path[segment];
-    final p2 = path[segment + 1];
-    
-    return LatLng(
-      p1.latitude + (p2.latitude - p1.latitude) * localT,
-      p1.longitude + (p2.longitude - p1.longitude) * localT,
-    );
-  }
 
   /// Clear tile cache
-  void clearCache() {
-    _tileCache.clear();
+  static Future<void> clearCache() async {
+    await _srtmService.clearCache();
+  }
+  
+  /// Clear all cached elevation data (delegates to SRTM service)
+  static Future<void> clearAllCaches() async {
+    await _srtmService.clearCache();
+  }
+  
+  /// Get total cache size in bytes (delegates to SRTM service)
+  static Future<int> getCacheSize() async {
+    try {
+      await _ensureInitialized();
+      final stats = _srtmService.getCacheStats();
+      final cacheDir = stats['cache_directory'] as String? ?? '';
+      
+      if (cacheDir.isEmpty) return 0;
+      
+      int totalSize = 0;
+      final dir = Directory(cacheDir);
+      if (await dir.exists()) {
+        await for (final entity in dir.list(recursive: true)) {
+          if (entity is File) {
+            try {
+              final stat = await entity.stat();
+              totalSize += stat.size;
+            } catch (e) {
+              // Skip files we can't read
+            }
+          }
+        }
+      }
+      return totalSize;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// Get cache file count (delegates to SRTM service) 
+  static Future<int> getCacheFileCount() async {
+    try {
+      await _ensureInitialized();
+      final stats = _srtmService.getCacheStats();
+      return (stats['cache_30m'] ?? 0) + (stats['cache_500m'] ?? 0);
+    } catch (e) {
+      return 0;
+    }
   }
 
   /// Preload tiles for a route
-  Future<void> preloadRoute(List<LatLng> route) async {
-    final tiles = <String>{};
-    
-    for (final point in route) {
-      final tileLat = point.latitude.floor();
-      final tileLon = point.longitude.floor();
-      tiles.add('${tileLat}_$tileLon');
+  static Future<void> preloadRoute(List<LatLng> route) async {
+    // For SRTM service, data is downloaded on demand - no preloading needed
+  }
+
+  /// Calculate minimum safe altitude for a route
+  /// Returns MSA in feet with specified safety margin
+  static Future<MinimumSafeAltitude> calculateMSA(
+    List<LatLng> route, {
+    double corridorWidthNm = 5.0, // Width of corridor to check (nautical miles)
+    double safetyMarginFt = 1000.0, // Safety margin above terrain
+    double sampleDistanceNm = 1.0, // Distance between sample points
+  }) async {
+    if (route.isEmpty) {
+      return MinimumSafeAltitude(
+        msaFt: 0,
+        maxTerrainFt: 0,
+        criticalPoint: null,
+        criticalIndex: -1,
+      );
     }
     
-    _logger.i('Preloading ${tiles.length} elevation tiles for route');
+    double maxTerrainElevation = 0;
+    LatLng? criticalPoint;
+    int criticalIndex = -1;
     
-    for (final tileKey in tiles) {
-      final coords = tileKey.split('_');
-      final lat = double.parse(coords[0]);
-      final lon = double.parse(coords[1]);
-      await getElevation(LatLng(lat + 0.5, lon + 0.5));
+    // Sample points along the route
+    for (int i = 0; i < route.length - 1; i++) {
+      final start = route[i];
+      final end = route[i + 1];
+      
+      // Calculate segment distance (convert km to nautical miles)
+      final segmentDistanceKm = const Distance().as(
+        LengthUnit.Kilometer,
+        start,
+        end,
+      );
+      final segmentDistance = segmentDistanceKm * 0.539957; // km to nautical miles
+      
+      // Number of samples for this segment
+      final samples = (segmentDistance / sampleDistanceNm).ceil();
+      
+      for (int s = 0; s <= samples; s++) {
+        final t = samples > 0 ? s / samples : 0.0;
+        
+        // Interpolate position along segment
+        final samplePoint = LatLng(
+          start.latitude + (end.latitude - start.latitude) * t,
+          start.longitude + (end.longitude - start.longitude) * t,
+        );
+        
+        // Check terrain in corridor around this point
+        final corridorElevation = await _getMaxElevationInRadius(
+          samplePoint,
+          corridorWidthNm,
+        );
+        
+        if (corridorElevation != null && corridorElevation > maxTerrainElevation) {
+          maxTerrainElevation = corridorElevation;
+          criticalPoint = samplePoint;
+          criticalIndex = i;
+        }
+      }
     }
+    
+    // Convert to feet and add safety margin
+    final maxTerrainFt = maxTerrainElevation * 3.28084;
+    final msaFt = maxTerrainFt + safetyMarginFt;
+    
+    // Round up to nearest 100ft
+    final roundedMsaFt = ((msaFt / 100).ceil() * 100).toDouble();
+    
+    return MinimumSafeAltitude(
+      msaFt: roundedMsaFt,
+      maxTerrainFt: maxTerrainFt,
+      criticalPoint: criticalPoint,
+      criticalIndex: criticalIndex,
+      safetyMarginFt: safetyMarginFt,
+      corridorWidthNm: corridorWidthNm,
+    );
+  }
+
+  /// Get maximum elevation within a radius of a point
+  static Future<double?> _getMaxElevationInRadius(
+    LatLng center,
+    double radiusNm,
+  ) async {
+    // Convert radius to degrees (approximate)
+    final radiusDeg = radiusNm / 60.0; // 1 degree ≈ 60 nautical miles
+    
+    // Sample in a grid pattern (3x3 grid)
+    double? maxElevation;
+    
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dy = -1; dy <= 1; dy++) {
+        final samplePoint = LatLng(
+          center.latitude + (dy * radiusDeg / 2),
+          center.longitude + (dx * radiusDeg / 2),
+        );
+        
+        final elevation = await getElevation(samplePoint);
+        if (elevation != null) {
+          maxElevation = maxElevation == null 
+            ? elevation 
+            : math.max(maxElevation, elevation);
+        }
+      }
+    }
+    
+    return maxElevation;
   }
 }
 
 /// Elevation data source types
 enum ElevationSource {
-  sonnyLidar,    // High-precision LiDAR (Europe)
-  srtm,          // Shuttle Radar Topography Mission
-  openElevation, // Online API fallback
+  srtm, // SRTM elevation data for aviation safety
 }
 
 /// Terrain warning levels
@@ -370,97 +426,27 @@ class TerrainDangerZone {
   });
 }
 
-/// Elevation tile data handler
-class ElevationTile {
-  final int latOrigin;
-  final int lonOrigin;
-  final int resolution; // points per degree (3601 for 1", 1201 for 3")
-  final Uint16List elevationData;
+/// Minimum safe altitude calculation result
+class MinimumSafeAltitude {
+  final double msaFt;              // Minimum safe altitude in feet
+  final double maxTerrainFt;       // Maximum terrain elevation found
+  final LatLng? criticalPoint;     // Location of highest terrain
+  final int criticalIndex;         // Route segment index with highest terrain
+  final double safetyMarginFt;     // Safety margin used
+  final double corridorWidthNm;    // Corridor width checked
 
-  ElevationTile({
-    required this.latOrigin,
-    required this.lonOrigin,
-    required this.resolution,
-    required this.elevationData,
+  MinimumSafeAltitude({
+    required this.msaFt,
+    required this.maxTerrainFt,
+    this.criticalPoint,
+    required this.criticalIndex,
+    this.safetyMarginFt = 1000.0,
+    this.corridorWidthNm = 5.0,
   });
 
-  /// Load tile from HGT file
-  static Future<ElevationTile> loadFromHgt(File hgtFile) async {
-    final fileName = path.basenameWithoutExtension(hgtFile.path);
-    
-    // Parse coordinates from filename
-    final latMatch = RegExp(r'([NS])(\d+)').firstMatch(fileName);
-    final lonMatch = RegExp(r'([EW])(\d+)').firstMatch(fileName);
-    
-    if (latMatch == null || lonMatch == null) {
-      throw Exception('Invalid HGT filename: $fileName');
-    }
-    
-    final lat = int.parse(latMatch.group(2)!) * 
-                (latMatch.group(1) == 'S' ? -1 : 1);
-    final lon = int.parse(lonMatch.group(2)!) * 
-                (lonMatch.group(1) == 'W' ? -1 : 1);
-    
-    final bytes = await hgtFile.readAsBytes();
-    
-    // Determine resolution from file size
-    int resolution;
-    if (bytes.length == 3601 * 3601 * 2) {
-      resolution = 3601; // 1 arc-second
-    } else if (bytes.length == 1201 * 1201 * 2) {
-      resolution = 1201; // 3 arc-seconds
-    } else {
-      throw Exception('Invalid HGT file size: ${bytes.length}');
-    }
-    
-    // Convert to Uint16List (big-endian to platform endian)
-    final elevationData = Uint16List(resolution * resolution);
-    for (int i = 0; i < elevationData.length; i++) {
-      final byteIndex = i * 2;
-      elevationData[i] = (bytes[byteIndex] << 8) | bytes[byteIndex + 1];
-    }
-    
-    return ElevationTile(
-      latOrigin: lat,
-      lonOrigin: lon,
-      resolution: resolution,
-      elevationData: elevationData,
-    );
-  }
+  /// Check if a given altitude is safe
+  bool isAltitudeSafe(double altitudeFt) => altitudeFt >= msaFt;
 
-  /// Get elevation at specific point
-  double? getElevation(LatLng point) {
-    // Check if point is within tile bounds
-    if (point.latitude < latOrigin || point.latitude > latOrigin + 1 ||
-        point.longitude < lonOrigin || point.longitude > lonOrigin + 1) {
-      return null;
-    }
-    
-    // Calculate indices (HGT data is stored from north to south)
-    final latFraction = point.latitude - latOrigin;
-    final lonFraction = point.longitude - lonOrigin;
-    
-    final row = ((1 - latFraction) * (resolution - 1)).round();
-    final col = (lonFraction * (resolution - 1)).round();
-    
-    final index = row * resolution + col;
-    
-    if (index < 0 || index >= elevationData.length) {
-      return null;
-    }
-    
-    final elevation = elevationData[index];
-    
-    // Check for void data
-    if (elevation == 0x8000 || elevation == 32768) {
-      return null;
-    }
-    
-    // Handle signed values
-    if (elevation > 32767) {
-      return (elevation - 65536).toDouble();
-    }
-    
-    return elevation.toDouble();
-  }
+  /// Get clearance for a given altitude
+  double getClearance(double altitudeFt) => altitudeFt - maxTerrainFt;
 }

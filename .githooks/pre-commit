@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+set -e
+
+echo "Running pre-commit checks..."
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "No staged files to check."
+  exit 0
+fi
+
+DART_FILES=$(echo "$STAGED_FILES" | grep '\.dart$' || true)
+
+if [ -n "$DART_FILES" ]; then
+  echo "Formatting Dart files..."
+  echo "$DART_FILES" | xargs dart format --set-exit-if-changed || {
+    echo "Formatting failed. Run 'dart format .' to fix."
+    echo "Use git commit --no-verify to bypass (for emergencies only)"
+    exit 1
+  }
+
+  echo "Running analyzer..."
+  flutter analyze --no-pub || {
+    echo "Analyzer found issues. Fix them before committing."
+    echo "Use git commit --no-verify to bypass (for emergencies only)"
+    exit 1
+  }
+fi
+
+echo "Pre-commit checks passed."

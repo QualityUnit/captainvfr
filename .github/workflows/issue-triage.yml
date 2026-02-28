@@ -1,0 +1,504 @@
+name: Issue Triage Agent
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  contents: read
+  actions: write
+  id-token: write
+
+concurrency:
+  group: issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    name: Triage Agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run triage guard
+        id: guard
+        env:
+          ISSUE_JSON: ${{ toJSON(github.event.issue) }}
+          EVENT_NAME: ${{ github.event.action }}
+        run: |
+          DECISION=$(npx tsx scripts/issue-triage-guard.ts --evaluate)
+          echo "decision<<GUARD_EOF" >> "$GITHUB_OUTPUT"
+          echo "$DECISION" >> "$GITHUB_OUTPUT"
+          echo "GUARD_EOF" >> "$GITHUB_OUTPUT"
+
+          SHOULD=$(echo "$DECISION" | jq -r '.shouldTriage')
+          IS_RETRIAGE=$(echo "$DECISION" | jq -r '.isRetriage')
+          REASON=$(echo "$DECISION" | jq -r '.reason')
+          echo "should-triage=${SHOULD}" >> "$GITHUB_OUTPUT"
+          echo "is-retriage=${IS_RETRIAGE}" >> "$GITHUB_OUTPUT"
+          echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
+
+          echo "Guard: shouldTriage=${SHOULD}, isRetriage=${IS_RETRIAGE}"
+
+      - name: Skip — log reason
+        if: steps.guard.outputs.should-triage == 'false'
+        run: |
+          echo "::notice::Triage skipped: ${{ steps.guard.outputs.reason }}"
+
+      - name: Ensure triage labels exist
+        if: steps.guard.outputs.should-triage == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const labels = [
+              { name: 'needs-more-info', color: 'FBCA04', description: 'Issue needs additional details' },
+              { name: 'agent:plan', color: '1D76DB', description: 'Approved for automated planning' },
+              { name: 'agent:implement', color: '0E8A16', description: 'Approved for automated implementation' },
+              { name: 'triage:failed', color: 'D93F0B', description: 'Triage agent encountered an error' },
+              { name: 'needs-human-review', color: 'C5DEF5', description: 'Requires human review before proceeding' },
+            ];
+
+            for (const label of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label,
+                });
+                core.info(`Created label: ${label.name}`);
+              } catch {
+                // Label already exists
+              }
+            }
+
+      - name: Remove needs-more-info on re-triage
+        if: steps.guard.outputs.is-retriage == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'needs-more-info',
+              });
+              core.info('Removed needs-more-info label for re-triage.');
+            } catch {
+              // Label might not exist
+            }
+
+      - name: Read triage prompt
+        if: steps.guard.outputs.should-triage == 'true'
+        id: prompt-file
+        run: |
+          if [[ -f ".codefactory/prompts/issue-triage.md" ]]; then
+            {
+              echo "content<<PROMPT_EOF"
+              cat .codefactory/prompts/issue-triage.md
+              echo "PROMPT_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "content=Evaluate this issue for quality and actionability." >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build triage prompt
+        if: steps.guard.outputs.should-triage == 'true'
+        id: build-prompt
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        env:
+          TRIAGE_TEMPLATE: ${{ steps.prompt-file.outputs.content }}
+          IS_RETRIAGE: ${{ steps.guard.outputs.is-retriage }}
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const template = process.env.TRIAGE_TEMPLATE || '';
+            const isRetriage = process.env.IS_RETRIAGE === 'true';
+            const labels = (issue.labels || []).map((l) => l.name).join(', ');
+
+            const prompt = [
+              template,
+              '',
+              '## Issue to Triage',
+              '',
+              `**Number**: #${issue.number}`,
+              `**Title**: ${issue.title}`,
+              `**Author**: ${issue.user.login}`,
+              `**Labels**: ${labels || 'none'}`,
+              `**Re-triage**: ${isRetriage ? 'yes — author updated the issue after needs-more-info' : 'no'}`,
+              '',
+              '### Body',
+              '',
+              issue.body || '*(empty body)*',
+            ].join('\n');
+
+            core.setOutput('prompt', prompt);
+            core.info(`Triage prompt built (${prompt.length} chars)`);
+
+      - name: Configure AWS credentials
+        if: steps.guard.outputs.should-triage == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        continue-on-error: true
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Setup Kiro CLI
+        if: steps.guard.outputs.should-triage == 'true'
+        uses: clouatre-labs/setup-kiro-action@v1
+        with:
+          enable-sigv4: 'true'
+
+      - name: Authenticate Kiro CLI
+        if: steps.guard.outputs.should-triage == 'true'
+        env:
+          KIRO_CLIENT_ID: ${{ secrets.KIRO_CLIENT_ID }}
+          KIRO_CLIENT_SECRET: ${{ secrets.KIRO_CLIENT_SECRET }}
+          KIRO_REFRESH_TOKEN: ${{ secrets.KIRO_REFRESH_TOKEN }}
+          KIRO_PROFILE_ARN: ${{ secrets.KIRO_PROFILE_ARN }}
+          KIRO_START_URL: ${{ secrets.KIRO_START_URL || '' }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "https://oidc.${AWS_REGION}.amazonaws.com/token" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"grantType\": \"refresh_token\",
+              \"clientId\": \"${KIRO_CLIENT_ID}\",
+              \"clientSecret\": \"${KIRO_CLIENT_SECRET}\",
+              \"refreshToken\": \"${KIRO_REFRESH_TOKEN}\"
+            }")
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.accessToken // empty')
+          NEW_REFRESH=$(echo "$RESPONSE" | jq -r '.refreshToken // empty')
+          if [[ -z "$ACCESS_TOKEN" ]]; then
+            echo "::error::Kiro OIDC token refresh failed"
+            echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
+            exit 1
+          fi
+          echo "::add-mask::${ACCESS_TOKEN}"
+          echo "::add-mask::${NEW_REFRESH}"
+          mkdir -p ~/.local/share/kiro-cli
+          EXPIRES_AT=$(date -u -d "+3600 seconds" +"%Y-%m-%dT%H:%M:%S.%6NZ")
+          CLIENT_EXPIRES=$(date -u -d "+90 days" +"%Y-%m-%dT%H:%M:%S.000Z")
+          python3 -c "
+          import sqlite3, json, sys, os, time
+          db = os.path.expanduser('~/.local/share/kiro-cli/data.sqlite3')
+          conn = sqlite3.connect(db)
+          c = conn.cursor()
+          c.executescript('''
+            CREATE TABLE IF NOT EXISTS migrations (
+              id INTEGER PRIMARY KEY, version INTEGER NOT NULL,
+              migration_time INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS auth_kv (
+              key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS state (
+              key TEXT PRIMARY KEY, value BLOB);
+            CREATE TABLE IF NOT EXISTS history (
+              id INTEGER PRIMARY KEY);
+            CREATE TABLE IF NOT EXISTS conversations (
+              key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS conversations_v2 (
+              key TEXT NOT NULL, conversation_id TEXT NOT NULL,
+              value TEXT NOT NULL, created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              PRIMARY KEY (key, conversation_id));
+          ''')
+          now = int(time.time())
+          for i in range(9):
+            c.execute('INSERT OR IGNORE INTO migrations VALUES (?,?,?)', (i+1,i,now))
+          token = json.dumps({'access_token': sys.argv[1], 'expires_at': sys.argv[2],
+            'refresh_token': sys.argv[3], 'region': sys.argv[6],
+            'start_url': sys.argv[7] or '', 'oauth_flow': 'Pkce',
+            'scopes': ['codewhisperer:completions','codewhisperer:analysis','codewhisperer:conversations']})
+          reg = json.dumps({'client_id': sys.argv[4], 'client_secret': sys.argv[5],
+            'client_secret_expires_at': sys.argv[8], 'region': sys.argv[6],
+            'oauth_flow': 'Pkce', 'scopes': ['codewhisperer:completions',
+            'codewhisperer:analysis','codewhisperer:conversations']})
+          c.execute('INSERT OR REPLACE INTO auth_kv VALUES (?,?)', ('kirocli:odic:token', token))
+          c.execute('INSERT OR REPLACE INTO auth_kv VALUES (?,?)', ('kirocli:odic:device-registration', reg))
+          if sys.argv[9]:
+            profile = json.dumps({'arn': sys.argv[9], 'profile_name': sys.argv[9].split('/')[-1]})
+            c.execute('INSERT OR REPLACE INTO state VALUES (?,?)', ('api.codewhisperer.profile', profile))
+          c.execute('INSERT OR REPLACE INTO state VALUES (?,?)', ('profile.Migrated', '1'))
+          conn.commit()
+          conn.close()
+          " "$ACCESS_TOKEN" "$EXPIRES_AT" "$NEW_REFRESH" \
+            "$KIRO_CLIENT_ID" "$KIRO_CLIENT_SECRET" "$AWS_REGION" \
+            "$KIRO_START_URL" "$CLIENT_EXPIRES" "$KIRO_PROFILE_ARN"
+          kiro-cli-chat whoami
+
+      - name: Run AI triage analysis
+        if: steps.guard.outputs.should-triage == 'true'
+        id: ai-triage
+        env:
+          KIRO_PROMPT: ${{ steps.build-prompt.outputs.prompt }}
+        run: |
+          RAW=$(kiro-cli-chat chat --no-interactive --trust-all-tools "$KIRO_PROMPT" 2>&1) || true
+          CLEAN=$(printf '%s\n' "$RAW" | sed 's/\x1b\[[0-9;]*m//g')
+          echo "$CLEAN"
+          JSON_LINE=$(printf '%s\n' "$CLEAN" | python3 -c "
+          import sys,json
+          t=sys.stdin.read()
+          e=t.rfind('}')
+          if e>=0:
+            d=0
+            for i in range(e,-1,-1):
+              c=t[i]
+              if c=='}':d+=1
+              elif c=='{':d-=1
+              if d==0:
+                try:
+                  o=json.loads(t[i:e+1]);print(json.dumps(o))
+                except:pass
+                break
+          " 2>/dev/null || true)
+          if [[ -n "$JSON_LINE" ]] && echo "$JSON_LINE" | jq . >/dev/null 2>&1; then
+            {
+              echo "structured_output<<KIRO_JSON_EOF"
+              echo "$JSON_LINE"
+              echo "KIRO_JSON_EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Parse structured verdict
+        if: steps.guard.outputs.should-triage == 'true'
+        id: verdict
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.ai-triage.outputs.structured_output || '' }}
+        with:
+          script: |
+            const raw = process.env.STRUCTURED_OUTPUT || '';
+            core.info(`Structured output length: ${raw.length}`);
+
+            if (!raw) {
+              core.warning('No structured output from AI agent');
+              core.setOutput('parsed', 'false');
+              core.setOutput('raw-text', '');
+              return;
+            }
+
+            let verdict = null;
+            try {
+              verdict = JSON.parse(raw);
+            } catch (e) {
+              core.warning(`Failed to parse structured_output as JSON: ${e.message}`);
+              core.setOutput('parsed', 'false');
+              core.setOutput('raw-text', raw.slice(0, 2000));
+              return;
+            }
+
+            if (!verdict || typeof verdict.actionable !== 'boolean') {
+              core.warning('Structured output missing required "actionable" field');
+              core.setOutput('parsed', 'false');
+              core.setOutput('raw-text', raw.slice(0, 2000));
+              return;
+            }
+
+            core.setOutput('parsed', 'true');
+            core.setOutput('actionable', String(verdict.actionable));
+            core.setOutput('confidence', String(verdict.confidence || 0));
+            core.setOutput('complexity', verdict.estimatedComplexity || 'medium');
+            core.setOutput('summary', verdict.summary || '');
+            core.setOutput('missing-info', JSON.stringify(verdict.missingInfo || []));
+            core.setOutput('suggested-labels', JSON.stringify(verdict.suggestedLabels || []));
+
+            const isUiBug = (verdict.suggestedLabels || []).some(
+              (l) => l === 'ui-bug' || l === 'visual-bug' || l === 'ui' || l === 'frontend-bug'
+            );
+            core.setOutput('is-bug', String(isUiBug));
+            core.setOutput('reproduced', String(verdict.reproduced ?? false));
+            core.setOutput('reproduction-notes', verdict.reproductionNotes || '');
+            core.setOutput('raw-text', '');
+
+            core.info(`Verdict: actionable=${verdict.actionable}, confidence=${verdict.confidence}, complexity=${verdict.estimatedComplexity}`);
+
+      - name: Route triage decision
+        if: steps.guard.outputs.should-triage == 'true'
+        id: route
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        env:
+          PARSED: ${{ steps.verdict.outputs.parsed }}
+          ACTIONABLE: ${{ steps.verdict.outputs.actionable }}
+          CONFIDENCE: ${{ steps.verdict.outputs.confidence }}
+          COMPLEXITY: ${{ steps.verdict.outputs.complexity }}
+          SUMMARY: ${{ steps.verdict.outputs.summary }}
+          MISSING_INFO: ${{ steps.verdict.outputs.missing-info }}
+          SUGGESTED_LABELS: ${{ steps.verdict.outputs.suggested-labels }}
+          RAW_TEXT: ${{ steps.verdict.outputs.raw-text }}
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const parsed = process.env.PARSED === 'true';
+            const actionable = process.env.ACTIONABLE === 'true';
+            const confidence = parseFloat(process.env.CONFIDENCE || '0');
+            const complexity = process.env.COMPLEXITY || 'medium';
+            const summary = process.env.SUMMARY || '';
+            const rawText = process.env.RAW_TEXT || '';
+
+            let missingInfo = [];
+            let suggestedLabels = [];
+            try { missingInfo = JSON.parse(process.env.MISSING_INFO || '[]'); } catch {}
+            try { suggestedLabels = JSON.parse(process.env.SUGGESTED_LABELS || '[]'); } catch {}
+
+            const labelsToAdd = [];
+            const commentSections = [`<!-- issue-triage: #${issueNumber} -->`];
+
+            if (!parsed) {
+              labelsToAdd.push('triage:failed');
+              commentSections.push(
+                '⚠️ Issue Triage — Parse Failure',
+                '',
+                'The triage agent could not produce a valid verdict for this issue.',
+                'A human should review and triage manually.',
+              );
+              if (rawText) {
+                commentSections.push(
+                  '',
+                  '<details><summary>Agent raw output (for debugging)</summary>',
+                  '',
+                  '```',
+                  rawText.slice(0, 1500),
+                  '```',
+                  '',
+                  '</details>',
+                );
+              }
+            } else if (actionable && confidence >= 0.7) {
+              labelsToAdd.push('agent:plan');
+              commentSections.push(
+                '✅ Issue Triage — Approved for Planning',
+                '',
+                `**Summary**: ${summary}`,
+                `**Confidence**: ${confidence}`,
+                `**Complexity**: ${complexity}`,
+              );
+
+              if (complexity === 'high') {
+                labelsToAdd.push('needs-human-review');
+              }
+            } else {
+              labelsToAdd.push('needs-more-info');
+              const missingItems = missingInfo.length > 0
+                ? missingInfo.map((m) => `- ${m}`)
+                : ['- A clear description of what you expect to happen', '- Steps to reproduce or additional context'];
+              commentSections.push(
+                '📋 Issue Triage — More Details Needed',
+                '',
+                `**Summary**: ${summary || 'Unable to determine issue intent'}`,
+                `**Confidence**: ${confidence}`,
+                '',
+                'This issue needs more information before it can be implemented. Please provide:',
+                ...missingItems,
+                '',
+                '*Edit this issue with the requested details and we will re-evaluate automatically.*',
+              );
+            }
+
+            const internalLabels = ['agent:implement', 'needs-more-info', 'triage:failed', 'needs-human-review'];
+            for (const label of suggestedLabels) {
+              if (!internalLabels.includes(label) && !labelsToAdd.includes(label)) {
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label,
+                    color: 'EDEDED',
+                  });
+                } catch {}
+                labelsToAdd.push(label);
+              }
+            }
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: labelsToAdd,
+              });
+              core.info(`Added labels: ${labelsToAdd.join(', ')}`);
+            }
+
+            core.setOutput('should-plan', String(labelsToAdd.includes('agent:plan')));
+
+            commentSections.push(
+              '',
+              '---',
+              '*🤖 Issue Triage Agent — automated issue quality evaluation.*',
+            );
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: commentSections.join('\n'),
+            });
+
+      - name: Dispatch planner workflow
+        if: steps.route.outputs.should-plan == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+        run: |
+          echo "Dispatching planner for issue #${ISSUE_NUM}..."
+          gh workflow run issue-planner.yml --field issue_number="${ISSUE_NUM}"
+          echo "✔ Planner workflow dispatched."
+
+      - name: Failure handler
+        if: failure() && steps.guard.outputs.should-triage == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+
+            try {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'triage:failed',
+                color: 'D93F0B',
+                description: 'Triage agent encountered an error',
+              });
+            } catch {}
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['triage:failed'],
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: [
+                `<!-- issue-triage-failed: #${issueNumber} -->`,
+                '❌ Issue Triage — Agent Error',
+                '',
+                'The triage agent encountered an unexpected error while processing this issue.',
+                'A human should review and triage manually.',
+                '',
+                `**Run**: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+                '',
+                '---',
+                '*🤖 Issue Triage Agent — automated issue quality evaluation.*',
+              ].join('\n'),
+            });

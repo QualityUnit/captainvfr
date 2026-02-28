@@ -17,6 +17,7 @@ class MapStateController extends ChangeNotifier {
   static const String _keyShowHeatmap = 'map_show_heatmap';
   static const String _keyShowSafeSky = 'map_show_safesky';
   static const String _keyShowTerrain = 'map_show_terrain';
+  static const String _keyShowElevation = 'map_show_elevation';
   
   late SharedPreferences _prefs;
   bool _prefsInitialized = false;
@@ -50,6 +51,7 @@ class MapStateController extends ChangeNotifier {
   bool _showHeatmap = false;  // Flight tracking heatmap (default OFF)
   bool _showSafeSky = true;  // SafeSky aircraft beacons (default ON for safety)
   bool _showTerrain = false;  // Terrain danger zones (default OFF, performance impact)
+  bool _showElevation = false;  // Elevation grid (default OFF, performance impact)
   
   // Menu panel state
   bool _isMenuPanelOpen = false;
@@ -74,6 +76,7 @@ class MapStateController extends ChangeNotifier {
   bool get showHeatmap => _showHeatmap;
   bool get showSafeSky => _showSafeSky;
   bool get showTerrain => _showTerrain;
+  bool get showElevation => _showElevation;
   bool get isMenuPanelOpen => _isMenuPanelOpen;
   
   // Initialize and load saved preferences
@@ -93,6 +96,7 @@ class MapStateController extends ChangeNotifier {
     _showHeatmap = _prefs.getBool(_keyShowHeatmap) ?? false;
     _showSafeSky = _prefs.getBool(_keyShowSafeSky) ?? true;  // Default to true for new users
     _showTerrain = _prefs.getBool(_keyShowTerrain) ?? false;  // Default to false for performance
+    _showElevation = _prefs.getBool(_keyShowElevation) ?? false;  // Default to false for performance
     
     _prefsInitialized = true;
     notifyListeners();
@@ -194,6 +198,14 @@ class MapStateController extends ChangeNotifier {
     _showTerrain = !_showTerrain;
     if (_prefsInitialized) {
       _prefs.setBool(_keyShowTerrain, _showTerrain);
+    }
+    notifyListeners();
+  }
+
+  void toggleElevation() {
+    _showElevation = !_showElevation;
+    if (_prefsInitialized) {
+      _prefs.setBool(_keyShowElevation, _showElevation);
     }
     notifyListeners();
   }

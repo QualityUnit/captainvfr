@@ -1,8 +1,13 @@
+// ignore_for_file: deprecated_member_use
+
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/themed_dialog.dart';
 import '../services/settings_service.dart';
@@ -13,6 +18,7 @@ import '../services/airport_service.dart';
 import '../services/navaid_service.dart';
 import '../services/weather_service.dart';
 import '../services/tiled_data_loader.dart';
+import '../services/srtm_elevation_service.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_colors.dart';
 import 'offline_data/controllers/offline_data_state_controller.dart';
@@ -222,10 +228,10 @@ class SettingsScreen extends StatelessWidget {
                       style: TextStyle(color: Colors.white),
                     ),
                     subtitle: const Text(
-                      'Europe: Sonny\'s LiDAR DTM (sonny.4lima.de)\nGlobal: OpenElevation SRTM\nLicense: CC BY 4.0',
+                      'SRTM (Shuttle Radar Topography Mission)\n30m precise data + 500m visualization tiles',
                       style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
-                    onTap: () => _launchUrl('https://sonny.4lima.de/'),
+                    onTap: () => _launchUrl('https://www2.jpl.nasa.gov/srtm/'),
                   ),
                   const Divider(color: Colors.white24),
                   ListTile(
@@ -641,6 +647,17 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
 
       final mapStats = await _offlineMapService.getCacheStatistics();
       final stats = await CacheStatisticsHelper.getCacheStatistics(_weatherService);
+      
+      // Get SRTM elevation cache statistics
+      final elevationCacheSize = await SrtmElevationService.getCacheSize();
+      final elevationFileCount = await SrtmElevationService.getCacheFileCount();
+      
+      // Add elevation stats to the cache statistics
+      stats['elevation'] = {
+        'count': elevationFileCount,
+        'sizeBytes': elevationCacheSize,
+        'lastFetch': null, // SRTM data is downloaded on demand
+      };
 
       _stateController.setMapCacheStats(mapStats);
       _stateController.setCacheStats(stats);
@@ -1007,6 +1024,30 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
                 onClear: () => _clearSpecificCache('Weather'),
                 onRefresh: _refreshWeatherData,
               ),
+              FutureBuilder<Map<String, dynamic>>(
+                future: _getElevationCacheStats(),
+                builder: (context, snapshot) {
+                  final stats = snapshot.data ?? {};
+                  final total30m = stats['cache_30m'] ?? 0;
+                  final total500m = stats['cache_500m'] ?? 0;
+                  final totalFiles = stats['total_files'] ?? (total30m + total500m);
+                  final cacheSize = stats['cache_size'] ?? 0;
+                  
+                  String subtitle = 'Downloaded on demand';
+                  if (totalFiles > 0) {
+                    final sizeInGB = (cacheSize / 1024 / 1024 / 1024).toStringAsFixed(2);
+                    subtitle = '$total30m precise, $total500m visual • ${sizeInGB}GB';
+                  }
+                  
+                  return _buildCompactCacheCard(
+                    title: 'Elevation Data',
+                    icon: Icons.terrain,
+                    count: totalFiles,
+                    lastFetch: subtitle,
+                    onClear: () => _clearSpecificCache('Elevation'),
+                  );
+                },
+              ),
 
               const SizedBox(height: 16),
 
@@ -1317,6 +1358,9 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
           case 'Hotspots':
             _tiledDataLoader.clearCacheForType('hotspots');
             break;
+          case 'Elevation':
+            await SrtmElevationService.clearCacheStatic();
+            break;
         }
         await _loadAllCacheStats();
         if (mounted) {
@@ -1454,6 +1498,53 @@ class _SettingsDialogState extends State<SettingsDialog> with SingleTickerProvid
   void _stopDownload() {
     if (!mounted) return;
     _offlineMapService.cancelDownload();
+  }
+
+  /// Get SRTM elevation cache statistics
+  Future<Map<String, dynamic>> _getElevationCacheStats() async {
+    try {
+      // Get actual file counts from disk
+      final fileCount = await SrtmElevationService.getCacheFileCount();
+      final cacheSize = await SrtmElevationService.getCacheSize();
+      
+      // Count 30m and 500m files separately if possible
+      final appDir = await getApplicationDocumentsDirectory();
+      final cacheDir = Directory(path.join(appDir.path, 'srtm_cache'));
+      int count30m = 0;
+      int count500m = 0;
+      
+      if (await cacheDir.exists()) {
+        // Count 30m files
+        final dir30m = Directory(path.join(cacheDir.path, '30m'));
+        if (await dir30m.exists()) {
+          await for (final file in dir30m.list(recursive: true)) {
+            if (file is File && (file.path.endsWith('.hgt') || file.path.endsWith('.tif'))) {
+              count30m++;
+            }
+          }
+        }
+        
+        // Count 500m files
+        final dir500m = Directory(path.join(cacheDir.path, '500m'));
+        if (await dir500m.exists()) {
+          await for (final file in dir500m.list(recursive: true)) {
+            if (file is File && file.path.endsWith('.hgt')) {
+              count500m++;
+            }
+          }
+        }
+      }
+      
+      return {
+        'cache_30m': count30m,
+        'cache_500m': count500m,
+        'total_files': fileCount,
+        'cache_size': cacheSize,
+      };
+    } catch (e) {
+      debugPrint('Error getting SRTM cache stats: $e');
+      return {};
+    }
   }
 
   static Widget _buildCompactSection({

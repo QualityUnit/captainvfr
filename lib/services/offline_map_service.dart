@@ -328,6 +328,21 @@ class OfflineMapService {
     
     await _database!.delete(_tableName);
   }
+  
+  /// Delete a specific cached tile
+  Future<void> deleteCachedTile(int z, int x, int y) async {
+    if (kIsWeb || _database == null) return;
+    
+    try {
+      await _database!.delete(
+        _tableName,
+        where: 'z = ? AND x = ? AND y = ?',
+        whereArgs: [z, x, y],
+      );
+    } catch (e) {
+      _logger.w('Failed to delete cached tile $z/$x/$y: $e');
+    }
+  }
 
   /// Clear old cached tiles
   Future<void> clearOldTiles(int daysOld) async {

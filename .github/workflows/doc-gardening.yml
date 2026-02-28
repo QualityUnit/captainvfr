@@ -1,0 +1,205 @@
+name: Documentation Gardening
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+concurrency:
+  group: doc-gardening
+  cancel-in-progress: true
+jobs:
+  gardening:
+    name: Documentation Gardening
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Setup Flutter
+        uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      - name: Configure AWS credentials
+        continue-on-error: true
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+      - name: Setup Kiro CLI
+        uses: clouatre-labs/setup-kiro-action@v1
+        with:
+          enable-sigv4: 'true'
+      - name: Authenticate Kiro CLI
+        env:
+          KIRO_CLIENT_ID: ${{ secrets.KIRO_CLIENT_ID }}
+          KIRO_CLIENT_SECRET: ${{ secrets.KIRO_CLIENT_SECRET }}
+          KIRO_REFRESH_TOKEN: ${{ secrets.KIRO_REFRESH_TOKEN }}
+          KIRO_PROFILE_ARN: ${{ secrets.KIRO_PROFILE_ARN }}
+          KIRO_OIDC_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          KIRO_START_URL: ${{ secrets.KIRO_START_URL || '' }}
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "https://oidc.${KIRO_OIDC_REGION}.amazonaws.com/token" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"grantType\": \"refresh_token\",
+              \"clientId\": \"${KIRO_CLIENT_ID}\",
+              \"clientSecret\": \"${KIRO_CLIENT_SECRET}\",
+              \"refreshToken\": \"${KIRO_REFRESH_TOKEN}\"
+            }")
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.accessToken // empty')
+          NEW_REFRESH=$(echo "$RESPONSE" | jq -r '.refreshToken // empty')
+          if [[ -z "$ACCESS_TOKEN" ]]; then
+            echo "::error::Kiro OIDC token refresh failed"
+            echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
+            exit 1
+          fi
+          echo "::add-mask::${ACCESS_TOKEN}"
+          echo "::add-mask::${NEW_REFRESH}"
+          mkdir -p ~/.local/share/kiro-cli
+          EXPIRES_AT=$(date -u -d "+3600 seconds" +"%Y-%m-%dT%H:%M:%S.%6NZ")
+          CLIENT_EXPIRES=$(date -u -d "+90 days" +"%Y-%m-%dT%H:%M:%S.000Z")
+          python3 -c "
+          import sqlite3, json, sys, os, time
+          db = os.path.expanduser('~/.local/share/kiro-cli/data.sqlite3')
+          conn = sqlite3.connect(db)
+          c = conn.cursor()
+          c.executescript('''
+            CREATE TABLE IF NOT EXISTS migrations (
+              id INTEGER PRIMARY KEY, version INTEGER NOT NULL,
+              migration_time INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS auth_kv (
+              key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS state (
+              key TEXT PRIMARY KEY, value BLOB);
+            CREATE TABLE IF NOT EXISTS history (
+              id INTEGER PRIMARY KEY);
+            CREATE TABLE IF NOT EXISTS conversations (
+              key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS conversations_v2 (
+              key TEXT NOT NULL, conversation_id TEXT NOT NULL,
+              value TEXT NOT NULL, created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              PRIMARY KEY (key, conversation_id));
+          ''')
+          now = int(time.time())
+          for i in range(9):
+            c.execute('INSERT OR IGNORE INTO migrations VALUES (?,?,?)', (i+1,i,now))
+          token = json.dumps({'access_token': sys.argv[1], 'expires_at': sys.argv[2],
+            'refresh_token': sys.argv[3], 'region': sys.argv[6],
+            'start_url': sys.argv[7] or '', 'oauth_flow': 'Pkce',
+            'scopes': ['codewhisperer:completions','codewhisperer:analysis','codewhisperer:conversations']})
+          reg = json.dumps({'client_id': sys.argv[4], 'client_secret': sys.argv[5],
+            'client_secret_expires_at': sys.argv[8], 'region': sys.argv[6],
+            'oauth_flow': 'Pkce', 'scopes': ['codewhisperer:completions',
+            'codewhisperer:analysis','codewhisperer:conversations']})
+          c.execute('INSERT OR REPLACE INTO auth_kv VALUES (?,?)', ('kirocli:odic:token', token))
+          c.execute('INSERT OR REPLACE INTO auth_kv VALUES (?,?)', ('kirocli:odic:device-registration', reg))
+          if sys.argv[9]:
+            profile = json.dumps({'arn': sys.argv[9], 'profile_name': sys.argv[9].split('/')[-1]})
+            c.execute('INSERT OR REPLACE INTO state VALUES (?,?)', ('api.codewhisperer.profile', profile))
+          c.execute('INSERT OR REPLACE INTO state VALUES (?,?)', ('profile.Migrated', '1'))
+          conn.commit()
+          conn.close()
+          " "$ACCESS_TOKEN" "$EXPIRES_AT" "$NEW_REFRESH" \
+            "$KIRO_CLIENT_ID" "$KIRO_CLIENT_SECRET" "$KIRO_OIDC_REGION" \
+            "$KIRO_START_URL" "$CLIENT_EXPIRES" "$KIRO_PROFILE_ARN"
+          kiro-cli-chat whoami
+      - name: Run documentation gardening agent
+        id: gardening-agent
+        env:
+          KIRO_PROMPT: 'Read and follow the instructions in scripts/doc-gardening-prompt.md to perform documentation gardening on this repository.'
+        run: |
+          RAW=$(kiro-cli-chat chat --no-interactive --trust-all-tools "$KIRO_PROMPT" 2>&1) || true
+          CLEAN=$(printf '%s\n' "$RAW" | sed 's/\x1b\[[0-9;]*m//g')
+          echo "$CLEAN"
+          JSON_LINE=$(printf '%s\n' "$CLEAN" | python3 -c "
+          import sys,json
+          t=sys.stdin.read()
+          e=t.rfind('}')
+          if e>=0:
+            d=0
+            for i in range(e,-1,-1):
+              c=t[i]
+              if c=='}':d+=1
+              elif c=='{':d-=1
+              if d==0:
+                try:
+                  o=json.loads(t[i:e+1]);print(json.dumps(o))
+                except:pass
+                break
+          " 2>/dev/null || true)
+          if [[ -n "$JSON_LINE" ]] && echo "$JSON_LINE" | jq . >/dev/null 2>&1; then
+            {
+              echo "structured_output<<KIRO_JSON_EOF"
+              echo "$JSON_LINE"
+              echo "KIRO_JSON_EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+      - name: Revert non-documentation changes
+        id: safety
+        run: |
+          MODIFIED=$(git diff --name-only 2>/dev/null || echo "")
+          if [[ -z "$MODIFIED" ]]; then
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Documentation is up-to-date. No changes needed."
+            exit 0
+          fi
+          while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
+            case "$file" in
+              *.md|*.mdx|*.rst) ;;
+              *)
+                echo "::warning::Reverted non-documentation file: ${file}"
+                git checkout -- "$file"
+                ;;
+            esac
+          done <<< "$MODIFIED"
+          REMAINING=$(git diff --name-only 2>/dev/null || echo "")
+          if [[ -z "$REMAINING" ]]; then
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No documentation changes remain after safety revert."
+          else
+            echo "has-changes=true" >> "$GITHUB_OUTPUT"
+            COUNT=$(echo "$REMAINING" | wc -l | tr -d ' ')
+            echo "OK ${COUNT} documentation file(s) modified"
+            echo "$REMAINING"
+          fi
+      - name: Create or update pull request
+        if: steps.safety.outputs.has-changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: 'docs: weekly documentation gardening'
+          body: |
+            ## Automated Documentation Gardening
+            This PR was generated by the weekly doc-gardening workflow.
+            ### Changes include:
+            - Updated stale references to renamed/deleted Dart source files
+            - Fixed broken internal markdown links
+            - Synchronized documented scripts with actual `pubspec.yaml` and `scripts/` directory
+            - Removed references to deprecated APIs or deleted modules
+            - Updated elevation data regeneration instructions if scripts changed
+            ### Files scanned:
+            - `README.md`
+            - `docs/` directory
+            **Risk tier**: Tier 1 (documentation only)
+            Please review changes carefully before merging.
+          branch: docs/weekly-gardening
+          commit-message: 'docs: automated documentation gardening'
+          committer: 'doc-gardening-bot[bot] <doc-gardening-bot[bot]@users.noreply.github.com>'
+          author: 'doc-gardening-bot[bot] <doc-gardening-bot[bot]@users.noreply.github.com>'
+          labels: |
+            documentation
+            automated
+          delete-branch: true
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

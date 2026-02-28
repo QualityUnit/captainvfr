@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/flight_plan.dart';
 import '../services/flight_plan_service.dart';
 import '../services/settings_service.dart';
+import '../services/terrain_elevation_service.dart';
 import '../l10n/app_localizations.dart';
 
 class FloatingWaypointPanel extends StatefulWidget {
@@ -28,6 +30,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
   Offset _panelPosition = const Offset(20, 100);
   bool _isDragging = false;
   Size? _lastScreenSize;
+  double? _groundElevationFt;
 
   @override
   void initState() {
@@ -38,7 +41,16 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
     _loadWaypointData();
   }
 
-  void _loadWaypointData() {
+  @override
+  void didUpdateWidget(FloatingWaypointPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.waypointIndex != widget.waypointIndex) {
+      _groundElevationFt = null; // Reset elevation
+      _loadWaypointData();
+    }
+  }
+
+  void _loadWaypointData() async {
     final flightPlanService = Provider.of<FlightPlanService>(
       context,
       listen: false,
@@ -51,6 +63,20 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
       _nameController.text = waypoint.name ?? '';
       _altitudeController.text = waypoint.altitude.toStringAsFixed(0);
       _notesController.text = waypoint.notes ?? '';
+      
+      // Fetch ground elevation
+      try {
+        final elevationMeters = await TerrainElevationService.getElevation(
+          LatLng(waypoint.latitude, waypoint.longitude)
+        );
+        if (elevationMeters != null && mounted) {
+          setState(() {
+            _groundElevationFt = elevationMeters * 3.28084; // Convert meters to feet
+          });
+        }
+      } catch (e) {
+        // Ignore errors getting elevation
+      }
     }
   }
 
@@ -279,6 +305,37 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
                               ),
                             ],
                           ),
+                          
+                          // Ground elevation and AGL
+                          if (_groundElevationFt != null) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.terrain,
+                                  size: 12,
+                                  color: Colors.brown,
+                                ),
+                                const SizedBox(width: 4),
+                                Consumer<SettingsService>(
+                                  builder: (context, settings, child) {
+                                    final isMetric = settings.units == 'metric';
+                                    final groundElevation = isMetric ? _groundElevationFt! * 0.3048 : _groundElevationFt!;
+                                    final agl = waypoint.altitude - _groundElevationFt!;
+                                    final aglDisplay = isMetric ? agl * 0.3048 : agl;
+                                    final unit = isMetric ? 'm' : 'ft';
+                                    return Text(
+                                      'Ground: ${groundElevation.toStringAsFixed(0)} $unit (AGL: ${aglDisplay.toStringAsFixed(0)} $unit)',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.white70,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
                           
                           // Notes if present
                           if (waypoint.notes != null && waypoint.notes!.isNotEmpty) ...[

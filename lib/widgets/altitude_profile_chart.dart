@@ -825,13 +825,19 @@ class TerrainProfilePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Get terrain points (filter out nulls)
     final terrainPoints = <ProfilePoint>[];
+    double minTerrain = double.infinity;
+    double maxTerrain = 0;
+    
     for (final point in profile.profilePoints) {
       if (point.terrainElevationFt != null) {
         terrainPoints.add(point);
+        minTerrain = math.min(minTerrain, point.terrainElevationFt!);
+        maxTerrain = math.max(maxTerrain, point.terrainElevationFt!);
       }
     }
     
     if (terrainPoints.isEmpty) return;
+    
     
     // Calculate chart maximum altitude (same logic as in chart)
     final double chartMaxAltitude = math.min(
@@ -853,63 +859,106 @@ class TerrainProfilePainter extends CustomPainter {
     
     if (chartWidth <= 0 || chartHeight <= 0) return;
     
-    // Create terrain fill path
-    final terrainPath = ui.Path();
-    bool firstPoint = true;
-    
-    for (final point in terrainPoints) {
-      final x = leftPadding + (point.distanceNm / profile.totalDistanceNm) * chartWidth;
-      final y = topPadding + chartHeight - (point.terrainElevationFt! / chartMaxAltitude) * chartHeight;
-      
-      if (firstPoint) {
-        terrainPath.moveTo(x, y);
-        firstPoint = false;
-      } else {
-        terrainPath.lineTo(x, y);
-      }
-    }
-    
-    // Close the path to fill the area
-    if (terrainPoints.isNotEmpty) {
-      // Add bottom right corner
-      final lastX = leftPadding + (terrainPoints.last.distanceNm / profile.totalDistanceNm) * chartWidth;
-      terrainPath.lineTo(lastX, topPadding + chartHeight);
-      
-      // Add bottom left corner
-      final firstX = leftPadding + (terrainPoints.first.distanceNm / profile.totalDistanceNm) * chartWidth;
-      terrainPath.lineTo(firstX, topPadding + chartHeight);
-      
-      // Close path
-      terrainPath.close();
-    }
-    
     // Save canvas state
     canvas.save();
     
     // Clip to chart area
     canvas.clipRect(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight));
     
-    // Draw terrain fill with gradient
-    final terrainPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.brown.withOpacity(0.6),
-          Colors.brown.withOpacity(0.3),
-        ],
-      ).createShader(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight))
-      ..style = PaintingStyle.fill;
+    // Create terrain line path
+    final terrainLinePath = ui.Path();
+    bool firstPoint = true;
     
-    canvas.drawPath(terrainPath, terrainPaint);
+    // Track min/max terrain for danger zones
+    double maxTerrainSeen = 0;
+    final dangerZones = <DangerZone>[];
+    DangerZone? currentDangerZone;
     
-    // Draw terrain outline
-    final outlinePaint = Paint()
-      ..color = Colors.brown
+    for (int i = 0; i < terrainPoints.length; i++) {
+      final point = terrainPoints[i];
+      final x = leftPadding + (point.distanceNm / profile.totalDistanceNm) * chartWidth;
+      final y = topPadding + chartHeight - (point.terrainElevationFt! / chartMaxAltitude) * chartHeight;
+      
+      maxTerrainSeen = math.max(maxTerrainSeen, point.terrainElevationFt!);
+      
+      // Check if terrain is close to flight altitude
+      final clearance = point.altitudeFt - point.terrainElevationFt!;
+      final isDanger = clearance < 500; // Less than 500ft clearance
+      
+      if (isDanger) {
+        currentDangerZone ??= DangerZone(startX: x, startDistance: point.distanceNm);
+        currentDangerZone.endX = x;
+        currentDangerZone.endDistance = point.distanceNm;
+        currentDangerZone.minClearance = math.min(currentDangerZone.minClearance, clearance);
+      } else if (currentDangerZone != null) {
+        dangerZones.add(currentDangerZone);
+        currentDangerZone = null;
+      }
+      
+      if (firstPoint) {
+        terrainLinePath.moveTo(x, y);
+        firstPoint = false;
+      } else {
+        terrainLinePath.lineTo(x, y);
+      }
+    }
+    
+    // Add final danger zone if any
+    if (currentDangerZone != null) {
+      dangerZones.add(currentDangerZone);
+    }
+    
+    // Draw danger zone highlights
+    for (final zone in dangerZones) {
+      final dangerPaint = Paint()
+        ..color = zone.minClearance < 100 
+          ? Colors.red.withValues(alpha: 0.2) // Critical: less than 100ft
+          : Colors.orange.withValues(alpha: 0.15) // Warning: less than 500ft
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawRect(
+        Rect.fromLTRB(zone.startX, topPadding, zone.endX, topPadding + chartHeight),
+        dangerPaint,
+      );
+    }
+    
+    // Draw terrain line
+    final terrainLinePaint = Paint()
+      ..color = Colors.red
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
     
-    canvas.drawPath(terrainPath, outlinePaint);
+    canvas.drawPath(terrainLinePath, terrainLinePaint);
+    
+    // Draw subtle fill below terrain
+    final terrainFillPath = ui.Path.from(terrainLinePath);
+    
+    if (terrainPoints.isNotEmpty) {
+      // Add bottom right corner
+      final lastX = leftPadding + (terrainPoints.last.distanceNm / profile.totalDistanceNm) * chartWidth;
+      terrainFillPath.lineTo(lastX, topPadding + chartHeight);
+      
+      // Add bottom left corner
+      final firstX = leftPadding + (terrainPoints.first.distanceNm / profile.totalDistanceNm) * chartWidth;
+      terrainFillPath.lineTo(firstX, topPadding + chartHeight);
+      
+      // Close path
+      terrainFillPath.close();
+      
+      // Draw very subtle fill
+      final terrainFillPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.brown.withValues(alpha: 0.2),
+            Colors.brown.withValues(alpha: 0.05),
+          ],
+        ).createShader(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight))
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawPath(terrainFillPath, terrainFillPaint);
+    }
     
     // Restore canvas state
     canvas.restore();
@@ -920,4 +969,17 @@ class TerrainProfilePainter extends CustomPainter {
     return oldDelegate.profile != profile ||
            oldDelegate.showMetric != showMetric;
   }
+}
+
+class DangerZone {
+  double startX;
+  double endX;
+  double startDistance;
+  double endDistance;
+  double minClearance = double.infinity;
+  
+  DangerZone({
+    required this.startX,
+    required this.startDistance,
+  }) : endX = startX, endDistance = startDistance;
 }

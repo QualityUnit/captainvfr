@@ -147,3 +147,9 @@ assets/data/*.json.gz
 assets/data/tiles/
 assets/data/tiles_csv/
 scripts/*_progress.json
+
+# NASA Earthdata credentials - NEVER commit
+scripts/earthdata_credentials.txt
+
+# Harness evidence artifacts
+.harness/evidence/

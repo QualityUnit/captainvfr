@@ -12,6 +12,7 @@ class CacheCard extends StatelessWidget {
   final String? subtitle;
   final VoidCallback? onRefresh;
   final bool isRefreshing;
+  final int? sizeBytes;
 
   const CacheCard({
     super.key,
@@ -23,6 +24,7 @@ class CacheCard extends StatelessWidget {
     this.subtitle,
     this.onRefresh,
     this.isRefreshing = false,
+    this.sizeBytes,
   });
 
   @override
@@ -80,6 +82,13 @@ class CacheCard extends StatelessWidget {
                   'Entries: $count',
                   style: TextStyle(fontSize: 16, color: AppColors.primaryTextColor),
                 ),
+                if (sizeBytes != null && sizeBytes! > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Size: ${_formatFileSize(sizeBytes!)}',
+                    style: TextStyle(fontSize: 16, color: AppColors.primaryTextColor),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   'Updated: $lastFetch',
@@ -93,5 +102,12 @@ class CacheCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '${bytes}B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)}GB';
   }
 }

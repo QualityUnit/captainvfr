@@ -74,9 +74,17 @@ class OfflineTileImageProvider extends ImageProvider<OfflineTileImageProvider> {
         coordinates.y,
       );
 
-      if (cachedTile != null) {
-        final buffer = await ImmutableBuffer.fromUint8List(cachedTile);
-        return await decode(buffer);
+      if (cachedTile != null && cachedTile.isNotEmpty) {
+        try {
+          // Validate that the cached data is actually an image
+          final buffer = await ImmutableBuffer.fromUint8List(cachedTile);
+          return await decode(buffer);
+        } catch (e) {
+          // Cached tile is corrupted, delete it and continue to download
+          logger.w('Corrupted cached tile ${coordinates.z}/${coordinates.x}/${coordinates.y}, removing from cache');
+          // Don't await to avoid blocking
+          offlineMapService.deleteCachedTile(coordinates.z, coordinates.x, coordinates.y);
+        }
       }
 
       // If not cached, try to download from online source
@@ -97,27 +105,62 @@ class OfflineTileImageProvider extends ImageProvider<OfflineTileImageProvider> {
 
       if (response.statusCode == 200) {
         final bytes = response.bodyBytes;
+        
+        // Validate that we got valid image data
+        if (bytes.isEmpty) {
+          throw Exception('Empty response body');
+        }
 
-        // Store the downloaded tile for future offline use
-        _storeTileAsync(coordinates.z, coordinates.x, coordinates.y, bytes);
-
-        final buffer = await ImmutableBuffer.fromUint8List(bytes);
-        return await decode(buffer);
+        try {
+          final buffer = await ImmutableBuffer.fromUint8List(bytes);
+          final codec = await decode(buffer);
+          
+          // Only store the tile if it decoded successfully
+          _storeTileAsync(coordinates.z, coordinates.x, coordinates.y, bytes);
+          
+          return codec;
+        } catch (e) {
+          // Don't store corrupted data
+          throw Exception('Invalid image data: $e');
+        }
       } else {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
-      // Log the error but don't spam the console for timeouts
+      // Log the error but don't spam the console for common errors
       if (e.toString().contains('TimeoutException')) {
         // Silent fail for timeouts - map will show blank tile
-      } else {
+      } else if (e.toString().contains('Codec failed') || 
+                 e.toString().contains('Invalid image data')) {
+        // Silent fail for image codec errors - these are expected for corrupted tiles
+        logger.d('Skipping corrupted tile ${coordinates.z}/${coordinates.x}/${coordinates.y}');
+      } else if (!e.toString().contains('HTTP 404') && 
+                 !e.toString().contains('HTTP 403')) {
+        // Only log unexpected errors
         logger.w(
           '⚠️ Failed to load tile ${coordinates.z}/${coordinates.x}/${coordinates.y}: $e',
         );
       }
 
-      // Return a placeholder tile or rethrow the error
-      throw Exception('Failed to load map tile: $e');
+      // Return a transparent placeholder instead of throwing
+      try {
+        final transparentPixel = Uint8List.fromList([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+          0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+          0x54, 0x78, 0x9C, 0x62, 0x00, 0x01, 0x00, 0x00,
+          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+          0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+          0x42, 0x60, 0x82,
+        ]);
+        final buffer = await ImmutableBuffer.fromUint8List(transparentPixel);
+        return await decode(buffer);
+      } catch (_) {
+        // If we can't even create a transparent image, rethrow the original error
+        throw Exception('Failed to load map tile: $e');
+      }
     }
   }
 
