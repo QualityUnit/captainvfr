@@ -20,33 +20,26 @@ class WeatherColorUtils {
   
   /// Get weather category from Airport
   static WeatherCategory getWeatherCategory(Airport airport) {
-    // Use the airport's built-in flight category if available
-    final flightCat = airport.flightCategory;
-    if (flightCat != null) {
-      switch (flightCat.toUpperCase()) {
-        case 'VFR':
-          return WeatherCategory.vfr;
-        case 'MVFR':
-          return WeatherCategory.mvfr;
-        case 'IFR':
-          return WeatherCategory.ifr;
-        case 'LIFR':
-          return WeatherCategory.lifr;
-      }
-    }
-    
-    // Parse ceiling and visibility from raw METAR
+    // Parse ceiling and visibility from raw METAR directly
+    // Don't use airport.flightCategory as it has incorrect thresholds
     final ceilingFt = _parseCeiling(airport.rawMetar);
     final visibilityMiles = _parseVisibility(airport.rawMetar);
     
     // Determine category based on FAA definitions
-    if (ceilingFt != null && ceilingFt < 500 || visibilityMiles != null && visibilityMiles < 1) {
+    // LIFR: Ceiling < 500ft OR Visibility < 1mi
+    if ((ceilingFt != null && ceilingFt < 500) || (visibilityMiles != null && visibilityMiles < 1)) {
       return WeatherCategory.lifr; // Low IFR
-    } else if (ceilingFt != null && ceilingFt < 1000 || visibilityMiles != null && visibilityMiles < 3) {
+    } 
+    // IFR: Ceiling 500-999ft OR Visibility 1-2mi
+    else if ((ceilingFt != null && ceilingFt < 1000) || (visibilityMiles != null && visibilityMiles < 3)) {
       return WeatherCategory.ifr; // IFR
-    } else if (ceilingFt != null && ceilingFt < 3000 || visibilityMiles != null && visibilityMiles < 5) {
+    } 
+    // MVFR: Ceiling 1000-2999ft OR Visibility 3-4mi
+    else if ((ceilingFt != null && ceilingFt < 3000) || (visibilityMiles != null && visibilityMiles < 5)) {
       return WeatherCategory.mvfr; // Marginal VFR
-    } else {
+    } 
+    // VFR: Ceiling >= 3000ft AND Visibility >= 5mi
+    else {
       return WeatherCategory.vfr; // VFR
     }
   }
