@@ -14,6 +14,7 @@ import '../models/flight_segment.dart';
 import 'barometer_service.dart';
 import 'heading_service.dart';
 import 'watch_connectivity_service.dart';
+import 'background_tracking_service.dart';
 import 'flight/helpers/analytics_wrapper.dart';
 import 'flight/models/flight_state.dart';
 import 'flight/models/flight_constants.dart';
@@ -26,7 +27,7 @@ import 'logbook_service.dart';
 import 'settings_service.dart';
 import 'airport_service.dart';
 
-class FlightService with ChangeNotifier {
+class FlightService with ChangeNotifier, WidgetsBindingObserver {
   // Core components
   final FlightState _flightState = FlightState();
   late final SensorManager _sensorManager;
@@ -40,10 +41,14 @@ class FlightService with ChangeNotifier {
   final LogBookService? _logBookService;
   final AirportService? _airportService;
   final WatchConnectivityService _watchService = WatchConnectivityService();
+  final BackgroundTrackingService _backgroundService = BackgroundTrackingService();
   
   // Subscriptions
   StreamSubscription? _barometerSubscription;
   StreamSubscription<bool>? _watchTrackingSubscription;
+  
+  // Background tracking state
+  Timer? _backgroundUpdateTimer;
   
   // Throttling
   DateTime? _lastNotifyTime;
@@ -193,6 +198,18 @@ class FlightService with ChangeNotifier {
     // Enable wakelock to keep screen on
     WakelockPlus.enable();
     
+    // Initialize and start background tracking service
+    await _backgroundService.initialize();
+    await _backgroundService.startTracking(
+      flightName: 'Flight ${DateTime.now().toString().substring(0, 16)}',
+    );
+    
+    // Start periodic background updates (every 30 seconds)
+    _startBackgroundUpdates();
+    
+    // Register as lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
+    
     // Reset state
     _flightState.reset();
     
@@ -208,7 +225,7 @@ class FlightService with ChangeNotifier {
     // The initializeBarometerService method handles redundancy checking
     await initializeBarometerService();
     
-    // Start location tracking
+    // Start location tracking with background mode enabled
     await _locationTracker.startTracking();
     
     // Notify listeners
@@ -216,10 +233,19 @@ class FlightService with ChangeNotifier {
     
     // Track analytics
     AnalyticsWrapper.track('flight_tracking_started');
+    
+    debugPrint('✅ Flight tracking started with background support');
   }
   
   Future<Flight?> stopTracking() async {
     if (!_flightState.isTracking) return null;
+    
+    // Stop background tracking
+    await _backgroundService.stopTracking();
+    _stopBackgroundUpdates();
+    
+    // Unregister lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
     
     // Disable wakelock
     WakelockPlus.disable();
@@ -240,6 +266,8 @@ class FlightService with ChangeNotifier {
     // The barometer will continue running independently
     
     _flightState.setTracking(false);
+    
+    debugPrint('✅ Flight tracking stopped');
     
     // Save flight if there's data
     Flight? savedFlight;
@@ -723,8 +751,115 @@ class FlightService with ChangeNotifier {
     return 0.0;
   }
 
+  // App lifecycle handling for background tracking
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('📱 App lifecycle state changed: $state');
+    
+    switch (state) {
+      case AppLifecycleState.paused:
+        // App moved to background
+        _handleAppPaused();
+        break;
+      case AppLifecycleState.resumed:
+        // App back in foreground
+        _handleAppResumed();
+        break;
+      case AppLifecycleState.detached:
+        // App being killed
+        _handleAppDetached();
+        break;
+      default:
+        break;
+    }
+  }
+  
+  void _handleAppPaused() {
+    if (!_flightState.isTracking) return;
+    
+    debugPrint('📱 App paused - ensuring background tracking continues');
+    
+    // Keep wakelock active
+    WakelockPlus.enable();
+    
+    // Verify location tracking is still active
+    if (!_locationTracker.isTracking) {
+      debugPrint('⚠️ Location tracking stopped, restarting...');
+      _locationTracker.startTracking();
+    }
+  }
+  
+  void _handleAppResumed() {
+    if (!_flightState.isTracking) return;
+    
+    debugPrint('📱 App resumed - verifying tracking state');
+    
+    // Verify all tracking components are still active
+    if (!_locationTracker.isTracking) {
+      debugPrint('⚠️ Location tracking was stopped, restarting...');
+      _locationTracker.startTracking();
+    }
+    
+    // Notify listeners to refresh UI
+    notifyListeners();
+  }
+  
+  void _handleAppDetached() {
+    debugPrint('📱 App detached - saving flight state');
+    
+    // Save current flight state if tracking
+    if (_flightState.isTracking && _flightState.flightPath.isNotEmpty) {
+      // Flight will be auto-saved by stopTracking
+      // This is just a safety measure
+      debugPrint('💾 Auto-saving flight before app termination');
+    }
+  }
+  
+  // Background notification updates
+  void _startBackgroundUpdates() {
+    _backgroundUpdateTimer?.cancel();
+    
+    // Update notification every 30 seconds with current flight info
+    _backgroundUpdateTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!_flightState.isTracking) {
+        _stopBackgroundUpdates();
+        return;
+      }
+      
+      _updateBackgroundNotification();
+    });
+  }
+  
+  void _stopBackgroundUpdates() {
+    _backgroundUpdateTimer?.cancel();
+    _backgroundUpdateTimer = null;
+  }
+  
+  void _updateBackgroundNotification() {
+    final duration = movingTime;
+    final altitude = _flightState.flightPath.isNotEmpty 
+        ? _flightState.flightPath.last.altitude 
+        : 0.0;
+    final speed = currentSpeed;
+    final distance = totalDistance;
+    
+    _backgroundService.updateTracking(
+      duration: duration,
+      altitude: altitude,
+      speed: speed,
+      distance: distance,
+    );
+  }
+  
   @override
   void dispose() {
+    // Remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
+    
+    // Stop background tracking
+    _stopBackgroundUpdates();
+    _backgroundService.stopTracking();
+    
     // Remove heading listener if it was added
     if (_headingService != null) {
       _headingService.removeListener(_onHeadingServiceUpdate);

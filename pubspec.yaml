@@ -46,6 +46,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   universal_platform: ^1.1.0
   battery_plus: ^7.0.0
+  flutter_local_notifications: ^17.0.0
   
   # Charts
   fl_chart: ^1.0.0
