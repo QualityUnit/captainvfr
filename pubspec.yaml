@@ -47,6 +47,7 @@ dependencies:
   universal_platform: ^1.1.0
   battery_plus: ^7.0.0
   flutter_local_notifications: ^17.0.0
+  flutter_tts: ^4.2.0
   
   # Charts
   fl_chart: ^1.0.0

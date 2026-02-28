@@ -60,6 +60,7 @@ import 'services/logbook_service.dart';
 import 'services/localization_service.dart';
 import 'services/search_history_service.dart';
 import 'services/display_mode_service.dart';
+import 'services/voice_announcement_service.dart';
 import 'constants/app_theme.dart';
 
 void main() {
@@ -296,6 +297,9 @@ Future<void> _initializeApp() async {
     final displayModeService = DisplayModeService();
     await displayModeService.init();
     
+    // Initialize Voice Announcement service
+    final voiceAnnouncementService = VoiceAnnouncementService();
+    
     // Initialize sensor availability service
     final sensorAvailabilityService = SensorAvailabilityService();
     // Note: Sensor check will be performed in UI context where localization is available
@@ -375,6 +379,7 @@ Future<void> _initializeApp() async {
           ChangeNotifierProvider<LocalizationService>.value(value: localizationService),
           ChangeNotifierProvider<SearchHistoryService>.value(value: searchHistoryService),
           ChangeNotifierProvider<DisplayModeService>.value(value: displayModeService),
+          ChangeNotifierProvider<VoiceAnnouncementService>.value(value: voiceAnnouncementService),
           ChangeNotifierProvider<HeadingService>.value(value: headingService),
           Provider<AirportService>.value(value: airportService),
           ChangeNotifierProvider<CacheService>.value(value: cacheService),
@@ -481,6 +486,7 @@ void _runMinimalApp() {
   );
   final backgroundDataService = BackgroundDataService();
   final sensorAvailabilityService = SensorAvailabilityService();
+  final voiceAnnouncementService = VoiceAnnouncementService();
 
   // Initialize connectivity service even in minimal mode
   connectivityService.initialize().then((_) {
@@ -508,6 +514,7 @@ void _runMinimalApp() {
         ChangeNotifierProvider<LogBookService>.value(value: logBookService),
         ChangeNotifierProvider<SettingsService>.value(value: settingsService),
         ChangeNotifierProvider<LocalizationService>.value(value: localizationService),
+        ChangeNotifierProvider<VoiceAnnouncementService>.value(value: voiceAnnouncementService),
         ChangeNotifierProvider<HeadingService>.value(value: headingService),
         Provider<AirportService>.value(value: airportService),
         ChangeNotifierProvider<CacheService>.value(value: cacheService),

@@ -86,6 +86,7 @@ import '../services/terrain_elevation_service.dart';
 import '../widgets/flight_hud.dart';
 import '../widgets/emergency_panel.dart';
 import '../widgets/quick_action_bar.dart';
+import '../widgets/gesture_hints_overlay.dart';
 
 // Extracted components
 import 'map/constants/map_constants.dart';
@@ -205,6 +206,7 @@ class MapScreenState extends State<MapScreen>
   // HUD and Emergency panel state
   bool _isHUDExpanded = false;
   bool _showEmergencyPanel = false;
+  bool _showGestureHints = false;
 
   // Location and map state
   Position? _currentPosition;
@@ -280,10 +282,28 @@ class MapScreenState extends State<MapScreen>
       _showLocationLoadingNotification();
       _initLocationInBackground();
       
+      // Check if gesture hints should be shown
+      _checkGestureHints();
+      
       // Log screen view
       final analytics = Provider.of<AnalyticsService>(context, listen: false);
       analytics.logScreenView(screenName: 'map_screen');
     });
+  }
+  
+  // Check and show gesture hints for first-time users
+  Future<void> _checkGestureHints() async {
+    final shouldShow = await GestureHintsOverlay.shouldShow();
+    if (shouldShow && mounted) {
+      // Delay showing hints to let map load first
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() {
+            _showGestureHints = true;
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -5036,6 +5056,18 @@ class MapScreenState extends State<MapScreen>
               child: LoadingProgressBar(),
             ),
           ),
+          
+          // Gesture hints overlay for first-time users
+          if (_showGestureHints)
+            Positioned.fill(
+              child: GestureHintsOverlay(
+                onDismiss: () {
+                  setState(() {
+                    _showGestureHints = false;
+                  });
+                },
+              ),
+            ),
           
           // Zoom control buttons in top left corner, aligned with menu button
           Positioned(
