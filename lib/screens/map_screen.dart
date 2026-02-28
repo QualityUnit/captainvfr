@@ -85,7 +85,6 @@ import '../services/notam_service_v3.dart';
 import '../services/terrain_elevation_service.dart';
 import '../widgets/flight_hud.dart';
 import '../widgets/emergency_panel.dart';
-import '../widgets/quick_action_bar.dart';
 import '../widgets/gesture_hints_overlay.dart';
 
 // Extracted components
@@ -4378,59 +4377,6 @@ class MapScreenState extends State<MapScreen>
           // Flight tracking panel - always visible on bottom right
           const FlightTrackingPanel(),
           
-          // Quick action bar - bottom center for easy thumb access
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: QuickActionBar(
-                onCenterMap: () async {
-                  if (!_positionTrackingEnabled) {
-                    await _togglePositionTracking();
-                  } else {
-                    setState(() {
-                      _autoCenteringEnabled = true;
-                      _autoCenteringCountdown = 0;
-                    });
-                    if (_currentPosition != null) {
-                      _mapController.move(
-                        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-                        _mapController.camera.zoom,
-                      );
-                    }
-                  }
-                },
-                onStartFlight: () {
-                  if (_flightService.isTracking) {
-                    _flightService.stopTracking();
-                  } else {
-                    _flightService.startTracking();
-                  }
-                },
-                onEmergency: () {
-                  setState(() {
-                    _showEmergencyPanel = !_showEmergencyPanel;
-                  });
-                },
-                onLayers: () {
-                  _mapStateController.toggleMenuPanel();
-                },
-                onFlightPlan: () {
-                  setState(() {
-                    _showFlightPlanning = !_showFlightPlanning;
-                    if (_showFlightPlanning && !_flightPlanningExpanded) {
-                      _flightPlanningExpanded = true;
-                    }
-                  });
-                },
-                isTracking: _flightService.isTracking,
-                hasFlightPlan: _flightPlanService.currentFlightPlan != null ||
-                    _flightPlanService.currentTrip != null,
-              ),
-            ),
-          ),
-
           // Airspace information panel
           if (_showCurrentAirspacePanel) ...[
             Builder(
