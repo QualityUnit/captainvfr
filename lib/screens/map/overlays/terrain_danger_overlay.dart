@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'dart:async';
 import '../../../services/terrain_elevation_service.dart';
+import '../../../utils/terrain_color_utils.dart';
 
 /// Overlay showing terrain danger zones based on current altitude
 class TerrainDangerOverlay extends StatefulWidget {
@@ -165,26 +166,28 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
       return const SizedBox.shrink();
     }
 
-    // Return only the map markers layer
-    // The warning text will be handled separately in TerrainWarningText widget
+    // Return only the map markers layer with terrain color coding
     return IgnorePointer(
       child: MarkerLayer(
         markers: _dangerZones
             .where((zone) => zone.warningLevel == TerrainWarningLevel.critical || 
                              zone.warningLevel == TerrainWarningLevel.warning)
-            .map((zone) => Marker(
-                  point: zone.position,
-                  width: 15,  // Small markers
-                  height: 15,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: zone.warningLevel == TerrainWarningLevel.critical
-                          ? Colors.red.withValues(alpha: 0.08)  // Very transparent red
-                          : Colors.orange.withValues(alpha: 0.06), // Very transparent orange
-                      shape: BoxShape.circle,
-                    ),
+            .map((zone) {
+              // Use clearance from the zone for color coding
+              final color = TerrainColorUtils.getTerrainColor(zone.clearanceFt);
+              
+              return Marker(
+                point: zone.position,
+                width: 15,  // Small markers
+                height: 15,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),  // Semi-transparent
+                    shape: BoxShape.circle,
                   ),
-                ))
+                ),
+              );
+            })
             .toList(),
       ),
     );

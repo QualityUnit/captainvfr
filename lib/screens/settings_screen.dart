@@ -19,6 +19,7 @@ import '../services/navaid_service.dart';
 import '../services/weather_service.dart';
 import '../services/tiled_data_loader.dart';
 import '../services/srtm_elevation_service.dart';
+import '../services/voice_announcement_service.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_colors.dart';
 import 'offline_data/controllers/offline_data_state_controller.dart';
@@ -102,6 +103,65 @@ class SettingsScreen extends StatelessWidget {
                     value: settings.autoCreateLogbookEntry,
                     onChanged: (value) =>
                         settings.setAutoCreateLogbookEntry(value),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildSection(
+                title: 'Voice Announcements',
+                children: [
+                  Consumer<VoiceAnnouncementService>(
+                    builder: (context, voiceService, child) {
+                      return Column(
+                        children: [
+                          _buildSwitchTile(
+                            title: 'Enable Voice Announcements',
+                            subtitle: 'Hands-free audio alerts during flight',
+                            value: voiceService.isEnabled,
+                            onChanged: (value) => voiceService.setEnabled(value),
+                          ),
+                          if (voiceService.isEnabled) ...[
+                            const Divider(color: Colors.white24),
+                            ListTile(
+                              title: const Text('Volume', style: TextStyle(color: Colors.white)),
+                              subtitle: Slider(
+                                value: voiceService.volume,
+                                min: 0.0,
+                                max: 1.0,
+                                divisions: 10,
+                                label: '${(voiceService.volume * 100).round()}%',
+                                onChanged: (value) => voiceService.setVolume(value),
+                                activeColor: const Color(0xFF448AFF),
+                              ),
+                            ),
+                            ListTile(
+                              title: const Text('Speech Rate', style: TextStyle(color: Colors.white)),
+                              subtitle: Slider(
+                                value: voiceService.speechRate,
+                                min: 0.1,
+                                max: 1.0,
+                                divisions: 9,
+                                label: '${(voiceService.speechRate * 100).round()}%',
+                                onChanged: (value) => voiceService.setSpeechRate(value),
+                                activeColor: const Color(0xFF448AFF),
+                              ),
+                            ),
+                            ListTile(
+                              title: const Text('Pitch', style: TextStyle(color: Colors.white)),
+                              subtitle: Slider(
+                                value: voiceService.pitch,
+                                min: 0.5,
+                                max: 2.0,
+                                divisions: 15,
+                                label: voiceService.pitch.toStringAsFixed(1),
+                                onChanged: (value) => voiceService.setPitch(value),
+                                activeColor: const Color(0xFF448AFF),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

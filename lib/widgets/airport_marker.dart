@@ -3,8 +3,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'dart:math' as math;
 import '../models/airport.dart';
 import '../models/runway.dart';
-import 'unified_runway_painter.dart';
+import '../widgets/unified_runway_painter.dart';
 import '../utils/geo_constants.dart';
+import '../utils/weather_color_utils.dart';
 
 class AirportMarker extends StatelessWidget {
   final Airport airport;
@@ -264,22 +265,9 @@ class AirportMarker extends StatelessWidget {
 
   // Get color based on flight category or airport type
   Color _getAirportColor(String type) {
-    // If we have weather data, use the flight category color
-    final category = airport.flightCategory;
-    if (category != null) {
-      switch (category) {
-        case 'VFR':
-          return Colors.green;
-        case 'MVFR':
-          return Colors.blue;
-        case 'IFR':
-          return Colors.red;
-        case 'LIFR':
-          return Colors.purple;
-        default:
-          break;
-      }
-      return Colors.orange;
+    // If we have weather data, use the weather category color
+    if (airport.rawMetar != null) {
+      return WeatherColorUtils.getWeatherColor(airport);
     }
 
     // Fall back to airport type if no weather data
