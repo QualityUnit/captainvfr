@@ -10,7 +10,6 @@ import 'terrain_elevation_service.dart';
 
 class FlightPathAnalyzer {
   final SpatialAirspaceService _airspaceService;
-  final TerrainElevationService _terrainService = TerrainElevationService();
   static const Distance _distance = Distance();
   
   FlightPathAnalyzer(this._airspaceService);
@@ -360,7 +359,7 @@ class FlightPathAnalyzer {
     // Fetch all elevations in parallel for better performance
     final futures = <Future<double?>>[];
     for (final point in points) {
-      futures.add(_terrainService.getElevation(point.position));
+      futures.add(TerrainElevationService.getElevation(point.position));
     }
     
     final elevations = await Future.wait(futures);

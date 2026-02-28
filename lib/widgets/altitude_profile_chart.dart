@@ -886,9 +886,7 @@ class TerrainProfilePainter extends CustomPainter {
       final isDanger = clearance < 500; // Less than 500ft clearance
       
       if (isDanger) {
-        if (currentDangerZone == null) {
-          currentDangerZone = DangerZone(startX: x, startDistance: point.distanceNm);
-        }
+        currentDangerZone ??= DangerZone(startX: x, startDistance: point.distanceNm);
         currentDangerZone.endX = x;
         currentDangerZone.endDistance = point.distanceNm;
         currentDangerZone.minClearance = math.min(currentDangerZone.minClearance, clearance);

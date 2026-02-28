@@ -1,8 +1,7 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -55,10 +54,7 @@ import '../widgets/airport_search_dialog.dart';
 import '../widgets/metar_overlay.dart';
 import 'map/overlays/animated_safesky_overlay.dart';
 import 'map/overlays/terrain_danger_overlay.dart';
-import 'map/overlays/terrain_relief_overlay.dart';
-import 'map/overlays/simple_airspaces_3d_overlay.dart';
-import 'map/overlays/obstacles_3d_overlay.dart';
-import 'map/overlays/safesky_3d_overlay.dart';
+import 'map/overlays/contour_lines_overlay.dart';
 import '../widgets/flight_plan_overlay.dart';
 import '../widgets/flight_planning_panel.dart';
 import '../widgets/license_warning_widget.dart';
@@ -87,7 +83,6 @@ import '../services/terrain_elevation_service.dart';
 // Extracted components
 import 'map/constants/map_constants.dart';
 import 'map/controllers/map_state_controller.dart';
-import 'package:flutter/foundation.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -161,7 +156,6 @@ class MapScreenState extends State<MapScreen>
   bool _isInitializing = false; // Guard against concurrent initialization
   bool _showFlightPlanning = false; // Toggle for integrated flight planning
   MapRotationMode? _previousRotationMode; // Track rotation mode changes
-  double _mapTilt = 0.0; // 3D tilt angle (0 = flat, 45 = tilted)
   Timer? _debounceTimer;
   Timer? _airspaceDebounceTimer;
   Timer? _notamPrefetchTimer;
@@ -783,27 +777,6 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
-  // Helper method to get extended bounds when map is tilted
-  LatLngBounds _getExtendedBounds() {
-    var bounds = _mapController.camera.visibleBounds;
-    
-    // Extend bounds significantly when map is tilted to load more data
-    if (_mapTilt > 0) {
-      // Much more aggressive extension for tilted view
-      final extendFactor = (_mapTilt / 60.0) * 2.0; // 0 to 2 based on tilt
-      final latExtension = (bounds.north - bounds.south) * extendFactor;
-      final lonExtension = (bounds.east - bounds.west) * extendFactor;
-      
-      // Extend more to the north (top of screen) for perspective view
-      bounds = LatLngBounds(
-        LatLng(bounds.south - latExtension * 0.5, bounds.west - lonExtension),
-        LatLng(bounds.north + latExtension * 1.5, bounds.east + lonExtension),
-      );
-    }
-    
-    return bounds;
-  }
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -1112,10 +1085,10 @@ class MapScreenState extends State<MapScreen>
           return;
         }
 
-        final bounds = _getExtendedBounds();
+        final bounds = _mapController.camera.visibleBounds;
         final zoom = _mapController.camera.zoom;
 
-        // First, load runway data for the extended visible area
+        // First, load runway data for the visible area
         await _runwayService.loadRunwaysForArea(
           minLat: bounds.southWest.latitude,
           maxLat: bounds.northEast.latitude,
@@ -1301,9 +1274,9 @@ class MapScreenState extends State<MapScreen>
           return;
         }
 
-        final bounds = _getExtendedBounds();
+        final bounds = _mapController.camera.visibleBounds;
         
-        // Load navaids for the extended visible area
+        // Load navaids for the visible area
         await _navaidService.loadNavaidsForArea(
           minLat: bounds.southWest.latitude,
           maxLat: bounds.northEast.latitude,
@@ -1355,9 +1328,9 @@ class MapScreenState extends State<MapScreen>
       }
 
       // Then progressively load data for current bounds
-      final bounds = _getExtendedBounds();
+      final bounds = _mapController.camera.visibleBounds;
 
-      // Load airspaces for extended map bounds
+      // Load airspaces for current map bounds
       await openAIPService.loadAirspacesForBounds(
         minLat: bounds.southWest.latitude,
         minLon: bounds.southWest.longitude,
@@ -1439,7 +1412,7 @@ class MapScreenState extends State<MapScreen>
   // Refresh reporting points display when new data is available
   Future<void> _refreshReportingPointsDisplay() async {
     try {
-      final bounds = _getExtendedBounds();
+      final bounds = _mapController.camera.visibleBounds;
       
       // Use optimized in-memory filtering
       final pointsInBounds = openAIPService.getReportingPointsInBounds(
@@ -1467,7 +1440,7 @@ class MapScreenState extends State<MapScreen>
       }
 
       try {
-        final bounds = _getExtendedBounds();
+        final bounds = _mapController.camera.visibleBounds;
         
         // Load obstacles from tiled data
         final obstacles = await openAIPService.getObstaclesForArea(
@@ -1498,7 +1471,7 @@ class MapScreenState extends State<MapScreen>
       }
 
       try {
-        final bounds = _getExtendedBounds();
+        final bounds = _mapController.camera.visibleBounds;
         
         // Load hotspots from tiled data
         final hotspots = await openAIPService.getHotspotsForArea(
@@ -1913,21 +1886,15 @@ class MapScreenState extends State<MapScreen>
       debugPrint('Not in planning mode, ignoring tap');
     }
 
-    // Check if any airspaces contain the tapped point
+    // Always show location info dialog - check for airspaces if enabled
+    List<Airspace> tappedAirspaces = [];
     if (_mapStateController.showAirspaces) {
       // Use spatial service to find airspaces at the tapped point
-      final tappedAirspaces = await spatialAirspaceService.getAirspacesAtPoint(point);
-
-      if (tappedAirspaces.isNotEmpty) {
-        _showAirspacesAtPoint(tappedAirspaces, point);
-        return;
-      }
+      tappedAirspaces = await spatialAirspaceService.getAirspacesAtPoint(point);
     }
 
-    // Otherwise, close any open dialogs or menus
-    if (mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
+    // Show the location dialog regardless of whether airspaces are found
+    _showAirspacesAtPoint(tappedAirspaces, point);
   }
 
   // Handle flight path segment tap for waypoint insertion
@@ -2065,24 +2032,17 @@ class MapScreenState extends State<MapScreen>
   void _showAirspacesAtPoint(List<Airspace> airspaces, LatLng point) async {
     if (!mounted) return;
 
+    // Store context-dependent values before async operations
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isPhone = screenWidth < 600;
+    final fontSize = isPhone ? 11.0 : 12.0;
+    final titleFontSize = isPhone ? 10.0 : 11.0;
+
     // Get current altitude if available
     final currentAltitudeFt = _currentPosition?.altitude != null
         ? _currentPosition!.altitude * 3.28084 // Convert meters to feet
         : null;
-    
-    // Get ground elevation at this point
-    double? groundElevationFt;
-    try {
-      final elevationMeters = await TerrainElevationService.getElevation(point);
-      if (elevationMeters != null) {
-        groundElevationFt = elevationMeters * 3.28084; // Convert meters to feet
-      }
-    } catch (e) {
-      // Ignore errors getting elevation
-    }
-
-    // Check if widget is still mounted after async operation
-    if (!mounted) return;
 
     // Sort airspaces by altitude (lower first)
     airspaces.sort((a, b) {
@@ -2091,27 +2051,98 @@ class MapScreenState extends State<MapScreen>
       return altA.compareTo(altB);
     });
 
-    // If only one airspace, show it directly
+    // If only one airspace, show it directly with lazy elevation loading
     if (airspaces.length == 1) {
-      _onAirspaceSelected(airspaces.first);
+      _onAirspaceSelectedWithPoint(airspaces.first, point);
       return;
     }
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isPhone = screenWidth < 600;
-    final fontSize = isPhone ? 11.0 : 12.0;
-    final titleFontSize = isPhone ? 10.0 : 11.0;
-
-    // Show selection dialog for multiple airspaces
+    // Show selection dialog immediately with loading elevation
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
+        return _LocationInfoDialog(
+          airspaces: airspaces,
+          point: point,
+          currentAltitudeFt: currentAltitudeFt,
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+          isPhone: isPhone,
+          fontSize: fontSize,
+          titleFontSize: titleFontSize,
+          onAirspaceSelected: (airspace) {
+            Navigator.of(context).pop();
+            _onAirspaceSelectedWithPoint(airspace, point);
+          },
+        );
+      },
+    );
+  }
+
+  // New method to handle airspace selection with the tapped point for elevation loading
+  void _onAirspaceSelectedWithPoint(Airspace airspace, LatLng point) async {
+    _onAirspaceSelected(airspace);
+  }
+    required this.airspaces,
+    required this.point,
+    required this.currentAltitudeFt,
+    required this.screenWidth,
+    required this.screenHeight,
+    required this.isPhone,
+    required this.fontSize,
+    required this.titleFontSize,
+    required this.onAirspaceSelected,
+  });
+
+  @override
+  State<_LocationInfoDialog> createState() => _LocationInfoDialogState();
+}
+
+class _LocationInfoDialogState extends State<_LocationInfoDialog> {
+  double? groundElevationFt;
+  bool elevationDataAvailable = true;
+  bool isLoadingElevation = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadElevation();
+  }
+
+  Future<void> _loadElevation() async {
+    try {
+      final elevationMeters = await TerrainElevationService.getElevation(widget.point);
+      if (mounted) {
+        setState(() {
+          if (elevationMeters != null) {
+            groundElevationFt = elevationMeters * 3.28084; // Convert meters to feet
+            debugPrint('Got elevation at ${widget.point.latitude}, ${widget.point.longitude}: ${elevationMeters}m (${groundElevationFt!.round()}ft)');
+          } else {
+            elevationDataAvailable = false;
+            debugPrint('No elevation data available at ${widget.point.latitude}, ${widget.point.longitude}');
+          }
+          isLoadingElevation = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          elevationDataAvailable = false;
+          isLoadingElevation = false;
+        });
+      }
+      debugPrint('Error getting elevation at ${widget.point.latitude}, ${widget.point.longitude}: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
             constraints: BoxConstraints(
-              maxWidth: isPhone ? screenWidth * 0.9 : 400,
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
+              maxWidth: widget.isPhone ? widget.screenWidth * 0.9 : 400,
+              maxHeight: widget.screenHeight * 0.7,
             ),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.87),
@@ -2136,10 +2167,10 @@ class MapScreenState extends State<MapScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'AIRSPACES AT LOCATION',
+                        widget.airspaces.isEmpty ? 'LOCATION INFO' : 'AIRSPACES AT LOCATION',
                         style: TextStyle(
                           color: AppColors.warningColor,
-                          fontSize: titleFontSize,
+                          fontSize: widget.titleFontSize,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
@@ -2153,76 +2184,75 @@ class MapScreenState extends State<MapScreen>
                     ],
                   ),
                 ),
-                // Current altitude and ground elevation indicator
-                if (currentAltitudeFt != null || groundElevationFt != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                    color: Colors.black.withValues(alpha: 0.2),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (currentAltitudeFt != null)
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.flight,
-                                size: 14,
-                                color: AppColors.infoColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Current altitude: ${currentAltitudeFt.round()} ft',
-                                style: TextStyle(
-                                  fontSize: fontSize,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        if (groundElevationFt != null) ...[
-                          if (currentAltitudeFt != null) const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.terrain,
-                                size: 14,
-                                color: Colors.brown,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Ground elevation: ${groundElevationFt.round()} ft',
-                                style: TextStyle(
-                                  fontSize: fontSize,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ),
-                              if (currentAltitudeFt != null) ...[
-                                const SizedBox(width: 8),
-                                Text(
-                                  '(AGL: ${(currentAltitudeFt - groundElevationFt).round()} ft)',
-                                  style: TextStyle(
-                                    fontSize: fontSize,
-                                    color: AppColors.infoColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
+                // Ground elevation indicator - always shown
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  color: Colors.black.withValues(alpha: 0.2),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.terrain,
+                        size: 14,
+                        color: Colors.brown,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isLoadingElevation
+                          ? 'Ground elevation: Loading...'
+                          : groundElevationFt != null 
+                            ? 'Ground elevation: ${groundElevationFt!.round()} ft'
+                            : 'Ground elevation: No data',
+                        style: TextStyle(
+                          fontSize: widget.fontSize,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ],
                   ),
-                // Airspaces list
+                ),
+                // Content - either airspaces list or no airspace message
                 Flexible(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: airspaces.map<Widget>((airspace) {
+                      children: widget.airspaces.isEmpty 
+                        ? [
+                            // No airspaces message
+                            Container(
+                              padding: const EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.secondaryTextColor.withValues(alpha: 0.3),
+                                  width: 1,
+                                ),
+                                borderRadius: AppTheme.defaultRadius,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'No airspaces at this location',
+                                      style: TextStyle(
+                                        fontSize: widget.fontSize,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ]
+                        : widget.airspaces.map<Widget>((airspace) {
                         // Check if current altitude is within this airspace
-                        final isAtCurrentAltitude = currentAltitudeFt != null &&
-                            airspace.isAtAltitude(currentAltitudeFt);
+                        final isAtCurrentAltitude = widget.currentAltitudeFt != null &&
+                            airspace.isAtAltitude(widget.currentAltitudeFt!);
 
                         return Container(
                           decoration: isAtCurrentAltitude
@@ -2247,20 +2277,19 @@ class MapScreenState extends State<MapScreen>
                             child: InkWell(
                               borderRadius: AppTheme.defaultRadius,
                               onTap: () {
-                                Navigator.of(context).pop();
-                                _onAirspaceSelected(airspace);
+                                widget.onAirspaceSelected(airspace);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(12.0),
                                 child: Row(
                                   children: [
                                     Icon(
-                                      _getAirspaceIcon(airspace.type),
-                                      color: _getAirspaceColor(
+                                      MapScreenState._getAirspaceIcon(airspace.type),
+                                      color: MapScreenState._getAirspaceColor(
                                         airspace.type,
                                         airspace.icaoClass,
                                       ),
-                                      size: isPhone ? 20 : 24,
+                                      size: widget.isPhone ? 20 : 24,
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -2268,10 +2297,10 @@ class MapScreenState extends State<MapScreen>
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            _getAirspaceDisplayName(airspace),
+                                            MapScreenState._getAirspaceDisplayName(airspace),
                                             style: TextStyle(
                                               color: AppColors.primaryTextColor,
-                                              fontSize: fontSize,
+                                              fontSize: widget.fontSize,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -2280,7 +2309,7 @@ class MapScreenState extends State<MapScreen>
                                             AirspaceUtils.getAirspaceTypeName(airspace.type),
                                             style: TextStyle(
                                               color: AppColors.secondaryTextColor,
-                                              fontSize: isPhone ? 10 : 11,
+                                              fontSize: widget.isPhone ? 10 : 11,
                                             ),
                                           ),
                                           Text(
@@ -2289,7 +2318,7 @@ class MapScreenState extends State<MapScreen>
                                               color: isAtCurrentAltitude 
                                                   ? AppColors.warningColor 
                                                   : AppColors.disabledTextColor,
-                                              fontSize: isPhone ? 10 : 11,
+                                              fontSize: widget.isPhone ? 10 : 11,
                                               fontWeight: isAtCurrentAltitude 
                                                   ? FontWeight.bold 
                                                   : FontWeight.normal,
@@ -2301,7 +2330,7 @@ class MapScreenState extends State<MapScreen>
                                     Icon(
                                       Icons.chevron_right, 
                                       color: AppColors.primaryTextColor.withValues(alpha: 0.3),
-                                      size: isPhone ? 18 : 20,
+                                      size: widget.isPhone ? 18 : 20,
                                     ),
                                   ],
                                 ),
@@ -2317,11 +2346,9 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
         );
-      },
-    );
   }
 
-  IconData _getAirspaceIcon(String? type) {
+  static IconData _getAirspaceIcon(String? type) {
     if (type == null) return Icons.layers;
 
     switch (type.toUpperCase()) {
@@ -2346,12 +2373,12 @@ class MapScreenState extends State<MapScreen>
     }
   }
 
-  Color _getAirspaceColor(String? type, String? icaoClass) {
+  static Color _getAirspaceColor(String? type, String? icaoClass) {
     // Use string-based color mapping since data contains string values
     return AirspaceUtils.getAirspaceColorByString(type, icaoClass);
   }
   
-  String _getAirspaceDisplayName(Airspace airspace) {
+  static String _getAirspaceDisplayName(Airspace airspace) {
     final icaoClass = AirspaceUtils.getIcaoClassName(airspace.icaoClass);
     if (airspace.icaoClass != null && icaoClass != 'Unclassified') {
       return '${airspace.name} (Class $icaoClass)';
@@ -3575,25 +3602,11 @@ class MapScreenState extends State<MapScreen>
           return Stack(
             fit: StackFit.expand,
             children: [
-              // Map layer with 3D tilt support
-              // Keep bottom edge fixed, extend only upward for tilted view
-              ClipRect(
-                child: OverflowBox(
-                  maxWidth: constraints.maxWidth * (1 + _mapTilt / 30.0), // Slight width extension
-                  maxHeight: constraints.maxHeight * (2 + _mapTilt / 20.0), // Extend height for perspective view
-                  alignment: Alignment.bottomCenter, // Keep bottom edge anchored
-                  child: Transform(
-                    alignment: Alignment.bottomCenter, // Rotate around bottom edge
-                    transform: Matrix4.identity()
-                      ..setEntry(3, 2, 0.001) // Stronger perspective for more natural 3D
-                      ..rotateX(-_mapTilt * math.pi / 180) // Negative rotation tilts top away
-                      ..scale(1.0 + _mapTilt / 60.0), // Gentler scaling
-                    child: Stack(
-                      children: [
-                        FlutterMap(
-                    key: _mapKey,
-                    mapController: _mapController,
-                    options: MapOptions(
+              // Map layer
+              FlutterMap(
+            key: _mapKey,
+            mapController: _mapController,
+            options: MapOptions(
               initialCenter: _currentPosition != null
                   ? LatLng(
                       _currentPosition!.latitude,
@@ -3721,20 +3734,8 @@ class MapScreenState extends State<MapScreen>
                       )
                     : null,
               ),
-              // Elevation terrain with Swiss-style hillshading - BEFORE AIRSPACES
-              if (_mapStateController.showElevation)
-                const TerrainReliefOverlay(
-                  isVisible: true,
-                  opacity: 0.6,
-                ),
-              // 3D terrain relief overlay when tilted
-              if (_mapTilt > 0)
-                TerrainReliefOverlay(
-                  isVisible: true,
-                  opacity: math.min(0.8, _mapTilt / 45.0), // Increase opacity with tilt
-                ),
-              // Airspaces overlay - only show 2D version when map is flat
-              if (_mapStateController.showAirspaces && _mapTilt == 0)
+              // Airspaces overlay (optimized with debouncing)
+              if (_mapStateController.showAirspaces)
                 OptimizedSpatialAirspacesOverlay(
                   spatialService: spatialAirspaceService,
                   showAirspacesLayer: _mapStateController.showAirspaces,
@@ -3747,8 +3748,8 @@ class MapScreenState extends State<MapScreen>
                   reportingPoints: _reportingPoints,
                   onReportingPointTap: _onReportingPointSelected,
                 ),
-              // Obstacles overlay - only show 2D version when map is flat
-              if (_mapStateController.showObstacles && _obstacles.isNotEmpty && _mapTilt == 0)
+              // Obstacles overlay (optimized)
+              if (_mapStateController.showObstacles && _obstacles.isNotEmpty)
                 OptimizedObstaclesLayer(
                   obstacles: _obstacles,
                   onObstacleTap: _onObstacleSelected,
@@ -3803,13 +3804,21 @@ class MapScreenState extends State<MapScreen>
                   showMetarLayer: _mapStateController.showMetar,
                   onAirportTap: _onAirportSelected,
                 ),
-              // SafeSky overlay - only show 2D version when map is flat
-              if (_mapStateController.showSafeSky && _mapTilt == 0)
+              // SafeSky overlay for real-time aircraft tracking with animation
+              if (_mapStateController.showSafeSky)
                 AnimatedSafeSkyOverlay(
                   safeSkyService: _safeSkyService,
                   showSafeSkyLayer: _mapStateController.showSafeSky,
                   onBeaconTap: _onSafeSkyBeaconTapped,
                   currentPosition: _currentPosition,
+                ),
+              // Elevation layer - Topographical contour lines
+              if (_mapStateController.showElevation)
+                ContourLinesOverlay(
+                  viewport: _mapController.camera.visibleBounds,
+                  mapCamera: _mapController.camera,
+                  isVisible: true,
+                  opacity: 0.7,
                 ),
               // Terrain danger overlay showing altitude-based terrain warnings
               if (_mapStateController.showTerrain && _currentPosition != null)
@@ -4183,57 +4192,6 @@ class MapScreenState extends State<MapScreen>
                 ),
             ],
           ),
-                        // 3D overlays rendered on top of the map when tilted
-                        if (_mapTilt > 0) ...[
-                          // 3D Airspaces overlay
-                          if (_mapStateController.showAirspaces)
-                            Positioned.fill(
-                              child: IgnorePointer(
-                                child: SimpleAirspaces3DOverlay(
-                                  spatialService: spatialAirspaceService,
-                                  showAirspacesLayer: _mapStateController.showAirspaces,
-                                  onAirspaceTap: _onAirspaceSelected,
-                                  currentAltitude: _currentPosition?.altitude ?? 0,
-                                  mapTilt: _mapTilt,
-                                  mapController: _mapController,
-                                ),
-                              ),
-                            ),
-                          // 3D Obstacles overlay
-                          if (_mapStateController.showObstacles && _obstacles.isNotEmpty)
-                            Positioned.fill(
-                              child: IgnorePointer(
-                                child: Obstacles3DOverlay(
-                                  obstacles: _obstacles,
-                                  mapTilt: _mapTilt,
-                                  onObstacleTap: _onObstacleSelected,
-                                  currentAltitude: _currentPosition?.altitude ?? 0,
-                                  mapController: _mapController,
-                                ),
-                              ),
-                            ),
-                          // 3D SafeSky overlay
-                          if (_mapStateController.showSafeSky)
-                            Positioned.fill(
-                              child: IgnorePointer(
-                                child: SafeSky3DOverlay(
-                                  beacons: _safeSkyService.beacons,
-                                  mapTilt: _mapTilt,
-                                  onBeaconTap: _onSafeSkyBeaconTapped,
-                                  currentAltitude: _currentPosition?.altitude ?? 0,
-                                  currentPosition: _currentPosition != null
-                                    ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
-                                    : null,
-                                  mapController: _mapController,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
           
           // Terrain warning text display - shows at top when terrain is dangerous
           if (_servicesInitialized)
@@ -4456,97 +4414,43 @@ class MapScreenState extends State<MapScreen>
             ),
           ),
 
-          // Grouped control buttons (Center, 3D, Search) in a single container for proper spacing
+          // Center button - left of search button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: _menuButtonMargin + _menuButtonWidth + _buttonSpacing * 2 + 48,
+            child: CenterButton(
+              positionTrackingEnabled: _positionTrackingEnabled,
+              autoCenteringEnabled: _autoCenteringEnabled,
+              autoCenteringCountdown: _autoCenteringCountdown,
+              onToggle: _togglePositionTracking,
+            ),
+          ),
+          // Search button in top-right corner (left of menu)
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             right: _menuButtonMargin + _menuButtonWidth + _buttonSpacing,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.9),
-                borderRadius: AppTheme.largeRadius,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Center button
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    child: CenterButton(
-                      positionTrackingEnabled: _positionTrackingEnabled,
-                      autoCenteringEnabled: _autoCenteringEnabled,
-                      autoCenteringCountdown: _autoCenteringCountdown,
-                      onToggle: _togglePositionTracking,
+            child: GestureDetector(
+              onTap: () {
+                _showAirportSearch();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.9),
+                  borderRadius: AppTheme.largeRadius,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  // Divider
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                  // Tilt control slider
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _mapTilt > 0 ? Icons.view_in_ar : Icons.map,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: Slider(
-                            value: _mapTilt,
-                            min: 0,
-                            max: 60,
-                            onChanged: (value) {
-                              setState(() {
-                                _mapTilt = value;
-                              });
-                            },
-                            activeColor: Colors.orange,
-                            inactiveColor: Colors.white.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        Text(
-                          '${_mapTilt.toStringAsFixed(0)}°',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Divider
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                  // Search button
-                  GestureDetector(
-                    onTap: () {
-                      _showAirportSearch();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      child: const Icon(
-                        Icons.search,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
+                child: const Icon(
+                  Icons.search,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
           ),
@@ -5049,8 +4953,8 @@ class MapScreenState extends State<MapScreen>
             ),
             _buildMenuToggleButton(
               icon: _mapStateController.showElevation
-                  ? Icons.landscape
-                  : Icons.landscape_outlined,
+                  ? Icons.grid_on
+                  : Icons.grid_off,
               label: 'Elevation',
               isActive: _mapStateController.showElevation,
               onPressed: _toggleElevation,

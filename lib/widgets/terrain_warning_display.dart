@@ -20,7 +20,6 @@ class TerrainWarningDisplay extends StatefulWidget {
 }
 
 class _TerrainWarningDisplayState extends State<TerrainWarningDisplay> {
-  final TerrainElevationService _terrainService = TerrainElevationService();
   bool _hasCritical = false;
   bool _hasWarning = false;
   
@@ -54,7 +53,7 @@ class _TerrainWarningDisplayState extends State<TerrainWarningDisplay> {
     }
     
     try {
-      final zones = await _terrainService.getTerrainDangerZones(
+      final zones = await TerrainElevationService.getTerrainDangerZones(
         widget.viewport!,
         widget.currentAltitudeFt!,
         gridResolution: 0.025, // Coarse resolution for quick check

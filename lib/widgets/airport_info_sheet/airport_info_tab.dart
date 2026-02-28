@@ -19,9 +19,9 @@ class AirportInfoTab extends StatelessWidget {
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         final isMetric = settings.units == 'metric';
-        final elevation = airport.elevation;
+        final elevation = airport.elevation; // elevation is in feet
         final elevationStr = isMetric
-            ? '${(elevation * 0.3048).toStringAsFixed(0)} m'
+            ? '${(elevation / 3.28084).toStringAsFixed(0)} m'
             : '$elevation ft';
 
         return SingleChildScrollView(

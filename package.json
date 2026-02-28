@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.108"
+  },
+  "devDependencies": {
+    "fast-glob": "^3.3.3",
+    "playwright": "^1.49.0",
+    "tsx": "^4.19.2"
+  },
+  "scripts": {
+    "harness:smoke": "npx tsx scripts/harness-smoke.ts",
+    "harness:risk-tier": "npx tsx scripts/risk-policy-gate.ts",
+    "harness:ui:capture-browser-evidence": "npx tsx scripts/harness-ui-capture-browser-evidence.ts",
+    "harness:ui:verify-browser-evidence": "npx tsx scripts/harness-ui-verify-browser-evidence.ts",
+    "harness:ui:pre-pr": "npm run harness:ui:capture-browser-evidence && npm run harness:ui:verify-browser-evidence",
+    "harness:weekly-metrics": "npx tsx scripts/harness-weekly-metrics.ts"
+  }
+}

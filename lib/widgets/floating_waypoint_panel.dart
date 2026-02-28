@@ -31,7 +31,6 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
   bool _isDragging = false;
   Size? _lastScreenSize;
   double? _groundElevationFt;
-  final TerrainElevationService _terrainService = TerrainElevationService();
 
   @override
   void initState() {
@@ -67,7 +66,7 @@ class _FloatingWaypointPanelState extends State<FloatingWaypointPanel> {
       
       // Fetch ground elevation
       try {
-        final elevationMeters = await _terrainService.getElevation(
+        final elevationMeters = await TerrainElevationService.getElevation(
           LatLng(waypoint.latitude, waypoint.longitude)
         );
         if (elevationMeters != null && mounted) {

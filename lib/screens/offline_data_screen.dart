@@ -7,6 +7,7 @@ import '../services/airport_service.dart';
 import '../services/navaid_service.dart';
 import '../services/weather_service.dart';
 import '../services/tiled_data_loader.dart';
+import '../services/terrain_elevation_service.dart';
 import '../constants/app_colors.dart';
 import '../l10n/app_localizations.dart';
 import 'offline_data/controllers/offline_data_state_controller.dart';
@@ -251,6 +252,9 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
           case 'Hotspots':
             _tiledDataLoader.clearCacheForType('hotspots');
             break;
+          case 'Elevation':
+            await TerrainElevationService.clearAllCaches();
+            break;
         }
         await _loadAllCacheStats();
         if (mounted) {
@@ -285,6 +289,7 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
         await Future.wait([
           _cacheService.clearAllCaches(),
           _offlineMapService.clearCache(),
+          TerrainElevationService.clearAllCaches(),
         ]);
         // Clear tiled data caches
         _tiledDataLoader.clearCache();
@@ -602,6 +607,20 @@ class _OfflineDataScreenState extends State<OfflineDataScreen> {
                     onClear: () => _clearSpecificCache('Hotspots'),
                     subtitle: l10n.thermalActivity,
                     onRefresh: null, // OpenAIP data is now pre-downloaded offline
+                    isRefreshing: _stateController.isRefreshing,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Elevation cache
+                  CacheCard(
+                    title: 'Elevation data',
+                    icon: Icons.terrain,
+                    count: _stateController.cacheStats['elevation']?['count'] ?? 0,
+                    sizeBytes: _stateController.cacheStats['elevation']?['sizeBytes'] ?? 0,
+                    lastFetch: 'Cached on device',
+                    onClear: () => _clearSpecificCache('Elevation'),
+                    subtitle: 'SRTM elevation data (30m and 500m resolution)',
                     isRefreshing: _stateController.isRefreshing,
                   ),
 

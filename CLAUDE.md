@@ -31,6 +31,10 @@ If you can do some tasks parallel, you can use multiple agents at the same time.
 - all images are in /hugo/static/images/ directory
 - always make sure hugo project build is successful after making changes
 - if you need to learn from other examples of website, check /Users/viktorzeman/work/FlowHunt-hugo/ - it is another website built with the same hugo theme, you can learn about structures of layouts, partials, shortcodes
+- SRTM elevation (30m accuracy) files are stored in s3://captainvfr-assets-eu/srtm_data/ accessible from Base URL: https://assets.captainvfr.com/srtm_data/ (500m accuracy data for Fast map visualization is stored in assets.captainvfr.com/srtm_500/)
+
+
+
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.

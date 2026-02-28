@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'dart:async';
-import 'dart:ui' as ui;
 import '../../../services/terrain_elevation_service.dart';
-import '../../../constants/app_colors.dart';
 
 /// Overlay showing terrain danger zones based on current altitude
 class TerrainDangerOverlay extends StatefulWidget {
@@ -26,7 +23,6 @@ class TerrainDangerOverlay extends StatefulWidget {
 }
 
 class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
-  final TerrainElevationService _terrainService = TerrainElevationService();
   List<TerrainDangerZone> _dangerZones = [];
   Timer? _updateTimer;
   bool _isLoading = false;
@@ -127,7 +123,7 @@ class _TerrainDangerOverlayState extends State<TerrainDangerOverlay> {
     
     try {
       // Use optimized batch processing
-      final zones = await _terrainService.getTerrainDangerZones(
+      final zones = await TerrainElevationService.getTerrainDangerZones(
         widget.viewport,
         widget.currentAltitudeFt,
         gridResolution: _gridResolution,

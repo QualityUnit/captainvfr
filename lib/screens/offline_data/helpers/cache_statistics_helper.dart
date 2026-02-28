@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../services/weather_service.dart';
 import '../../../services/tiled_data_loader.dart';
+import '../../../services/srtm_elevation_service.dart';
 
 /// Helper class for loading cache statistics
 class CacheStatisticsHelper {
@@ -125,6 +126,21 @@ class CacheStatisticsHelper {
         // OpenAIP frequency data not available
         stats['openaip_frequencies'] = {
           'count': 0,
+          'lastFetch': null,
+        };
+      }
+
+      // Get elevation cache statistics
+      try {
+        stats['elevation'] = {
+          'count': await SrtmElevationService.getCacheFileCount(),
+          'sizeBytes': await SrtmElevationService.getCacheSize(),
+          'lastFetch': null, // CDN data doesn't have fetch timestamps
+        };
+      } catch (e) {
+        stats['elevation'] = {
+          'count': 0,
+          'sizeBytes': 0,
           'lastFetch': null,
         };
       }
