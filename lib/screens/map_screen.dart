@@ -87,6 +87,7 @@ import '../widgets/flight_hud.dart';
 import '../widgets/emergency_panel.dart';
 import '../widgets/quick_action_bar.dart';
 import '../widgets/gesture_hints_overlay.dart';
+import '../widgets/weather_legend_widget.dart';
 
 // Extracted components
 import 'map/constants/map_constants.dart';
@@ -5080,6 +5081,13 @@ class MapScreenState extends State<MapScreen>
               onZoomChanged: _onZoomButtonPressed,
               isCompact: true, // Make controls smaller
             ),
+          ),
+          
+          // Weather and Terrain Legend Panel in top-right corner
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 12,
+            child: const WeatherTerrainLegendPanel(),
           ),
             ],
           );
