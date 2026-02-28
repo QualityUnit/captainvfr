@@ -83,6 +83,9 @@ import '../widgets/terrain_warning_display.dart';
 import '../services/cache_service.dart';
 import '../services/notam_service_v3.dart';
 import '../services/terrain_elevation_service.dart';
+import '../widgets/flight_hud.dart';
+import '../widgets/emergency_panel.dart';
+import '../widgets/quick_action_bar.dart';
 
 // Extracted components
 import 'map/constants/map_constants.dart';
@@ -198,6 +201,10 @@ class MapScreenState extends State<MapScreen>
   // It could be used to show distance info on the map in the future
   // ignore: unused_field
   double? _profileSelectedDistance; // Distance along the flight path
+  
+  // HUD and Emergency panel state
+  bool _isHUDExpanded = false;
+  bool _showEmergencyPanel = false;
 
   // Location and map state
   Position? _currentPosition;
@@ -4253,9 +4260,156 @@ class MapScreenState extends State<MapScreen>
                 );
               },
             ),
+          
+          // Flight HUD - top center, below terrain warning
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 60,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: FlightHUD(
+                isExpanded: _isHUDExpanded,
+                onToggle: () {
+                  setState(() {
+                    _isHUDExpanded = !_isHUDExpanded;
+                  });
+                },
+              ),
+            ),
+          ),
+          
+          // Emergency button - top right, below menu button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 60,
+            right: 16,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _showEmergencyPanel = !_showEmergencyPanel;
+                });
+              },
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade700,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: Colors.red.withValues(alpha: 0.5),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.warning,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'SOS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          // Emergency panel - full screen overlay
+          if (_showEmergencyPanel)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.5),
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    EmergencyPanel(
+                      onClose: () {
+                        setState(() {
+                          _showEmergencyPanel = false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Flight tracking panel - always visible on bottom right
           const FlightTrackingPanel(),
+          
+          // Quick action bar - bottom center for easy thumb access
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: QuickActionBar(
+                onCenterMap: () async {
+                  if (!_positionTrackingEnabled) {
+                    await _togglePositionTracking();
+                  } else {
+                    setState(() {
+                      _autoCenteringEnabled = true;
+                      _autoCenteringCountdown = 0;
+                    });
+                    if (_currentPosition != null) {
+                      _mapController.move(
+                        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                        _mapController.camera.zoom,
+                      );
+                    }
+                  }
+                },
+                onStartFlight: () {
+                  if (_flightService.isTracking) {
+                    _flightService.stopTracking();
+                  } else {
+                    _flightService.startTracking();
+                  }
+                },
+                onEmergency: () {
+                  setState(() {
+                    _showEmergencyPanel = !_showEmergencyPanel;
+                  });
+                },
+                onLayers: () {
+                  _mapStateController.toggleMenuPanel();
+                },
+                onFlightPlan: () {
+                  setState(() {
+                    _showFlightPlanning = !_showFlightPlanning;
+                    if (_showFlightPlanning && !_flightPlanningExpanded) {
+                      _flightPlanningExpanded = true;
+                    }
+                  });
+                },
+                isTracking: _flightService.isTracking,
+                hasFlightPlan: _flightPlanService.currentFlightPlan != null ||
+                    _flightPlanService.currentTrip != null,
+              ),
+            ),
+          ),
 
           // Airspace information panel
           if (_showCurrentAirspacePanel) ...[
