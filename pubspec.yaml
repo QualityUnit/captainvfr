@@ -45,6 +45,7 @@ dependencies:
   flutter_compass: ^0.8.1
   wakelock_plus: ^1.2.8
   universal_platform: ^1.1.0
+  battery_plus: ^7.0.0
   
   # Charts
   fl_chart: ^1.0.0

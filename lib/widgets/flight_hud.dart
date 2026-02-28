@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../services/flight_service.dart';
-import '../services/location_service.dart';
 import '../services/display_mode_service.dart';
 import '../services/settings_service.dart';
 import 'package:battery_plus/battery_plus.dart';
@@ -61,11 +60,12 @@ class _FlightHUDState extends State<FlightHUD> {
   @override
   Widget build(BuildContext context) {
     final flightService = Provider.of<FlightService>(context);
-    final locationService = Provider.of<LocationService>(context);
     final displayMode = Provider.of<DisplayModeService>(context);
     final settings = Provider.of<SettingsService>(context);
     
-    final currentPosition = locationService.currentPosition;
+    // Get current position from flight path
+    final flightPath = flightService.flightPath;
+    final currentPosition = flightPath.isNotEmpty ? flightPath.last : null;
     final isTracking = flightService.isTracking;
     
     return GestureDetector(
@@ -160,12 +160,12 @@ class _FlightHUDState extends State<FlightHUD> {
   ) {
     final altitude = currentPosition?.altitude?.toInt() ?? 0;
     final speed = flightService.currentSpeed.toInt();
-    final heading = flightService.currentHeading.toInt();
+    final heading = (flightService.currentHeading ?? 0).toInt();
     final verticalSpeed = flightService.verticalSpeed.toInt();
     final accuracy = currentPosition?.accuracy?.toInt() ?? 0;
     
-    // Calculate AGL if terrain data available
-    final agl = flightService.currentAltitudeAGL?.toInt();
+    // Calculate AGL if terrain data available (not currently exposed by FlightService)
+    final int? agl = null; // TODO: Add AGL calculation when available
     
     // Format time
     final now = DateTime.now().toUtc();

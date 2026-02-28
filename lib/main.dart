@@ -59,6 +59,7 @@ import 'services/pilot_service.dart';
 import 'services/logbook_service.dart';
 import 'services/localization_service.dart';
 import 'services/search_history_service.dart';
+import 'services/display_mode_service.dart';
 import 'constants/app_theme.dart';
 
 void main() {
@@ -291,6 +292,10 @@ Future<void> _initializeApp() async {
     // Initialize Search History service
     final searchHistoryService = SearchHistoryService();
     
+    // Initialize Display Mode service
+    final displayModeService = DisplayModeService();
+    await displayModeService.init();
+    
     // Initialize sensor availability service
     final sensorAvailabilityService = SensorAvailabilityService();
     // Note: Sensor check will be performed in UI context where localization is available
@@ -369,6 +374,7 @@ Future<void> _initializeApp() async {
           ChangeNotifierProvider<SettingsService>.value(value: settingsService),
           ChangeNotifierProvider<LocalizationService>.value(value: localizationService),
           ChangeNotifierProvider<SearchHistoryService>.value(value: searchHistoryService),
+          ChangeNotifierProvider<DisplayModeService>.value(value: displayModeService),
           ChangeNotifierProvider<HeadingService>.value(value: headingService),
           Provider<AirportService>.value(value: airportService),
           ChangeNotifierProvider<CacheService>.value(value: cacheService),

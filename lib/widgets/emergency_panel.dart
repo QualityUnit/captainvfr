@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../services/airport_service.dart';
-import '../services/location_service.dart';
+import '../services/flight_service.dart';
 import '../services/display_mode_service.dart';
 import '../models/airport.dart';
 import '../l10n/app_localizations.dart';
@@ -34,35 +33,50 @@ class _EmergencyPanelState extends State<EmergencyPanel> {
   }
   
   Future<void> _findNearestAirports() async {
-    final locationService = Provider.of<LocationService>(context, listen: false);
+    final flightService = Provider.of<FlightService>(context, listen: false);
     final airportService = Provider.of<AirportService>(context, listen: false);
     
-    final position = locationService.currentPosition;
-    if (position == null) {
+    // Get current position from flight path
+    final flightPath = flightService.flightPath;
+    if (flightPath.isEmpty) {
       setState(() {
         _isLoading = false;
       });
       return;
     }
     
+    final lastPoint = flightPath.last;
+    final currentPos = LatLng(lastPoint.latitude, lastPoint.longitude);
+    
     try {
-      // Get airports within 50nm radius
-      final airports = await airportService.getAirportsInRadius(
-        LatLng(position.latitude, position.longitude),
-        50.0, // 50nm radius
+      // Calculate bounds for 50nm radius (approximately 0.83 degrees)
+      const radiusDegrees = 0.83;
+      final southWest = LatLng(
+        currentPos.latitude - radiusDegrees,
+        currentPos.longitude - radiusDegrees,
+      );
+      final northEast = LatLng(
+        currentPos.latitude + radiusDegrees,
+        currentPos.longitude + radiusDegrees,
+      );
+      
+      // Get airports within bounds
+      final airports = await airportService.getAirportsInBounds(
+        southWest,
+        northEast,
       );
       
       // Sort by distance
       airports.sort((a, b) {
         final distA = _calculateDistance(
-          position.latitude,
-          position.longitude,
+          currentPos.latitude,
+          currentPos.longitude,
           a.latitude,
           a.longitude,
         );
         final distB = _calculateDistance(
-          position.latitude,
-          position.longitude,
+          currentPos.latitude,
+          currentPos.longitude,
           b.latitude,
           b.longitude,
         );
@@ -83,10 +97,10 @@ class _EmergencyPanelState extends State<EmergencyPanel> {
   double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const distance = Distance();
     return distance.as(
-      LengthUnit.NauticalMile,
+      LengthUnit.Meter,
       LatLng(lat1, lon1),
       LatLng(lat2, lon2),
-    );
+    ) / 1852.0; // Convert meters to nautical miles
   }
   
   int _calculateBearing(double lat1, double lon1, double lat2, double lon2) {
@@ -101,8 +115,11 @@ class _EmergencyPanelState extends State<EmergencyPanel> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final displayMode = Provider.of<DisplayModeService>(context);
-    final locationService = Provider.of<LocationService>(context);
-    final position = locationService.currentPosition;
+    final flightService = Provider.of<FlightService>(context);
+    
+    // Get current position from flight path
+    final flightPath = flightService.flightPath;
+    final position = flightPath.isNotEmpty ? flightPath.last : null;
     
     return Container(
       decoration: BoxDecoration(
@@ -255,7 +272,7 @@ class _EmergencyPanelState extends State<EmergencyPanel> {
   Widget _buildCurrentPosition(dynamic position, DisplayModeService displayMode) {
     final lat = position.latitude.toStringAsFixed(6);
     final lon = position.longitude.toStringAsFixed(6);
-    final alt = position.altitude?.toInt() ?? 0;
+    final alt = position.altitude.toInt();
     
     return Container(
       padding: const EdgeInsets.all(16),
