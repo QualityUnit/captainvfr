@@ -85,6 +85,7 @@ import '../services/notam_service_v3.dart';
 import '../services/terrain_elevation_service.dart';
 import '../widgets/emergency_panel.dart';
 import '../widgets/gesture_hints_overlay.dart';
+import '../widgets/map_overlay_indicators.dart';
 
 // Extracted components
 import 'map/constants/map_constants.dart';
@@ -5007,6 +5008,11 @@ class MapScreenState extends State<MapScreen>
               onZoomChanged: _onZoomButtonPressed,
               isCompact: true, // Make controls smaller
             ),
+          ),
+          
+          // Map overlay indicators (north arrow, zoom level, scale bar)
+          MapOverlayIndicators(
+            camera: _mapController.camera,
           ),
             ],
           );
