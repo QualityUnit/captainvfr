@@ -88,14 +88,17 @@ void main() {
         ),
       );
 
-      // Wait for animation
-      await tester.pumpAndSettle();
+      // Initial pump
+      await tester.pump();
 
       expect(dismissed, false);
 
-      // Wait for auto-dismiss (5 seconds + animation time)
+      // Wait for auto-dismiss timer (5 seconds)
       await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
+      
+      // Pump animation frames
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(dismissed, true);
     });

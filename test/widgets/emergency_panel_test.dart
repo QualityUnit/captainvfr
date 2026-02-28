@@ -5,26 +5,27 @@ import 'package:captainvfr/widgets/emergency_panel.dart';
 import 'package:captainvfr/services/flight_service.dart';
 import 'package:captainvfr/services/airport_service.dart';
 import 'package:captainvfr/services/display_mode_service.dart';
+import 'package:captainvfr/models/flight_point.dart';
 import 'package:captainvfr/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 // Mock services
 class MockFlightService extends ChangeNotifier implements FlightService {
   @override
-  List<dynamic> get flightPath => [
-    MockFlightPoint(40.0, -74.0, 1000.0),
+  List<FlightPoint> get flightPath => [
+    FlightPoint(
+      latitude: 40.0,
+      longitude: -74.0,
+      altitude: 1000.0,
+      timestamp: DateTime.now(),
+      accuracy: 10.0,
+      speed: 120.0,
+      heading: 270.0,
+    ),
   ];
   
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockFlightPoint {
-  final double latitude;
-  final double longitude;
-  final double altitude;
-  
-  MockFlightPoint(this.latitude, this.longitude, this.altitude);
 }
 
 class MockAirportService implements AirportService {

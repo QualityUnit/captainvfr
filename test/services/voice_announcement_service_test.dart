@@ -71,8 +71,10 @@ void main() {
 
     test('waypoint proximity announcement respects threshold', () async {
       final waypoint = Waypoint(
+        id: 'test-waypoint',
         latitude: 40.0,
         longitude: -74.0,
+        altitude: 1000.0,
         name: 'TEST',
       );
 
@@ -87,8 +89,10 @@ void main() {
 
     test('prevents duplicate waypoint announcements', () async {
       final waypoint = Waypoint(
+        id: 'test-waypoint-2',
         latitude: 40.0,
         longitude: -74.0,
+        altitude: 1000.0,
         name: 'TEST',
       );
 
@@ -154,8 +158,10 @@ void main() {
 
     test('resetTracking clears all announcement history', () async {
       final waypoint = Waypoint(
+        id: 'test-waypoint-3',
         latitude: 40.0,
         longitude: -74.0,
+        altitude: 1000.0,
         name: 'TEST',
       );
       final airspace = Airspace(
@@ -184,8 +190,10 @@ void main() {
       await service.setEnabled(false);
 
       final waypoint = Waypoint(
+        id: 'test-waypoint-4',
         latitude: 40.0,
         longitude: -74.0,
+        altitude: 1000.0,
         name: 'TEST',
       );
 

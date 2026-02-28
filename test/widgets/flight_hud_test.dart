@@ -5,11 +5,13 @@ import 'package:captainvfr/widgets/flight_hud.dart';
 import 'package:captainvfr/services/flight_service.dart';
 import 'package:captainvfr/services/display_mode_service.dart';
 import 'package:captainvfr/services/settings_service.dart';
+import 'package:captainvfr/models/flight_point.dart';
+import 'package:captainvfr/models/flight_segment.dart';
 
 // Mock services
 class MockFlightService extends ChangeNotifier implements FlightService {
   @override
-  List<dynamic> get flightPath => [];
+  List<FlightPoint> get flightPath => [];
   
   @override
   bool get isTracking => false;
@@ -24,7 +26,7 @@ class MockFlightService extends ChangeNotifier implements FlightService {
   double get verticalSpeed => 500.0;
   
   @override
-  List<dynamic> get flightSegments => [];
+  List<FlightSegment> get flightSegments => [];
   
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
