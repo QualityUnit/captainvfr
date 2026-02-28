@@ -4485,53 +4485,7 @@ class MapScreenState extends State<MapScreen>
                       onToggle: _togglePositionTracking,
                     ),
                   ),
-                  // Divider
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                  // Tilt control slider
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _mapTilt > 0 ? Icons.view_in_ar : Icons.map,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: Slider(
-                            value: _mapTilt,
-                            min: 0,
-                            max: 60,
-                            onChanged: (value) {
-                              setState(() {
-                                _mapTilt = value;
-                              });
-                            },
-                            activeColor: Colors.orange,
-                            inactiveColor: Colors.white.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        Text(
-                          '${_mapTilt.toStringAsFixed(0)}°',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Divider
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
+
                   // Search button
                   GestureDetector(
                     onTap: () {
