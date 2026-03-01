@@ -32,15 +32,28 @@ const jsAppEntryPoints = ['assets/js/app.js'];
 const jsDest = 'static/js';
 
 // CSS build with @import processing
-function buildCSS() {
+function buildCSS(done) {
     return gulp.src(cssSrc)
         .pipe(postcss([
             postcssImport,    // Process @import statements first
             tailwindcss,
             autoprefixer,
             cssnano()
-        ]))
-        .pipe(gulp.dest(cssDest));
+        ]).on('error', function(err) {
+            console.error('PostCSS error:', err.message);
+            this.emit('end');
+            done(err);
+        }))
+        .pipe(gulp.dest(cssDest))
+        .on('error', function(err) {
+            console.error('Gulp dest error:', err.message);
+            this.emit('end');
+            done(err);
+        })
+        .on('end', function() {
+            console.log('CSS build completed successfully');
+            done();
+        });
 }
 
 // Build theme JavaScript (main.js)

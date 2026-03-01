@@ -1,8 +1,10 @@
 version: 1
 env:
   variables:
-    # Hugo version - this works with AWS Amplify Live Package Updates
-    HUGO_VERSION: 0.146.5
+    # Hugo version - using a valid Extended version
+    HUGO_VERSION: 0.121.2
+    # Increase Node.js memory limit for build
+    NODE_OPTIONS: --max-old-space-size=4096
     # SafeSky API Key - Set this in Amplify Console Environment Variables
     # SAFESKY_API_KEY: (set in Amplify Console for security)
 backend:
@@ -31,13 +33,12 @@ frontend:
         - hugo version
         
         # Install Node.js dependencies for Hugo site
-        - cd hugo
-        - npm ci
+        - cd hugo && npm ci
     build:
       commands:
-        # Build the Hugo static site (we're already in hugo directory from preBuild)
+        # Build the Hugo static site (explicitly cd into hugo directory)
         - echo "Building Hugo site..."
-        - npm run build
+        - cd hugo && npm run build
         
         # The Flutter web app should already be in static/app (built locally and committed)
   artifacts:
