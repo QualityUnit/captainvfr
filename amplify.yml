@@ -33,10 +33,10 @@ frontend:
         - hugo version
         
         # Install Node.js dependencies for Hugo site
-        - cd hugo && npm ci
+        - cd hugo && npm ci && cd ..
     build:
       commands:
-        # Build the Hugo static site (explicitly cd into hugo directory)
+        # Build the Hugo static site
         - echo "Building Hugo site..."
         - cd hugo && npm run build
         
