@@ -123,6 +123,65 @@ class Aircraft extends HiveObject {
   @HiveField(38)
   double? emptyWeightCG; // empty weight CG location in inches from datum
 
+  // Engine and fuel system
+  @HiveField(39)
+  String? engineType; // piston, turboprop, jet
+
+  @HiveField(40)
+  int? oilCapacity; // in quarts
+
+  @HiveField(41)
+  String? oilType;
+
+  @HiveField(42)
+  double? usableFuelCapacity; // in gallons
+
+  // Insurance and documentation
+  @HiveField(43)
+  String? insurancePolicyNumber;
+
+  @HiveField(44)
+  DateTime? insuranceExpirationDate;
+
+  @HiveField(45)
+  String? insuranceCompany;
+
+  @HiveField(46)
+  DateTime? registrationExpirationDate;
+
+  @HiveField(47)
+  DateTime? airworthinessExpirationDate;
+
+  // Maintenance tracking
+  @HiveField(48)
+  double? totalAircraftHours; // Total airframe hours
+
+  @HiveField(49)
+  double? engineHours; // Engine hours since new or overhaul
+
+  @HiveField(50)
+  DateTime? lastAnnualDate;
+
+  @HiveField(51)
+  DateTime? last100HourDate;
+
+  @HiveField(52)
+  double? hoursAtLast100Hour;
+
+  // Weight & Balance stations
+  @HiveField(53)
+  List<Map<String, dynamic>>? weightBalanceStations; // Loading stations
+
+  @HiveField(54)
+  List<Map<String, dynamic>>? weightBalanceEnvelope; // CG envelope points
+
+  @HiveField(55)
+  List<Map<String, dynamic>>? weightBalanceTemplates; // Saved loading configs
+
+  // Performance profiles
+  @HiveField(56)
+  List<Map<String, dynamic>>? cruisePerformanceProfiles; // Altitude-specific performance
+
   // Convenience getters for backward compatibility
   double get maxAltitude => maximumAltitude.toDouble();
   double get maxClimbRate => maximumClimbRate.toDouble();
@@ -168,6 +227,24 @@ class Aircraft extends HiveObject {
     this.vne,
     this.emptyWeight,
     this.emptyWeightCG,
+    this.engineType,
+    this.oilCapacity,
+    this.oilType,
+    this.usableFuelCapacity,
+    this.insurancePolicyNumber,
+    this.insuranceExpirationDate,
+    this.insuranceCompany,
+    this.registrationExpirationDate,
+    this.airworthinessExpirationDate,
+    this.totalAircraftHours,
+    this.engineHours,
+    this.lastAnnualDate,
+    this.last100HourDate,
+    this.hoursAtLast100Hour,
+    this.weightBalanceStations,
+    this.weightBalanceEnvelope,
+    this.weightBalanceTemplates,
+    this.cruisePerformanceProfiles,
   });
 
   Map<String, dynamic> toMap() {

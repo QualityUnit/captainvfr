@@ -56,13 +56,39 @@ class AircraftAdapter extends TypeAdapter<Aircraft> {
       vne: fields[36] as double?,
       emptyWeight: fields[37] as int?,
       emptyWeightCG: fields[38] as double?,
+      engineType: fields[39] as String?,
+      oilCapacity: fields[40] as int?,
+      oilType: fields[41] as String?,
+      usableFuelCapacity: fields[42] as double?,
+      insurancePolicyNumber: fields[43] as String?,
+      insuranceExpirationDate: fields[44] as DateTime?,
+      insuranceCompany: fields[45] as String?,
+      registrationExpirationDate: fields[46] as DateTime?,
+      airworthinessExpirationDate: fields[47] as DateTime?,
+      totalAircraftHours: fields[48] as double?,
+      engineHours: fields[49] as double?,
+      lastAnnualDate: fields[50] as DateTime?,
+      last100HourDate: fields[51] as DateTime?,
+      hoursAtLast100Hour: fields[52] as double?,
+      weightBalanceStations: (fields[53] as List?)
+          ?.map((dynamic e) => (e as Map).cast<String, dynamic>())
+          ?.toList(),
+      weightBalanceEnvelope: (fields[54] as List?)
+          ?.map((dynamic e) => (e as Map).cast<String, dynamic>())
+          ?.toList(),
+      weightBalanceTemplates: (fields[55] as List?)
+          ?.map((dynamic e) => (e as Map).cast<String, dynamic>())
+          ?.toList(),
+      cruisePerformanceProfiles: (fields[56] as List?)
+          ?.map((dynamic e) => (e as Map).cast<String, dynamic>())
+          ?.toList(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Aircraft obj) {
     writer
-      ..writeByte(39)
+      ..writeByte(57)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -140,7 +166,43 @@ class AircraftAdapter extends TypeAdapter<Aircraft> {
       ..writeByte(37)
       ..write(obj.emptyWeight)
       ..writeByte(38)
-      ..write(obj.emptyWeightCG);
+      ..write(obj.emptyWeightCG)
+      ..writeByte(39)
+      ..write(obj.engineType)
+      ..writeByte(40)
+      ..write(obj.oilCapacity)
+      ..writeByte(41)
+      ..write(obj.oilType)
+      ..writeByte(42)
+      ..write(obj.usableFuelCapacity)
+      ..writeByte(43)
+      ..write(obj.insurancePolicyNumber)
+      ..writeByte(44)
+      ..write(obj.insuranceExpirationDate)
+      ..writeByte(45)
+      ..write(obj.insuranceCompany)
+      ..writeByte(46)
+      ..write(obj.registrationExpirationDate)
+      ..writeByte(47)
+      ..write(obj.airworthinessExpirationDate)
+      ..writeByte(48)
+      ..write(obj.totalAircraftHours)
+      ..writeByte(49)
+      ..write(obj.engineHours)
+      ..writeByte(50)
+      ..write(obj.lastAnnualDate)
+      ..writeByte(51)
+      ..write(obj.last100HourDate)
+      ..writeByte(52)
+      ..write(obj.hoursAtLast100Hour)
+      ..writeByte(53)
+      ..write(obj.weightBalanceStations)
+      ..writeByte(54)
+      ..write(obj.weightBalanceEnvelope)
+      ..writeByte(55)
+      ..write(obj.weightBalanceTemplates)
+      ..writeByte(56)
+      ..write(obj.cruisePerformanceProfiles);
   }
 
   @override
