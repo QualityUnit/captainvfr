@@ -67,7 +67,7 @@ class FuelAlertService extends ChangeNotifier {
         message: message,
         fuelRemaining: fuelRemaining,
         fuelUsed: fuelUsed,
-        fuelCapacity: fuelCapacity,
+        fuelCapacity: fuelCapacity.toDouble(),
         fuelPercentage: fuelPercentage,
         timestamp: DateTime.now(),
       );
@@ -85,7 +85,7 @@ class FuelAlertService extends ChangeNotifier {
     if (aircraft == null) return 0.0;
     
     final fuelUsed = _flightService.fuelUsed;
-    final flightDuration = _flightService.currentFlightDuration;
+    final flightDuration = _flightService.flightDuration;
     
     if (flightDuration.inMinutes == 0 || fuelUsed == 0) {
       return 0.0;
@@ -115,7 +115,7 @@ class FuelAlertService extends ChangeNotifier {
     if (aircraft == null) return Duration.zero;
     
     final fuelUsed = _flightService.fuelUsed;
-    final flightDuration = _flightService.currentFlightDuration;
+    final flightDuration = _flightService.flightDuration;
     
     if (flightDuration.inMinutes == 0 || fuelUsed == 0) {
       return Duration.zero;

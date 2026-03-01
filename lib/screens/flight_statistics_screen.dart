@@ -16,8 +16,8 @@ class FlightStatisticsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.flightStatistics),
-        backgroundColor: AppColors.appBarColor,
+        title: const Text('Flight Statistics'),
+        backgroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

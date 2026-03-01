@@ -102,17 +102,15 @@ class AirspaceAlertService extends ChangeNotifier {
     final altitudeFt = altitude;
     
     // Check lower limit
-    if (airspace.lowerLimit != null) {
-      final lowerFt = _parseAltitude(airspace.lowerLimit!);
-      if (lowerFt != null && altitudeFt < lowerFt) {
+    if (airspace.lowerLimitFt != null) {
+      if (altitudeFt < airspace.lowerLimitFt!) {
         return false;
       }
     }
     
     // Check upper limit
-    if (airspace.upperLimit != null) {
-      final upperFt = _parseAltitude(airspace.upperLimit!);
-      if (upperFt != null && altitudeFt > upperFt) {
+    if (airspace.upperLimitFt != null) {
+      if (altitudeFt > airspace.upperLimitFt!) {
         return false;
       }
     }
@@ -143,7 +141,18 @@ class AirspaceAlertService extends ChangeNotifier {
     // Simplified distance calculation to airspace center
     // In a real implementation, this would calculate distance to nearest boundary
     const distance = Distance();
-    final center = LatLng(airspace.latitude, airspace.longitude);
+    
+    // Calculate center from bounding box
+    final bounds = airspace.boundingBox;
+    if (bounds == null || airspace.geometry.isEmpty) {
+      return double.infinity;
+    }
+    
+    final center = LatLng(
+      (bounds.north + bounds.south) / 2,
+      (bounds.east + bounds.west) / 2,
+    );
+    
     final distanceMeters = distance.as(LengthUnit.Meter, position, center);
     return distanceMeters / 1852.0; // Convert to nautical miles
   }

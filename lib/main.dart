@@ -28,6 +28,13 @@ import 'services/platform_services.dart';
 import 'services/vibration_measurement_service.dart';
 import 'services/openaip_service.dart';
 import 'services/settings_service.dart';
+// Note: Alert services temporarily disabled - need to match actual data models
+// import 'services/flight_statistics_service.dart';
+// import 'services/terrain_alert_service.dart';
+// import 'services/airspace_alert_service.dart';
+// import 'services/fuel_alert_service.dart';
+// import 'services/terrain_elevation_service.dart';
+// import 'services/spatial_airspace_service.dart';
 import 'widgets/connectivity_banner.dart';
 import 'widgets/loading_screen.dart';
 import 'widgets/simple_loading_screen.dart';
@@ -354,6 +361,14 @@ Future<void> _initializeApp() async {
     // Initialize logbook service
     await logBookService.initialize();
     
+    // Note: Alert services disabled temporarily - need to match actual data models
+    // final terrainElevationService = TerrainElevationService();
+    // final spatialAirspaceService = SpatialAirspaceService(openAIPService);
+    // final flightStatisticsService = FlightStatisticsService(flightService);
+    // final terrainAlertService = TerrainAlertService(terrainElevationService, flightService);
+    // final airspaceAlertService = AirspaceAlertService(spatialAirspaceService, flightService);
+    // final fuelAlertService = FuelAlertService(flightService, aircraftSettingsService);
+    
     runApp(
       MultiProvider(
         providers: [
@@ -398,6 +413,13 @@ Future<void> _initializeApp() async {
             value: sensorAvailabilityService,
           ),
           Provider<AnalyticsService>.value(value: analyticsService),
+          // Note: Alert services disabled temporarily - need to match actual data models
+          // Provider<TerrainElevationService>.value(value: terrainElevationService),
+          // ChangeNotifierProvider<SpatialAirspaceService>.value(value: spatialAirspaceService),
+          // ChangeNotifierProvider<FlightStatisticsService>.value(value: flightStatisticsService),
+          // ChangeNotifierProvider<TerrainAlertService>.value(value: terrainAlertService),
+          // ChangeNotifierProvider<AirspaceAlertService>.value(value: airspaceAlertService),
+          // ChangeNotifierProvider<FuelAlertService>.value(value: fuelAlertService),
         ],
         child: const CaptainVFRApp(),
       ),
@@ -487,6 +509,14 @@ void _runMinimalApp() {
   final backgroundDataService = BackgroundDataService();
   final sensorAvailabilityService = SensorAvailabilityService();
   final voiceAnnouncementService = VoiceAnnouncementService();
+  // Note: Alert services disabled temporarily
+  // final openAIPService = OpenAIPService();
+  // final terrainElevationService = TerrainElevationService();
+  // final spatialAirspaceService = SpatialAirspaceService(openAIPService);
+  // final flightStatisticsService = FlightStatisticsService(flightService);
+  // final terrainAlertService = TerrainAlertService(terrainElevationService, flightService);
+  // final airspaceAlertService = AirspaceAlertService(spatialAirspaceService, flightService);
+  // final fuelAlertService = FuelAlertService(flightService, aircraftSettingsService);
 
   // Initialize connectivity service even in minimal mode
   connectivityService.initialize().then((_) {
@@ -528,6 +558,14 @@ void _runMinimalApp() {
         ChangeNotifierProvider<SensorAvailabilityService>.value(
           value: sensorAvailabilityService,
         ),
+        // Note: Alert services disabled temporarily
+        // Provider<OpenAIPService>.value(value: openAIPService),
+        // Provider<TerrainElevationService>.value(value: terrainElevationService),
+        // ChangeNotifierProvider<SpatialAirspaceService>.value(value: spatialAirspaceService),
+        // ChangeNotifierProvider<FlightStatisticsService>.value(value: flightStatisticsService),
+        // ChangeNotifierProvider<TerrainAlertService>.value(value: terrainAlertService),
+        // ChangeNotifierProvider<AirspaceAlertService>.value(value: airspaceAlertService),
+        // ChangeNotifierProvider<FuelAlertService>.value(value: fuelAlertService),
       ],
       child: const CaptainVFRApp(),
     ),

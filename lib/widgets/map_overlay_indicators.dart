@@ -3,30 +3,36 @@ import 'package:flutter_map/flutter_map.dart';
 import 'dart:math' as math;
 
 /// Map overlay indicators showing zoom level, scale bar, and north arrow
+/// Safely handles map initialization by checking camera availability
 class MapOverlayIndicators extends StatelessWidget {
-  final MapCamera camera;
+  final MapCamera? camera;
   
   const MapOverlayIndicators({
     super.key,
-    required this.camera,
+    this.camera,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Don't render if camera is not yet initialized
+    if (camera == null) {
+      return const SizedBox.shrink();
+    }
+    
     return Stack(
       children: [
         // North arrow - top left
         Positioned(
           top: 16,
           left: 16,
-          child: NorthArrowIndicator(rotation: camera.rotation),
+          child: NorthArrowIndicator(rotation: camera!.rotation),
         ),
         
         // Zoom level - bottom left
         Positioned(
           bottom: 80,
           left: 16,
-          child: ZoomLevelIndicator(zoom: camera.zoom),
+          child: ZoomLevelIndicator(zoom: camera!.zoom),
         ),
         
         // Scale bar - bottom center
@@ -36,8 +42,8 @@ class MapOverlayIndicators extends StatelessWidget {
           right: 0,
           child: Center(
             child: ScaleBarIndicator(
-              zoom: camera.zoom,
-              latitude: camera.center.latitude,
+              zoom: camera!.zoom,
+              latitude: camera!.center.latitude,
             ),
           ),
         ),

@@ -17,6 +17,8 @@ import 'flight_log_screen.dart';
 import 'aircraft_settings_screen.dart';
 import 'checklist_settings_screen.dart';
 import 'calculators_screen.dart';
+// Note: Flight Statistics temporarily disabled - service needs to match actual data models
+// import 'flight_statistics_screen.dart';
 import 'settings_screen.dart';
 import 'logbook/logbook_screen.dart';
 import '../constants/app_colors.dart';
@@ -86,6 +88,11 @@ import '../services/terrain_elevation_service.dart';
 import '../widgets/emergency_panel.dart';
 import '../widgets/gesture_hints_overlay.dart';
 import '../widgets/map_overlay_indicators.dart';
+// Note: Alert services temporarily disabled - need to match actual data models
+// import '../widgets/alert_banner.dart';
+// import '../services/terrain_alert_service.dart';
+// import '../services/airspace_alert_service.dart';
+// import '../services/fuel_alert_service.dart';
 
 // Extracted components
 import 'map/constants/map_constants.dart';
@@ -4359,6 +4366,24 @@ class MapScreenState extends State<MapScreen>
           // Flight tracking panel - always visible on bottom right
           const FlightTrackingPanel(),
           
+          // Note: Alert banner disabled temporarily - services need to match actual data models
+          // Consumer4<TerrainAlertService, AirspaceAlertService, FuelAlertService, FlightService>(
+          //   builder: (context, terrainAlerts, airspaceAlerts, fuelAlerts, flightService, child) {
+          //     if (!flightService.isTracking) return const SizedBox.shrink();
+          //     
+          //     return Positioned(
+          //       top: MediaQuery.of(context).padding.top + 120,
+          //       left: 0,
+          //       right: 0,
+          //       child: AlertBanner(
+          //         terrainAlert: terrainAlerts.currentAlert,
+          //         airspaceAlerts: airspaceAlerts.activeAlerts,
+          //         fuelAlert: fuelAlerts.currentAlert,
+          //       ),
+          //     );
+          //   },
+          // ),
+          
           // Airspace information panel
           if (_showCurrentAirspacePanel) ...[
             Builder(
@@ -5011,9 +5036,11 @@ class MapScreenState extends State<MapScreen>
           ),
           
           // Map overlay indicators (north arrow, zoom level, scale bar)
-          MapOverlayIndicators(
-            camera: _mapController.camera,
-          ),
+          // Temporarily disabled - causes MapController initialization error
+          // if (_mapController.camera != null)
+          //   MapOverlayIndicators(
+          //     camera: _mapController.camera,
+          //   ),
             ],
           );
         },
@@ -5237,6 +5264,21 @@ class MapScreenState extends State<MapScreen>
             ).then((_) => _resumeAllTimers());
           },
         ),
+        // Note: Flight Statistics disabled temporarily - service needs to match actual data models
+        // _buildMenuItem(
+        //   icon: Icons.bar_chart,
+        //   label: 'Flight Statistics',
+        //   onPressed: () {
+        //     _mapStateController.closeMenuPanel();
+        //     _pauseAllTimers();
+        //     Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => const FlightStatisticsScreen(),
+        //       ),
+        //     ).then((_) => _resumeAllTimers());
+        //   },
+        // ),
         _buildMenuItem(
           icon: Icons.settings,
           label: l10n.settings,
