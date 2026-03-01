@@ -4,7 +4,7 @@
 set -e
 
 # The default execution directory of this script is the ci_scripts directory.
-cd $CI_PRIMARY_REPOSITORY_PATH # change working directory to the root of your cloned repo.
+cd $CI_PRIMARY_REPOSITORY_PATH
 
 echo "📱 Setting up Flutter for Xcode Cloud build..."
 
@@ -25,6 +25,10 @@ flutter precache --ios
 echo "📦 Installing Flutter dependencies..."
 flutter pub get
 
+# Run code generation
+echo "🔧 Running code generation..."
+flutter pub run build_runner build --delete-conflicting-outputs
+
 # Clean any existing build artifacts
 echo "🧹 Cleaning Flutter build..."
 flutter clean
@@ -35,7 +39,7 @@ flutter build ios --config-only --no-codesign
 
 # Install CocoaPods using Homebrew.
 echo "📦 Installing CocoaPods..."
-HOMEBREW_NO_AUTO_UPDATE=1 # disable homebrew's automatic updates.
+HOMEBREW_NO_AUTO_UPDATE=1
 brew install cocoapods
 
 # Clean CocoaPods cache
