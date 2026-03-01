@@ -76,93 +76,127 @@ class NotamServiceV3 {
     final now = DateTime.now().toUtc();
     final notams = <Notam>[];
 
-    // Common NOTAM scenarios based on airport code
-    if (icaoCode == 'KEWR' || icaoCode == 'KJFK' || icaoCode == 'KLGA') {
-      // New York area airports - common NOTAMs
-      notams.addAll([
+    // Generate at least 1-3 NOTAMs for any airport to demonstrate the feature
+    final random = icaoCode.hashCode % 100; // Deterministic "random" based on ICAO code
+    final notamCount = 1 + (random % 3); // 1-3 NOTAMs
+
+    // Common NOTAM scenarios that apply to most airports
+    final scenarios = [
+      // Taxiway closure
+      {
+        'category': NotamCategory.taxiway,
+        'template': 'TWY {letter} BTN TWY {letter2} AND TWY {letter3} CLSD',
+        'decoded': 'Taxiway {letter} between Taxiway {letter2} and Taxiway {letter3} closed',
+        'schedule': 'DLY 0600-1400',
+        'days': 5,
+      },
+      // Runway maintenance
+      {
+        'category': NotamCategory.runway,
+        'template': 'RWY {rwy} CLSD DUE TO MAINT',
+        'decoded': 'Runway {rwy} closed due to maintenance',
+        'schedule': 'DLY 2200-0600',
+        'days': 7,
+      },
+      // Navaid issue
+      {
+        'category': NotamCategory.navaid,
+        'template': 'ILS RWY {rwy} GLIDE SLOPE U/S',
+        'decoded': 'ILS Runway {rwy} glide slope unserviceable',
+        'schedule': '',
+        'days': null, // Permanent
+      },
+      // Obstacle
+      {
+        'category': NotamCategory.obstacle,
+        'template': 'CRANE ERECTED {dist}FT {dir} OF RWY {rwy} THR, {height}FT AGL, LGTD',
+        'decoded': 'Crane erected {dist} feet {dir} of Runway {rwy} threshold, {height} feet above ground level, lighted',
+        'schedule': 'MON-FRI 1300-2100',
+        'days': 14,
+      },
+      // Apron closure
+      {
+        'category': NotamCategory.apron,
+        'template': 'APRON STAND {stands} CLSD',
+        'decoded': 'Apron stands {stands} closed',
+        'schedule': '',
+        'days': 2,
+      },
+      // Lighting issue
+      {
+        'category': NotamCategory.services,
+        'template': 'RWY {rwy} EDGE LIGHTS U/S',
+        'decoded': 'Runway {rwy} edge lights unserviceable',
+        'schedule': 'DLY 1800-0600',
+        'days': 3,
+      },
+    ];
+
+    // Generate NOTAMs based on airport code
+    for (int i = 0; i < notamCount; i++) {
+      final scenarioIndex = (random + i) % scenarios.length;
+      final scenario = scenarios[scenarioIndex];
+      
+      // Generate NOTAM ID
+      final notamNumber = 2000 + (random + i * 100) % 500;
+      final notamId = 'A$notamNumber/24';
+      
+      // Fill in template variables
+      final letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+      final directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      final runways = ['04', '09', '13', '18', '22', '27', '31', '36'];
+      
+      final letter = letters[(random + i) % letters.length];
+      final letter2 = letters[(random + i + 1) % letters.length];
+      final letter3 = letters[(random + i + 2) % letters.length];
+      final rwy = runways[(random + i) % runways.length];
+      final dir = directions[(random + i) % directions.length];
+      final dist = 1000 + (random + i * 100) % 1000;
+      final height = 150 + (random + i * 10) % 100;
+      final stands = '${10 + (random + i) % 40}-${13 + (random + i) % 40}';
+      
+      var text = scenario['template'] as String;
+      var decoded = scenario['decoded'] as String;
+      
+      text = text
+          .replaceAll('{letter}', letter)
+          .replaceAll('{letter2}', letter2)
+          .replaceAll('{letter3}', letter3)
+          .replaceAll('{rwy}', rwy)
+          .replaceAll('{dir}', dir)
+          .replaceAll('{dist}', dist.toString())
+          .replaceAll('{height}', height.toString())
+          .replaceAll('{stands}', stands);
+      
+      decoded = decoded
+          .replaceAll('{letter}', letter)
+          .replaceAll('{letter2}', letter2)
+          .replaceAll('{letter3}', letter3)
+          .replaceAll('{rwy}', rwy)
+          .replaceAll('{dir}', dir)
+          .replaceAll('{dist}', dist.toString())
+          .replaceAll('{height}', height.toString())
+          .replaceAll('{stands}', stands);
+      
+      final days = scenario['days'] as int?;
+      final effectiveUntil = days != null ? now.add(Duration(days: days)) : null;
+      
+      notams.add(
         Notam(
-          id: 'A2156/24_${now.millisecondsSinceEpoch}',
-          notamId: 'A2156/24',
+          id: '${notamId}_${now.millisecondsSinceEpoch}',
+          notamId: notamId,
           icaoCode: icaoCode,
           type: 'N',
-          effectiveFrom: now.subtract(const Duration(days: 2)),
-          effectiveUntil: now.add(const Duration(days: 5)),
-          schedule: 'DLY 0600-1400',
-          text:
-              'A2156/24 NOTAMN\nQ) ZNY/QMXLC/IV/NBO/A/000/999/4038N07347W005\nA) $icaoCode\nB) 2401151200\nC) 2401252359\nE) TWY A BTN TWY B AND TWY C CLSD',
-          decodedText: 'Taxiway A between Taxiway B and Taxiway C closed',
+          effectiveFrom: now.subtract(Duration(hours: 6 + i * 2)),
+          effectiveUntil: effectiveUntil,
+          schedule: scenario['schedule'] as String,
+          text: '$notamId NOTAMN\nQ) ZNY/QMXLC/IV/NBO/A/000/999/\nA) $icaoCode\nE) $text',
+          decodedText: decoded,
           purpose: 'NBO',
           scope: 'A',
           traffic: 'IV',
           fetchedAt: now,
-          category: NotamCategory.taxiway,
-        ),
-        Notam(
-          id: 'A2203/24_${now.millisecondsSinceEpoch}',
-          notamId: 'A2203/24',
-          icaoCode: icaoCode,
-          type: 'N',
-          effectiveFrom: now.subtract(const Duration(hours: 12)),
-          effectiveUntil: null, // Permanent
-          schedule: '',
-          text: 'A2203/24 NOTAMN\nE) ILS RWY 22L GLIDE SLOPE U/S',
-          decodedText: 'ILS Runway 22L glide slope unserviceable',
-          fetchedAt: now,
-          category: NotamCategory.navaid,
-        ),
-        Notam(
-          id: 'A2198/24_${now.millisecondsSinceEpoch}',
-          notamId: 'A2198/24',
-          icaoCode: icaoCode,
-          type: 'N',
-          effectiveFrom: now.subtract(const Duration(days: 1)),
-          effectiveUntil: now.add(const Duration(days: 14)),
-          schedule: 'MON-FRI 1300-2100',
-          text:
-              'A2198/24 NOTAMN\nE) CRANE ERECTED 1500FT SE OF RWY 04R THR, 180FT AGL/223FT MSL, LGTD',
-          decodedText:
-              'Crane erected 1500 feet southeast of Runway 04R threshold, 180 feet above ground level/223 feet mean sea level, lighted',
-          fetchedAt: now,
-          category: NotamCategory.obstacle,
-        ),
-      ]);
-    }
-
-    // Add NOTAMs for other major airports
-    if (icaoCode == 'KORD' || icaoCode == 'KATL' || icaoCode == 'KLAX') {
-      // Major US airports might have operational NOTAMs
-      notams.add(
-        Notam(
-          id: 'A1847/24_${now.millisecondsSinceEpoch}',
-          notamId: 'A1847/24',
-          icaoCode: icaoCode,
-          type: 'N',
-          effectiveFrom: now.subtract(const Duration(days: 1)),
-          effectiveUntil: now.add(const Duration(days: 7)),
-          schedule: 'DLY 2200-0600',
-          text: 'A1847/24 NOTAMN\nE) RWY 28L/10R CLSD DUE TO MAINT',
-          decodedText: 'Runway 28L/10R closed due to maintenance',
-          fetchedAt: now,
-          category: NotamCategory.runway,
-        ),
-      );
-    }
-
-    // Add NOTAMs for some European airports
-    if (icaoCode == 'EGLL' || icaoCode == 'LFPG' || icaoCode == 'EDDF') {
-      notams.add(
-        Notam(
-          id: 'B0756/24_${now.millisecondsSinceEpoch}',
-          notamId: 'B0756/24',
-          icaoCode: icaoCode,
-          type: 'N',
-          effectiveFrom: now.subtract(const Duration(hours: 6)),
-          effectiveUntil: now.add(const Duration(days: 2)),
-          schedule: '',
-          text: 'B0756/24 NOTAMN\nE) APRON STAND 45-48 CLSD',
-          decodedText: 'Apron stands 45-48 closed',
-          fetchedAt: now,
-          category: NotamCategory.apron,
+          category: scenario['category'] as String,
         ),
       );
     }
@@ -176,6 +210,7 @@ class NotamServiceV3 {
       return b.effectiveFrom.compareTo(a.effectiveFrom);
     });
 
+    developer.log('📋 Generated ${notams.length} NOTAMs for $icaoCode');
     return notams;
   }
 
