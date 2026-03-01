@@ -7,135 +7,96 @@ keywords = ["aviation calculators", "density altitude", "weight balance calculat
 
 # Comprehensive Pilot Calculators
 
-CaptainVFR includes all the essential calculators pilots need for safe flight operations, from pre-flight planning to in-flight calculations.
+Flying safely requires constant calculations—density altitude for performance, weight and balance for loading, crosswind components for runway selection, fuel requirements for range planning. CaptainVFR puts every essential aviation calculator at your fingertips, transforming complex computations into instant results that help you make better decisions.
 
-## Density Altitude Calculator
+These aren't simplified approximations or academic exercises. Every calculator in CaptainVFR uses real aviation formulas and integrates with your actual aircraft data, current weather conditions, and planned routes. The result is accurate, practical calculations you can trust for real-world flight operations, whether you're a student pilot learning the fundamentals or an experienced aviator planning a complex cross-country flight.
 
-### Accurate Performance Planning
-- **Real-time Calculation**: Uses current weather data
-- **Manual Input Option**: Enter your own values
-- **Pressure Altitude**: Automatic conversion from QNH
-- **Temperature Deviation**: ISA deviation display
-- **Performance Impact**: Shows effect on aircraft performance
+{{< info-grid
+  heading="Essential Performance Calculators"
+  description="Calculate critical performance parameters using current conditions and your aircraft's actual specifications"
+  columns="2"
+>}}
+  {{< info-grid-item
+    icon="thermometer"
+    title="Density Altitude Calculator"
+    description="Density altitude is the single most important factor in aircraft performance, yet it's invisible. CaptainVFR automatically calculates density altitude using current weather data from any airport—pressure altitude, temperature, and humidity—and shows you exactly how it affects your aircraft. See the impact on takeoff distance, climb rate, and service ceiling. The calculator uses real-time METAR data when available or accepts manual input for what-if scenarios. Visual indicators warn when density altitude exceeds safe limits for your aircraft and experience level."
+  >}}
+  {{< info-grid-item
+    icon="scale"
+    title="Weight & Balance Calculator"
+    description="Loading your aircraft correctly isn't just regulatory compliance—it's fundamental safety. CaptainVFR's interactive weight and balance calculator uses your aircraft's actual loading envelope and station data. Add passengers, baggage, and fuel with simple sliders or numeric input, and watch the center of gravity move in real-time on a graphical envelope display. The system instantly warns if you exceed weight limits or CG limits, and it shows how fuel burn during flight will shift the CG. Save common loading scenarios for quick reuse, and generate official weight and balance reports for your records."
+  >}}
+  {{< info-grid-item
+    icon="wind"
+    title="Crosswind Component Calculator"
+    description="Runway selection in windy conditions requires quick crosswind calculations. Enter the runway heading and current wind, and CaptainVFR instantly shows headwind/tailwind and crosswind components. The visual wind diagram makes it intuitive, and the calculator compares results against your aircraft's demonstrated crosswind component and your personal limits. For airports with multiple runways, the system analyzes all runways simultaneously and recommends the best choice. Gust factors are included in the analysis, ensuring you account for peak winds, not just sustained winds."
+  >}}
+  {{< info-grid-item
+    icon="fuel"
+    title="Fuel Planning Calculator"
+    description="Running out of fuel is completely preventable with proper planning. CaptainVFR's fuel calculator uses your aircraft's actual fuel consumption data, planned route distance, forecast winds aloft, and required reserves to calculate exactly how much fuel you need. The system accounts for taxi fuel, climb fuel, cruise fuel, descent fuel, and reserves—both regulatory minimums and your personal reserves. See your fuel at destination, endurance in hours, and range in nautical miles. The calculator warns if fuel is insufficient and suggests where to add a fuel stop."
+  >}}
+{{< /info-grid >}}
 
-### Practical Applications
-- **Takeoff Distance**: Adjusted for density altitude
-- **Climb Performance**: Reduced climb rate warnings
-- **Service Ceiling**: Effective ceiling calculations
-- **True Airspeed**: TAS from IAS conversions
+## Takeoff and Landing Performance
 
-## Weight & Balance Calculator
+Performance calculations aren't academic exercises—they determine whether you can safely operate from a given runway under current conditions. CaptainVFR's performance calculators use your aircraft's POH data combined with current conditions to give you real-world takeoff and landing distances.
 
-### Interactive Loading
-- **Visual CG Display**: Graphical envelope representation
-- **Drag-and-Drop Loading**: Intuitive weight positioning
-- **Multiple Scenarios**: Compare different loadings
-- **Fuel Burn Analysis**: CG shift during flight
+The takeoff calculator accounts for pressure altitude, temperature, wind, runway slope, and surface condition to calculate ground roll and distance to clear a 50-foot obstacle. It warns when calculated distances exceed available runway length and shows the safety margin. The system automatically applies corrections for grass runways, soft fields, and contaminated surfaces.
 
-### Comprehensive Features
-- **Station Management**: All loading positions
-- **Moment Calculations**: Automatic computation
-- **Safety Margins**: Visual warning indicators
-- **Loading Templates**: Save common configurations
+Landing calculations work similarly, computing approach speed based on current weight, landing distance required, and safety margins. The calculator shows both normal landing distance and short-field performance, helping you decide which technique to use. For unfamiliar airports, this takes the guesswork out of runway length requirements.
 
-## Crosswind Calculator
+{{< info-grid
+  heading="Navigation & Flight Planning Calculators"
+  description="Essential calculations for route planning, navigation, and in-flight decision making"
+  columns="3"
+>}}
+  {{< info-grid-item
+    icon="compass"
+    title="Wind Correction & Ground Speed"
+    description="Calculate wind correction angle and ground speed for any leg of your flight. Enter true course, true airspeed, and winds aloft, and the calculator provides magnetic heading to fly and expected ground speed. The system accounts for magnetic variation automatically based on your location. Perfect for flight planning and for verifying GPS ground speed matches your calculations."
+  >}}
+  {{< info-grid-item
+    icon="clock"
+    title="Time & Distance Calculations"
+    description="How long will this leg take? When should you start your descent? CaptainVFR calculates time en route based on distance and ground speed, provides ETAs for each waypoint, and computes fuel required for any segment. The descent calculator uses the standard 3:1 rule or custom descent gradients to determine top-of-descent points and required descent rates."
+  >}}
+  {{< info-grid-item
+    icon="globe"
+    title="Great Circle Distance"
+    description="For long cross-country flights, great circle distance calculations provide the shortest path between two points on Earth's curved surface. The calculator shows both great circle distance and rhumb line distance, helping you understand the difference and plan accordingly. Especially valuable for flights over 200 nautical miles where the difference becomes significant."
+  >}}
+{{< /info-grid >}}
 
-### Wind Component Analysis
-- **Headwind Component**: Effective headwind/tailwind
-- **Crosswind Component**: Left/right crosswind values
-- **Visual Diagram**: Graphical wind representation
-- **Runway Selection**: Optimal runway suggestions
+## Unit Conversions Made Simple
 
-### Advanced Features
-- **Gust Factors**: Include gust considerations
-- **Personal Limits**: Set your crosswind maximums
-- **Multiple Runways**: Compare all available runways
-- **Demonstrated Crosswind**: Aircraft limitation warnings
+Aviation uses a bewildering mix of units—nautical miles and statute miles, feet and meters, knots and miles per hour, pounds and kilograms, inches of mercury and hectopascals. CaptainVFR's unit converter handles all common aviation conversions instantly, with special attention to fuel conversions that account for fuel density (100LL weighs 6 pounds per gallon, Jet-A weighs 6.7 pounds per gallon).
 
-## Fuel Planning Calculator
+The converter is context-aware, suggesting the most relevant conversions based on what you're doing. Planning a flight in Europe? It offers metric conversions. Calculating fuel? It shows both volume and weight. The system remembers your preferred units and automatically converts values throughout the app, so you can work in whatever units make sense to you.
 
-### Consumption Planning
-- **Route Fuel**: Based on distance and winds
-- **Reserve Fuel**: Legal and personal minimums
-- **Alternate Fuel**: Diversion requirements
-- **Contingency Fuel**: Extra margin calculations
+## Advanced Calculators for Complex Scenarios
 
-### Practical Tools
-- **Fuel Price Comparison**: Cost at different airports
-- **Tankering Analysis**: Should you carry extra fuel?
-- **Endurance Calculation**: How long can you fly?
-- **Range Circles**: Maximum range visualization
+Beyond the basics, CaptainVFR includes calculators for more complex situations. The holding pattern calculator determines proper entry procedures (direct, parallel, or teardrop) based on your approach angle, and it calculates timing for inbound and outbound legs accounting for wind. The climb performance calculator estimates time and fuel to reach any altitude based on your aircraft's climb performance and current conditions.
 
-## Performance Calculators
+For pilots flying in mountainous terrain, the minimum safe altitude calculator helps determine appropriate altitudes for terrain clearance. The true airspeed calculator converts indicated airspeed to true airspeed accounting for altitude and temperature, essential for accurate flight planning and navigation.
 
-### Takeoff Performance
-- **Runway Required**: Based on current conditions
-- **Obstacle Clearance**: 50ft clearance distance
-- **Accelerate-Stop**: Abort decision calculations
-- **Grass/Soft Field**: Surface adjustments
-
-### Landing Performance
-- **Landing Distance**: Required runway length
-- **Approach Speed**: Weight-adjusted Vref
-- **Go-Around Performance**: Climb capability
-- **Short Field Technique**: Maximum performance calculations
-
-### Climb Performance
-- **Time to Altitude**: Realistic climb planning
-- **Fuel to Altitude**: Climb fuel requirements
-- **Best Rate vs Angle**: Vx and Vy speeds
-- **Service Ceiling**: Practical ceiling today
-
-### Cruise Performance
-- **Power Settings**: RPM and manifold pressure
-- **Fuel Flow**: Consumption at altitude
-- **True Airspeed**: Speed calculations
-- **Range/Endurance**: Optimal cruise planning
-
-## Navigation Calculators
-
-### Wind Correction
-- **Wind Correction Angle**: Drift calculations
-- **Ground Speed**: Actual speed over ground
-- **Magnetic Heading**: From true course
-- **ETAs**: Updated arrival times
-
-### Distance & Time
-- **Great Circle Distance**: Point-to-point calculations
-- **Time En Route**: With wind considerations
-- **Fuel Required**: For any leg or route
-- **Top of Descent**: When to start descent
-
-## Unit Conversions
-
-### Aviation Units
-- **Distance**: NM, SM, KM conversions
-- **Altitude**: Feet, meters, flight levels
-- **Speed**: Knots, MPH, KPH, Mach
-- **Weight**: Pounds, kilograms, gallons, liters
-- **Temperature**: Celsius, Fahrenheit, Kelvin
-- **Pressure**: inHg, hPa, PSI
-
-### Quick Converters
-- **Fuel**: Gallons to pounds (100LL, Jet A)
-- **Wind**: Degrees true to magnetic
-- **Time**: Decimal to hours:minutes
-- **Coordinates**: Multiple format support
-
-## Advanced Calculators
-
-### Descent Planning
-- **Top of Descent**: 3:1 rule and custom gradients
-- **Descent Rate Required**: FPM calculations
-- **Speed/Distance**: When to slow down
-- **Fuel Savings**: Optimal descent planning
-
-### Holding Pattern
-- **Entry Procedures**: Direct, parallel, teardrop
-- **Timing**: Inbound and outbound legs
-- **Wind Correction**: Adjusted holding patterns
-- **Fuel Consumption**: Holding endurance
+{{< info-grid
+  heading="Smart Integration with Your Flying"
+  description="Calculators that work with your actual aircraft data and current conditions, not generic examples"
+  columns="2"
+>}}
+  {{< info-grid-item
+    icon="airplane"
+    title="Aircraft-Specific Calculations"
+    description="Every calculator uses your actual aircraft's performance data—cruise speed, fuel burn, climb rate, takeoff and landing distances. Enter your aircraft's specifications once, and every calculation is tailored to your specific airplane. The system maintains profiles for multiple aircraft, so if you fly different planes, each calculation uses the correct performance data automatically."
+  >}}
+  {{< info-grid-item
+    icon="cloud"
+    title="Real-Time Weather Integration"
+    description="Calculators automatically pull current weather data when available, eliminating manual data entry and reducing errors. Density altitude uses actual temperature and pressure from METARs. Crosswind calculations use current winds. Fuel planning accounts for forecast winds aloft. You can always override with manual input for what-if scenarios, but the default is always current, real-world data."
+  >}}
+{{< /info-grid >}}
 
 ---
 
-CaptainVFR's comprehensive calculator suite ensures you have all the computational tools needed for every phase of flight, from planning to landing.
+CaptainVFR's comprehensive calculator suite eliminates the need for separate E6B calculators, performance charts, and conversion tables. Every calculation you need for safe, efficient flight operations is available instantly, using your actual aircraft data and current conditions. From student pilots learning the fundamentals to experienced aviators planning complex flights, these calculators provide accurate, reliable results you can trust.

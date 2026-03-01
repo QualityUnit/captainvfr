@@ -7,146 +7,113 @@ keywords = ["pilot license storage", "document management", "aviation documents"
 
 # Document Management
 
-Keep all your aviation documents organized, accessible, and up-to-date with CaptainVFR's comprehensive document management system.
+The paperless cockpit isn't just about convenience—it's about having every critical document instantly accessible when you need it, whether that's during a ramp check, at an unfamiliar FBO, or when planning a flight to a new airport. CaptainVFR transforms your device into a secure, organized document library that holds everything from your pilot certificate to aircraft insurance, from weight and balance data to maintenance logs.
 
-## Pilot Documents
+No more digging through a flight bag for that one document, no more expired certificates discovered at the worst possible moment, and no more wondering if you have the current version of your aircraft's paperwork. CaptainVFR keeps everything organized, tracks expiration dates, and ensures you're always compliant and prepared.
 
-### License Management
-- **Pilot Certificate Storage**: Digital copy of your license
-- **Medical Certificate**: Class 1, 2, or 3 medical tracking
-- **Ratings & Endorsements**: All your qualifications
-- **Photo Capture**: Take photos directly in app
-- **Multi-License Support**: PPL, CPL, ATPL, etc.
+{{< info-grid
+  heading="Complete Document Organization"
+  description="Store, organize, and access every aviation document you need, all in one secure location"
+  columns="2"
+>}}
+  {{< info-grid-item
+    icon="identification"
+    title="Pilot Certificates & Ratings"
+    description="Store digital copies of your pilot certificate, medical certificate, and all ratings and endorsements. The system automatically extracts expiration dates from documents using OCR technology, sets up reminder alerts, and tracks currency requirements. Support for multiple certificate types—student, sport, recreational, private, commercial, ATP—and all ratings including instrument, multi-engine, and type ratings. International licenses and validations are fully supported with country-specific requirements."
+  >}}
+  {{< info-grid-item
+    icon="document-text"
+    title="Aircraft Documentation"
+    description="Maintain complete records for every aircraft you fly. Store registration certificates, airworthiness certificates, operating handbooks, weight and balance data, equipment lists, and STCs. Link documents to specific aircraft profiles so the right paperwork is always associated with the right airplane. When you select an aircraft for a flight, all its documents are instantly accessible. Perfect for pilots who fly multiple aircraft or manage aircraft for others."
+  >}}
+  {{< info-grid-item
+    icon="shield-check"
+    title="Insurance & Legal Papers"
+    description="Keep insurance policies, renter's insurance, liability coverage, and legal documents organized and accessible. Track policy numbers, coverage limits, and expiration dates. The system alerts you before policies expire, giving you time to renew without coverage gaps. Store lease agreements, partnership documents, and ownership papers securely. For aircraft owners, maintain complete records of title, liens, and legal documentation."
+  >}}
+  {{< info-grid-item
+    icon="wrench"
+    title="Maintenance Records"
+    description="Track maintenance history, annual inspections, 100-hour inspections, ADs, and service bulletins. Store logbook pages, maintenance invoices, and work orders. The system calculates when inspections are due based on hours and calendar time, alerting you before you reach limits. Link maintenance records to specific aircraft, and see complete maintenance history at a glance. Essential for aircraft owners and anyone managing maintenance compliance."
+  >}}
+{{< /info-grid >}}
 
-### Expiry Tracking
-- **Automatic Reminders**: Never miss renewal dates
-- **Color-Coded Warnings**: Visual expiry indicators
-  - Green: Valid for 90+ days
-  - Yellow: Expires within 90 days  
-  - Red: Expired or expires within 30 days
-- **Calendar Integration**: Sync with device calendar
-- **Custom Alerts**: Set your preferred warning period
+## Intelligent Expiration Tracking
 
-## Aircraft Documentation
+Aviation documents have expiration dates, and flying with expired documents isn't just inconvenient—it's illegal. CaptainVFR's intelligent expiration tracking system monitors every document with an expiration date and provides escalating alerts as expiration approaches.
 
-### Essential Documents
-- **Registration Certificate**: Aircraft registration
-- **Airworthiness Certificate**: Current airworthiness
-- **Operating Handbook**: POH/AFM storage
-- **Weight & Balance**: Official W&B documents
-- **Equipment Lists**: Installed equipment records
+The system uses a color-coded visual system: green for documents valid for more than 90 days, yellow for documents expiring within 90 days, and red for documents expiring within 30 days or already expired. Dashboard widgets show your document status at a glance, and push notifications ensure you never miss a renewal deadline even if you haven't opened the app recently.
 
-### Insurance & Legal
-- **Insurance Policies**: Coverage documentation
-- **Ownership Papers**: Title and bill of sale
-- **Lease Agreements**: Rental or leaseback docs
-- **STC Documentation**: Modification approvals
-- **Import/Export Papers**: International operations
+For documents with complex expiration rules—like medical certificates that have different durations based on age and certificate type—the system applies the correct rules automatically. Third-class medicals valid for 60 months under age 40 but only 24 months over age 40? CaptainVFR knows the rules and calculates expiration correctly.
 
-## Organization Features
+{{< info-grid
+  heading="Smart Document Features"
+  description="Advanced capabilities that make document management effortless and secure"
+  columns="3"
+>}}
+  {{< info-grid-item
+    icon="camera"
+    title="Built-in Document Scanner"
+    description="Capture documents instantly using your device's camera. The built-in scanner automatically detects document edges, corrects perspective distortion, adjusts contrast for readability, and saves as high-quality PDFs. Scan multi-page documents with automatic page detection. OCR technology extracts text from scanned documents, making them searchable and enabling automatic data extraction for fields like expiration dates and certificate numbers."
+  >}}
+  {{< info-grid-item
+    icon="search"
+    title="Powerful Search"
+    description="Find any document instantly with full-text search across all your documents. Search by document name, type, aircraft, date, or any text within the document. The system searches both document metadata and OCR-extracted text from scanned documents. Saved searches let you quickly access common queries like 'expiring soon' or 'aircraft N12345' or 'insurance documents.'"
+  >}}
+  {{< info-grid-item
+    icon="tag"
+    title="Flexible Tagging System"
+    description="Organize documents your way with custom tags. Tag documents by aircraft, by type, by importance, or by any category that makes sense to you. Multiple tags per document let you organize in multiple dimensions simultaneously. Filter and sort by tags to find exactly what you need. Share tag schemes with other pilots or organizations for consistent organization."
+  >}}
+  {{< info-grid-item
+    icon="lock-closed"
+    title="Military-Grade Security"
+    description="Your documents contain sensitive personal information. CaptainVFR protects them with AES-256 encryption for data at rest and TLS 1.3 for data in transit. Optional document-level password protection adds an extra security layer for especially sensitive documents. Biometric authentication (Face ID, Touch ID, fingerprint) provides quick but secure access. You control what syncs to the cloud and what stays local only."
+  >}}
+  {{< info-grid-item
+    icon="share"
+    title="Secure Sharing"
+    description="Share documents securely when needed—with your flight instructor, maintenance shop, insurance company, or during a ramp check. Generate secure, time-limited sharing links that expire automatically. Control whether recipients can view only or download documents. Track who accessed shared documents and when. Revoke sharing access instantly if needed. All sharing maintains encryption and security."
+  >}}
+  {{< info-grid-item
+    icon="cloud-download"
+    title="Offline Access"
+    description="Documents are too important to depend on internet connectivity. All your documents are stored locally on your device and available offline. The system syncs to the cloud when connected for backup and cross-device access, but you can always access documents even without connectivity. Perfect for remote airports, international travel, or anywhere cellular coverage is limited."
+  >}}
+{{< /info-grid >}}
 
-### Smart Categorization
-- **Document Types**: Pre-defined categories
-- **Custom Categories**: Create your own
-- **Tag System**: Multiple tags per document
-- **Search Function**: Find documents quickly
-- **Favorites**: Quick access to frequent docs
+## Ramp Check Ready
 
-### Version Control
-- **Document History**: Track all versions
-- **Update Notifications**: Know when to update
-- **Archive Old Versions**: Keep for reference
-- **Change Tracking**: See what was modified
+When an FAA inspector or other authority requests to see your documents, you need to produce them quickly and professionally. CaptainVFR's ramp check mode provides instant access to all required documents in a format that's easy for inspectors to review.
 
-## Security & Privacy
+A single tap opens ramp check mode, which displays your pilot certificate, medical certificate, photo ID, and aircraft documents in a clear, organized view. The inspector can scroll through documents easily, and you can quickly navigate to any specific document they request. The system tracks which documents were viewed during the ramp check, creating a record of the inspection.
 
-### Data Protection
-- **Encrypted Storage**: Military-grade encryption
-- **Password Protection**: Optional document locks
-- **Biometric Access**: Fingerprint/Face ID support
-- **Secure Sharing**: Encrypted document sharing
-- **Privacy Controls**: Choose what to sync
+For international operations, ramp check mode adapts to show the documents required in different countries—ICAO licenses, radio operator permits, customs declarations, and country-specific requirements. The system knows what documents are required for operations in different jurisdictions and ensures you have everything needed.
 
-### Backup & Recovery
-- **Cloud Backup**: Automatic secure backup
-- **Local Storage**: On-device document copies
-- **Export Options**: Download all documents
-- **Recovery Tools**: Restore deleted documents
+## Version Control & History
 
-## Practical Features
+Documents change over time—certificates are renewed, aircraft configurations are modified, insurance policies are updated. CaptainVFR maintains complete version history for all documents, letting you see previous versions, track changes over time, and restore old versions if needed.
 
-### Quick Access
-- **Offline Availability**: Access without internet
-- **Ramp Check Ready**: Quick document display
-- **QR Codes**: Generate for quick sharing
-- **Print Support**: Print when needed
-- **Email Integration**: Send documents easily
+When you upload a new version of a document, the system archives the old version automatically. You can see when each version was uploaded, compare versions side by side, and maintain a complete audit trail. This is especially valuable for aircraft documents where you need to prove compliance history or track configuration changes over time.
 
-### Multi-Format Support
-- **PDF Documents**: Most common format
-- **Image Files**: JPG, PNG photo support
-- **Document Scanning**: Built-in scanner feature
-- **Text Recognition**: OCR for searchability
-- **File Compression**: Optimize storage space
-
-## Compliance Features
-
-### Regulatory Requirements
-- **FAA/EASA Compliance**: Meet requirements
-- **Audit Trail**: Document access history
-- **Retention Policies**: Automatic archiving
-- **Legal Hold**: Preserve when required
-
-### International Operations
-- **Multi-Language**: Document descriptions
-- **Country-Specific**: Requirements tracking
-- **Customs Documents**: General declarations
-- **Flight Permits**: Special authorizations
-
-## Integration Benefits
-
-### Flight Planning
-- **Automatic Checks**: Verify document validity
-- **Pre-Flight Warnings**: Expired document alerts
-- **Route-Specific Docs**: International requirements
-- **Currency Verification**: Recent experience docs
-
-### Sharing Capabilities
-- **Instructor Access**: Share with CFI
-- **Maintenance Shops**: Provide aircraft docs
-- **Insurance Claims**: Quick document access
-- **Regulatory Inspections**: Ramp check support
-
-## Additional Documents
-
-### Training Records
-- **Flight Training**: Lesson summaries
-- **Ground School**: Course completions
-- **Checkrides**: Practical test records
-- **BFRs**: Biennial flight reviews
-- **IPCs**: Instrument proficiency checks
-
-### Personal Aviation
-- **Club Memberships**: Flying club documents
-- **Hangar Agreements**: Storage contracts
-- **FBO Accounts**: Fuel and service accounts
-- **Aviation Memberships**: AOPA, EAA, etc.
-
-## Smart Features
-
-### Optical Character Recognition
-- **Automatic Data Extraction**: Read document details
-- **Expiry Date Detection**: Auto-populate dates
-- **Document Classification**: Auto-categorize
-- **Information Parsing**: Extract key data
-
-### Reminder System
-- **Customizable Alerts**: Set your preferences
-- **Multiple Reminders**: Escalating warnings
-- **Email Notifications**: External reminders
-- **Push Notifications**: Mobile alerts
-- **Dashboard Widgets**: At-a-glance status
+{{< info-grid
+  heading="Professional Features"
+  description="Advanced capabilities for serious pilots and aircraft operators"
+  columns="2"
+>}}
+  {{< info-grid-item
+    icon="users"
+    title="Multi-User Access"
+    description="Aircraft owners, partnerships, and flying clubs need to share documents among multiple pilots. CaptainVFR supports multi-user access with granular permissions. Grant read-only access to renters, full access to co-owners, and administrative access to club managers. Each user sees only the documents they're authorized to access. Track who uploaded, modified, or accessed each document. Perfect for shared aircraft operations."
+  >}}
+  {{< info-grid-item
+    icon="clipboard-check"
+    title="Compliance Reporting"
+    description="Generate compliance reports showing document status, expiration dates, and currency requirements. Export reports as PDFs for insurance companies, flight schools, or regulatory authorities. The system can generate reports for individual pilots, specific aircraft, or entire organizations. Scheduled reports can be generated automatically and emailed to stakeholders. Essential for professional operations and serious record-keeping."
+  >}}
+{{< /info-grid >}}
 
 ---
 
-CaptainVFR's document management system creates a paperless cockpit while ensuring all your important aviation documents are secure, organized, and always accessible when you need them.
+CaptainVFR's document management system creates a truly paperless cockpit while ensuring you're always compliant, always prepared, and always able to produce the right document at the right time. From student pilots managing their first certificates to aircraft owners maintaining complex documentation, from flight instructors tracking student progress to flying clubs managing shared aircraft, CaptainVFR keeps every document organized, secure, and instantly accessible.
